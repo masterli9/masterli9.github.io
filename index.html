@@ -3,23 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./Resources/css/styles.css">
+    <link rel="stylesheet" href="./Resources/css/navbar.css">
+    <link rel="stylesheet" href="./Resources/css/homeMain.css">
     <title>WhatShouldWeEat</title>
 </head>
     <body>
         <nav>
             <h1 style="margin-left: 20px">What Should We Eat?</h1>
             <ul>
-                <a href="#"><li>Home</li></a>
-                <a href="#"><li>Login</li></a>
+                <a href="../masterli9.github.io/index.html"><li>Domů</li></a>
+                <a href="#"><li>Přihlásit se</li></a>
             </ul>
         </nav>
         <div class="main-container">
-            <div class="show-meal">
-                <h1>Svíčková</h1>
+            <div class="grid-container">
+                <div class="show-meal">
+                    <h1>Vepřová na paprice</h1>
+                </div>
+                <div class="show-meal-btns">
+                    <button class="btn btn-green" id="getMeal">Dej mi jídlo!</button>
+                    <button class="btn btn-red" id="declineMeal">Tohle nechci, dej mi jiné</button>
+                    <button class="btn btn-green" id="declineMeal">OK, tohle si dám</button>
+                </div>
+                <div class="meal-list">
+                    <ul>
+                        <li>Vepřová na paprice s rýží a hranolky</li>
+                        <hr>
+                        <li>Vepřová na paprice s rýží a hranolky</li>
+                        <hr>
+                        <li>Vepřová na paprice s rýží a hranolky</li>
+                        <hr>
+                        <li>Vepřová na paprice s rýží a hranolky</li>
+                    </ul>
+                </div>
+                <div class="add-meal">
+                    <h1>Přidej nové jídlo</h1>
+                    <form id="addMealForm" action="">
+                        <table>
+                            <tr>
+                                <td>Název jídla:</td>
+                                <td colspan="2">
+                                    <input type="text" id="mealName">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Chceš přidat recept?</td>
+                                <td>
+                                    <label for="ano"><input type="radio" name="recept" id="ano">Ano</label>
+                                </td>
+                                <td>
+                                    <label for="ne"><input type="radio" name="recept" id="ne" checked>Ne</label>
+                                </td>
+                            </tr>
+                            <tr style="display: none">
+                                <td colspan="3"><input type="text" id="recept"></td>
+                            </tr>
+                            <tr>
+                                <td>Čas počítat od: </td>
+                                <td>
+                                    <label for="ted"><input type="radio" name="cas" id="ted" checked>Teď</label>
+                                </td>
+                                <td>
+                                    <label for="jindy"><input type="radio" name="cas" id="jindy">Jindy</label>
+                                </td>
+                            </tr>
+                            <tr style="display: none">
+                                <td colspan="3">
+                                    <input type="date" id="mealDate">
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
             </div>
-            <div class="meal-list"></div>
-            <div class="add-meal"></div>
         </div>
     </body>
     <script src="./Resources/js/script.js"></script>

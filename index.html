@@ -12,7 +12,7 @@
             <h1 style="margin-left: 20px">What Should We Eat?</h1>
             <ul>
                 <a href="../masterli9.github.io/index.html"><li>Domů</li></a>
-                <a href="#"><li>Přihlásit se</li></a>
+                <a href="#"><li>Přihlásit</li></a>
             </ul>
         </nav>
         <div class="main-container">
@@ -22,8 +22,8 @@
                 </div>
                 <div class="show-meal-btns">
                     <button class="btn btn-green" id="getMeal">Dej mi jídlo!</button>
-                    <button class="btn btn-red" id="declineMeal">Tohle nechci, dej mi jiné</button>
-                    <button class="btn btn-green" id="declineMeal">OK, tohle si dám</button>
+                    <!-- <button class="btn btn-red" id="declineMeal">Tohle nechci, dej mi jiné</button>
+                    <button class="btn btn-green" id="declineMeal">OK, tohle si dám</button> -->
                 </div>
                 <div class="meal-list">
                     <ul>
@@ -39,11 +39,33 @@
                 <div class="add-meal">
                     <h1>Přidej nové jídlo</h1>
                     <form id="addMealForm" action="">
-                        <table>
+                        <div class="input-container">
+                            <input type="text" id="nazevJidla" required="">
+                            <label for="nazevJidla" class="label">Název jídla</label>
+                            <div class="underline"></div>
+                          </div>
+                        <h4>Chceš přidat recept?</h4>
+                        <label class="radio-container">Ano
+                                <input type="radio" name="recept" id="ano">
+                                <span class="radio"></span>
+                        </label>
+                        <div class="input-container">
+                            <input type="text" id="recept" required="">
+                            <label for="recept" class="label">Sem zadej recept</label>
+                            <div class="underline"></div>
+                          </div>
+
+
+
+
+
+
+
+                        <!-- <table>
                             <tr>
                                 <td>Název jídla:</td>
                                 <td colspan="2">
-                                    <input type="text" id="mealName">
+                                    <input type="text" id="mealName" placeholder="Název jídla">
                                 </td>
                             </tr>
                             <tr>
@@ -55,7 +77,7 @@
                                     <label for="ne"><input type="radio" name="recept" id="ne" checked>Ne</label>
                                 </td>
                             </tr>
-                            <tr style="display: none">
+                            <tr style="display: block" id="receptTr">
                                 <td colspan="3"><input type="text" id="recept"></td>
                             </tr>
                             <tr>
@@ -72,7 +94,7 @@
                                     <input type="date" id="mealDate">
                                 </td>
                             </tr>
-                        </table>
+                        </table> -->
                     </form>
                 </div>
             </div>

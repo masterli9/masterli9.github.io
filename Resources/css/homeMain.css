@@ -2,12 +2,14 @@
     display: flex;
     justify-content: center;
     padding-top: 3%;
+    width: 100%;
 }
 .grid-container{
     width: 65%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
+    justify-content: center;
 }
 
 .show-meal{
@@ -23,6 +25,9 @@
     align-items: center;
     font-size: 35px;
     color: rgb(45, 128, 45);
+    text-align: center;
+    padding: 10px;
+    justify-self: center;
 }
 .show-meal-btns{
     grid-column: 1 / span 2;
@@ -69,6 +74,7 @@
     padding: 15px;
 }
 .meal-list > ul {
+    text-align: center;
     padding: 0;
     list-style: none;
 }
@@ -83,12 +89,116 @@
     text-align: center;
 }
 
-.add-meal table {
+
+/*  ===================== FORMULÁŘ ============================= */
+
+
+
+.input-container {
+    position: relative;
+    margin: 50px auto;
+    width: 100%;
+}
+  
+.input-container input[type="text"] {
+    font-size: 20px;
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    padding: 5px 0;
+    background-color: transparent;
+    outline: none;
+}
+  
+.input-container .label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #919191;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+  
+.input-container input[type="text"]:focus ~ .label,
+.input-container input[type="text"]:valid ~ .label {
+    top: -20px;
+    font-size: 16px;
+    color: #333;
+}
+  
+.input-container .underline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    width: 100%;
+    background-color: #333;
+    transform: scaleX(0);
+    transition: all 0.3s ease;
+}
+  
+.input-container input[type="text"]:focus ~ .underline,
+.input-container input[type="text"]:valid ~ .underline {
+    transform: scaleX(1);
+}
+  
+
+
+.radio-container{
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    font-size: 17px;
+}
+.radio-container input[type="radio"], .radio-container label{
+    cursor: pointer;
+}
+.radio-container input[type="radio"]{
+    opacity: 0;
+    position: absolute;
+    height: 0;
+    width: 0;
+}
+.radio{
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background-color: #ccc;
+}
+.radio-container:hover ~ .radio{
+    background-color: #e70707;
+}
+
+
+
+
+
+/* ==================================================== */
+
+
+
+
+
+
+/* .add-meal table {
     margin: 0 auto;
     text-align: left;
     width: 100%;
 }
 
+
+.add-meal > table > tr > td[colspan="3"]{
+    width: 100%;
+}
+#receptTr{
+    width: 100%;
+}
+#recept {
+    width: 100%;
+}
 
 .add-meal input[type="text"],
 .add-meal input[type="date"] {
@@ -96,8 +206,36 @@
     padding: 8px;
     box-sizing: border-box;
     margin-top: 5px;
+    background-color: rgba(59, 59, 59, 0);
+    border: none;
+    border-bottom: 2px solid rgba(59, 59, 59, 0.15);
+
+}
+.add-meal input:focus {
+    outline: none;
+    border-color: rgba(59, 59, 59, 0.8);
 }
 
 .add-meal input[type="radio"] {
     margin-right: 5px;
+} */
+
+@media only screen and (max-width: 768px) {
+    .grid-container{
+        grid-template-columns: 1fr;
+    }
+    .show-meal{
+        grid-column: 1;
+    }
+    .show-meal-btns{
+        grid-column: 1;
+    }
+    .meal-list{
+        width: 90%;
+    }
+}
+@media only screen and (max-width: 400px){
+    .show-meal{
+        font-size: 25px;
+    }
 }

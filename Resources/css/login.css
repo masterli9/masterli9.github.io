@@ -1,0 +1,128 @@
+.login-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 85vh;
+}
+.form-container{
+    margin-top: 70px;
+    max-width: 400px;
+    width: 400px;
+    height: fit-content;
+    /* background-color: rgb(223, 223, 223); */
+    background-color: white;
+    border-radius: 15px;
+    border: 1px solid rgba(59, 59, 59, 0.15);
+    box-shadow: 0 3px 35px 1px black;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+    flex-direction: column;
+}
+.login{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+    /* display: none; */
+}
+.register{
+    display: none;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+}
+
+
+.register-switch{
+    cursor: pointer;
+    color: rgb(17, 41, 122);
+}
+
+
+
+
+/*  =============== FORM STYLING =============== */
+
+
+.input-container {
+    position: relative;
+    margin: 30px auto;
+    width: 80%;
+}
+  
+.input-container input[type="text"], 
+.input-container input[type="password"] {
+    font-size: 20px;
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    padding: 5px 0;
+    background-color: transparent;
+    outline: none;
+}
+  
+.input-container .label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #919191;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+  
+.input-container input[type="text"]:focus ~ .label,
+.input-container input[type="text"]:valid ~ .label,
+.input-container input[type="password"]:focus ~ .label,
+.input-container input[type="password"]:valid ~ .label {
+    top: -20px;
+    font-size: 16px;
+    color: #333;
+}
+  
+.input-container .underline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    width: 100%;
+    background-color: #333;
+    transform: scaleX(0);
+    transition: all 0.3s ease;
+}
+  
+.input-container input[type="text"]:focus ~ .underline,
+.input-container input[type="text"]:valid ~ .underline,
+.input-container input[type="password"]:focus ~ .underline,
+.input-container input[type="password"]:valid ~ .underline {
+    transform: scaleX(1);
+}
+
+
+
+
+
+.btn {
+    padding: 15px;
+    font-size: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* margin: 0 0 0 25px; */
+    border-radius: 5px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-bottom: 30px;
+}
+.btn-green{
+    background-color: rgb(9, 109, 9);
+}
+.btn-red {
+    background-color: rgb(233, 38, 3);
+}
+.btn-green:hover{
+    background-color: rgb(17, 122, 17);
+}
+.btn-red:hover{
+    background-color: rgb(235, 65, 35);
+}

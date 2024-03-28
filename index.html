@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,10 +9,10 @@
 </head>
     <body>
         <nav>
-            <h1 style="margin-left: 20px">What Should We Eat?</h1>
+            <a href="../masterli9.github.io/index.html"><h1 style="margin-left: 20px; font-size: 24px;">What Should We Eat?</h1></a>
             <ul>
                 <a href="../masterli9.github.io/index.html"><li>Domů</li></a>
-                <a href="#"><li>Přihlásit</li></a>
+                <a href="../masterli9.github.io/login.html"><li>Přihlásit</li></a>
             </ul>
         </nav>
         <div class="main-container">
@@ -45,17 +45,29 @@
                             <div class="underline"></div>
                           </div>
                         <h4>Chceš přidat recept?</h4>
-                        <label class="radio-container">Ano
-                                <input type="radio" name="recept" id="ano">
-                                <span class="radio"></span>
-                        </label>
+                            <label for="ano">
+                                <input type="radio" name="recept" id="ano">Ano
+                            </label>
+                            <label for="ne">
+                                <input type="radio" name="recept" id="ne">Ne
+                            </label>
                         <div class="input-container">
                             <input type="text" id="recept" required="">
                             <label for="recept" class="label">Sem zadej recept</label>
                             <div class="underline"></div>
-                          </div>
-
-
+                        </div>
+                        <h4>Čas počítat od teď nebo od datumu?</h4>
+                        <label for="ted">
+                            <input type="radio" name="cas" id="ted">Od teď
+                        </label>
+                        <label for="jindy">
+                            <input type="radio" name="cas" id="jindy">Od určitého datumu
+                        </label>
+                        <div class="input-container">
+                            <input type="text" id="recept" required="">
+                            <label for="recept" class="label">Sem zadej datum (dd. mm. yyyy)</label>
+                            <div class="underline"></div>
+                        </div>
 
 
 

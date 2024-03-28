@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./Resources/css/navbar.css">
+    <link rel="stylesheet" href="./Resources/css/login.css">
+    <!-- <link rel="stylesheet" href="./Resources/css/homeMain.css"> -->
+    <title>WhatShouldWeEat</title>
+</head>
+    <body>
+        <nav>
+            <a href="../masterli9.github.io/index.html"><h1 style="margin-left: 20px; font-size: 24px;">What Should We Eat?</h1></a>
+            <ul>
+                <a href="../masterli9.github.io/index.html"><li>Domů</li></a>
+                <a href="../masterli9.github.io/login.html"><li>Přihlásit</li></a>
+            </ul>
+        </nav>
+        <div class="login-container">
+            <div class="form-container">
+                <div class="login">
+                    <h1>Přihlásit se</h1>
+                    <div class="input-container">
+                        <input type="text" id="emailL" required="">
+                        <label for="emailL" class="label">Email</label>
+                        <div class="underline"></div>
+                    </div>
+                    <div class="input-container">
+                        <input type="password" id="passwordL" required="">
+                        <label for="passwordL" class="label">Heslo</label>
+                        <div class="underline"></div>
+                    </div>
+                    <button type="submit" class="btn btn-green">Přihlásit!</button>
+                    <p>
+                        Nemáš ještě účet? <div class="register-switch">Registruj se.</div>
+                    </p>
+                </div>
+                <div class="register">
+                    <h1>Registrovat se</h1>
+                    <div class="input-container">
+                        <input type="text" id="name" required="">
+                        <label for="name" class="label">Jméno</label>
+                        <div class="underline"></div>
+                    </div>
+                    <div class="input-container">
+                        <input type="text" id="email" required="">
+                        <label for="email" class="label">Email</label>
+                        <div class="underline"></div>
+                    </div>
+                    <div class="input-container">
+                        <input type="password" id="password" required="">
+                        <label for="password" class="label">Heslo</label>
+                        <div class="underline"></div>
+                    </div>
+                    <div class="input-container">
+                        <input type="password" id="password2" required="">
+                        <label for="password2" class="label">Potvrdit heslo</label>
+                        <div class="underline"></div>
+                    </div>
+                    <button type="submit" class="btn btn-green">Registrovat!</button>
+                    <p>
+                        Už máš účet? <div class="register-switch">Přihlaš se.</div>
+                    </p>
+                    
+                </div>
+            </div>
+        </div>
+    </body>
+    <script>
+        let register = document.querySelector('.register');
+        let login = document.querySelector('.login');
+        let registerSwitches = document.querySelectorAll('.register-switch');
+
+        function changeLoginRegistration() {
+            let loginDisplay = window.getComputedStyle(login).getPropertyValue('display');
+            let registerDisplay = window.getComputedStyle(register).getPropertyValue('display');
+            if (loginDisplay === 'none' && registerDisplay === 'flex') {
+                login.style.display = 'flex';
+                register.style.display = 'none';
+            } else if (loginDisplay === 'flex' && registerDisplay === 'none') {
+                login.style.display = 'none';
+                register.style.display = 'flex';
+            }
+        }
+        registerSwitches.forEach(registerSwitch => {
+            registerSwitch.onclick = changeLoginRegistration;
+        });
+
+    </script>
+</html>

@@ -12,42 +12,45 @@
         <nav>
             <a href="../masterli9.github.io/index.html"><h1 style="margin-left: 20px; font-size: 24px;">What Should We Eat?</h1></a>
             <ul>
-                <a href="../masterli9.github.io/index.html"><li>Domů</li></a>
-                <a href="../masterli9.github.io/login.html"><li>Přihlásit</li></a>
+                <a href="./index.html"><li>Domů</li></a>
+                <a href="./login.html"><li>Přihlásit</li></a>
             </ul>
         </nav>
         <div class="login-container">
             <div class="form-container">
-                <div class="login">
-                    <h1>Přihlásit se</h1>
-                    <div class="input-container">
-                        <input type="text" id="emailL" required="">
-                        <label for="emailL" class="label">Email</label>
-                        <div class="underline"></div>
-                    </div>
-                    <div class="input-container">
-                        <input type="password" id="passwordL" required="">
-                        <label for="passwordL" class="label">Heslo</label>
-                        <div class="underline"></div>
-                    </div>
+                <!-- <div class="login"> -->
+                    <form action="/login" method="post" class="login">
+                        <h1>Přihlásit se</h1>
+                        <div class="input-container">
+                            <input type="text" id="emailL" required="">
+                            <label for="emailL" class="label">Email</label>
+                            <div class="underline"></div>
+                        </div>
+                        <div class="input-container">
+                            <input type="password" id="passwordL" required="">
+                            <label for="passwordL" class="label">Heslo</label>
+                            <div class="underline"></div>
+                        </div>
                     <button type="submit" class="btn btn-green">Přihlásit!</button>
                     <p>
                         Nemáš ještě účet? <div class="register-switch">Registruj se.</div>
                     </p>
-                </div>
-                <div class="register">
-                    <h1>Registrovat se</h1>
-                    <div class="input-container">
-                        <input type="text" id="name" required="">
-                        <label for="name" class="label">Jméno</label>
-                        <div class="underline"></div>
-                    </div>
-                    <div class="input-container">
-                        <input type="text" id="email" required="">
-                        <label for="email" class="label">Email</label>
-                        <div class="underline"></div>
-                    </div>
-                    <div class="input-container">
+                    </form>
+                <!-- </div> -->
+                <!-- <div class="register"> -->
+                    <form action="/register" method="post" class="register">
+                        <h1>Registrovat se</h1>
+                        <div class="input-container">
+                            <input type="text" id="name" required="">
+                            <label for="name" class="label">Jméno</label>
+                            <div class="underline"></div>
+                        </div>
+                        <div class="input-container">
+                            <input type="text" id="email" required="">
+                            <label for="email" class="label">Email</label>
+                            <div class="underline"></div>
+                        </div>
+                        <div class="input-container">
                         <input type="password" id="password" required="">
                         <label for="password" class="label">Heslo</label>
                         <div class="underline"></div>
@@ -61,8 +64,9 @@
                     <p>
                         Už máš účet? <div class="register-switch">Přihlaš se.</div>
                     </p>
+                </form>
                     
-                </div>
+                <!-- </div> -->
             </div>
         </div>
     </body>

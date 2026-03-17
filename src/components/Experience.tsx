@@ -6,7 +6,7 @@ export default function Experience(){
         <div className="mt-6 space-y-4">
           <div className="p-4 bg-gray-800 rounded-lg">
             <h3 className="font-semibold">Brigáda – Webforte Technologies</h3>
-            <p className="text-gray-300 text-sm">Vývoj webových aplikací s využitím AI (placeholder)</p>
+            <p className="text-gray-300 text-sm">Odborná praxe v oblasti webového vývoje, práce na webových aplikacích s využitím AI, úkoly zahrnovaly vývoj funkcí a údržbu frontendových aplikací.</p>
           </div>
           <div className="p-4 bg-gray-800 rounded-lg">
             <h3 className="font-semibold">Certifikace – Cisco (CCNA, IT Essentials)</h3>

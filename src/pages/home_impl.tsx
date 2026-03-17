@@ -1,6 +1,7 @@
 import Layout from '../components/Layout'
 import About from '../components/About'
 import Skills from '../components/Skills'
+import Projects from '../components/Projects'
 
 export default function HomeImpl(){
   return (
@@ -20,15 +21,7 @@ export default function HomeImpl(){
 
       <Skills />
 
-      <section id="projects" className="py-12">
-        <div className="max-w-6xl mx-auto px-4">
-           <h2 className="text-2xl font-semibold">Projekty</h2>
-           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="p-6 bg-gray-800 rounded-lg">RehearsalHub (placeholder)</div>
-             <div className="p-6 bg-gray-800 rounded-lg">The GT Series (placeholder)</div>
-           </div>
-        </div>
-      </section>
+      <Projects />
 
       <section id="contact" className="py-12">
          <div className="max-w-4xl mx-auto px-4">

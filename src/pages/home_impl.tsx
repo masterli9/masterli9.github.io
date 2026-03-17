@@ -1,4 +1,6 @@
 import Layout from '../components/Layout'
+import About from '../components/About'
+import Skills from '../components/Skills'
 
 export default function HomeImpl(){
   return (
@@ -14,12 +16,9 @@ export default function HomeImpl(){
         </div>
       </section>
 
-      <section id="about" className="py-12">
-         <div className="max-w-4xl mx-auto px-4">
-           <h2 className="text-2xl font-semibold">O mně</h2>
-           <p className="mt-3 text-gray-300">Krátký odstavec z medailonu... (placeholder)</p>
-         </div>
-      </section>
+      <About />
+
+      <Skills />
 
       <section id="projects" className="py-12">
         <div className="max-w-6xl mx-auto px-4">

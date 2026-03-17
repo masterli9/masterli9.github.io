@@ -2,82 +2,84 @@
 
 @theme {
   /* Background colors */
-  --color-background-light: #fafafa;
-  --color-background-dark: #1a1a1a;
-  --color-background-light-secondary: #ffffff;
-  --color-background-dark-secondary: #252525;
+  --color-background-dark: #0A0A0A;
+  --color-background-light: #FFFFFF;
+
+  /* Brand Accents */
+  --color-brand-blue: #2563EB;
+  --color-brand-neonGreen: #A3E635;
+  --color-brand-cyan: #06B6D4;
+  --color-brand-socialBlue: #3B82F6;
+  --color-brand-socialPink: #EC4899;
+  --color-brand-socialDark: #111827;
 
   /* Text colors */
-  --color-text-light: #242424;
-  --color-text-dark: #e5e5e5;
-  --color-text-light-secondary: #646464;
-  --color-text-dark-secondary: #a0a0a0;
+  --color-text-onDark: #FFFFFF;
+  --color-text-onLight: #0F0F0F;
+  --color-text-mutedOnDark: #BBBBBB;
+  --color-text-mutedOnLight: #555555;
 
-  /* Magenta colors */
-  --color-magenta: #ff00ff;
-  --color-magenta-light: #ff66ff;
-  --color-magenta-dark: #cc00cc;
+  /* Custom fonts */
+  --font-heading: 'Poppins', 'Montserrat', sans-serif;
+  --font-body: 'Inter', 'Roboto', sans-serif;
 
-  /* Gold colors */
-  --color-gold: #ffd700;
-  --color-gold-light: #ffed4e;
-  --color-gold-dark: #ccaa00;
-
-  /* Glow colors */
-  --color-glow-magenta-light: rgba(255, 0, 255, 0.3);
-  --color-glow-magenta-dark: rgba(255, 0, 255, 0.5);
-  --color-glow-gold-light: rgba(255, 215, 0, 0.3);
-  --color-glow-gold-dark: rgba(255, 215, 0, 0.5);
+  /* Gradients & Backgrounds */
+  --background-image-shape-1: linear-gradient(to right, #FF7A00, #FF004D, #B200FF, #00E5FF);
+  --background-image-shape-2: linear-gradient(to right, #A8FF78, #78FFD6);
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark light;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+@layer utilities {
+  .isometric-grid {
+    background-image: 
+      linear-gradient(30deg, #000 12%, transparent 12.5%, transparent 87%, #000 87.5%, #000),
+      linear-gradient(150deg, #000 12%, transparent 12.5%, transparent 87%, #000 87.5%, #000),
+      linear-gradient(30deg, #000 12%, transparent 12.5%, transparent 87%, #000 87.5%, #000),
+      linear-gradient(150deg, #000 12%, transparent 12.5%, transparent 87%, #000 87.5%, #000),
+      linear-gradient(60deg, #0000000d 25%, transparent 25.5%, transparent 75%, #0000000d 75%, #0000000d),
+      linear-gradient(60deg, #0000000d 25%, transparent 25.5%, transparent 75%, #0000000d 75%, #0000000d);
+    background-size: 80px 140px;
+    background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+    opacity: 0.03; /* Reduced from 0.05 */
+  }
+
+  .diagonal-split-v2 {
+    clip-path: polygon(0 0, 100% 0, 100% 75%, 0 88%);
+  }
+
+  .floating {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translatey(0px); }
+    50% { transform: translatey(-20px); }
+    100% { transform: translatey(0px); }
+  }
+  .marquee {
+    animation: marquee 25s linear infinite;
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
 }
 
-html,
-body {
+html, body {
   margin: 0;
   min-height: 100vh;
   min-width: 100%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 #root {
   min-height: 100vh;
-}
-
-
-/* Custom glow utilities */
-.glow-magenta-light {
-  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
-}
-
-.glow-magenta-dark {
-  box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
-}
-
-.glow-gold-light {
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-}
-
-.glow-gold-dark {
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }

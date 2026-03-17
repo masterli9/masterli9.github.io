@@ -1,0 +1,96 @@
+{
+	"project_metadata": {
+		"name": "Personal Portfolio",
+		"style": "Modern, High-Contrast, Abstract 3D, Minimalist Typographic",
+		"core_concept": "Diagonal split screen (Dark/Light) with vibrant floating 3D elements."
+	},
+	"design_system": {
+		"colors": {
+			"background": {
+				"dark": "#0F0F0F",
+				"light": "#FFFFFF"
+			},
+			"text": {
+				"on_dark": "#FFFFFF",
+				"on_light": "#1A1A24",
+				"muted_on_dark": "#888888",
+				"muted_on_light": "#666666"
+			},
+			"brand_accents": {
+				"primary_blue": "#2563EB",
+				"neon_green": "#A3E635",
+				"cyan_icon": "#06B6D4",
+				"social_blue": "#3B82F6",
+				"social_pink": "#EC4899",
+				"social_dark": "#111827"
+			},
+			"gradients": {
+				"3d_shape_1": "linear-gradient(to right, #FF7A00, #FF004D, #B200FF, #00E5FF)",
+				"3d_shape_2": "linear-gradient(to right, #A8FF78, #78FFD6)"
+			}
+		},
+		"typography": {
+			"headings": {
+				"family": "'Poppins', or 'Montserrat', sans-serif",
+				"weight": "800",
+				"tracking": "tight"
+			},
+			"body": {
+				"family": "'Inter', or 'Roboto', sans-serif",
+				"weight": "400",
+				"tracking": "normal"
+			},
+			"subtitles": {
+				"family": "'Inter', sans-serif",
+				"weight": "600",
+				"transform": "uppercase",
+				"letter_spacing": "0.1em"
+			}
+		},
+		"textures_and_patterns": {
+			"light_section_background": "Faint isometric grid lines (opacity: 0.05, color: #000000)",
+			"dark_section_background": "Solid deep black/gray, no grid"
+		},
+		"ui_elements": {
+			"buttons": {
+				"style": "Pill-shaped (border-radius: 9999px)",
+				"hover_effect": "Slight scale up, subtle glow matching accent colors"
+			},
+			"social_icons": {
+				"style": "Circular background, flat monochrome icon inside",
+				"size": "small"
+			},
+			"navigation": {
+				"style": "Sticky, transparent, adapting text color based on background (mix-blend-mode or explicit styling)",
+				"active_state": "Bright green accent text (e.g., #A3E635)"
+			}
+		}
+	},
+	"layout_extrapolation": {
+		"general_rules": {
+			"container": "Max-width 1200px, centered, generous padding (e.g., 5rem vertical)",
+			"flow": "Alternate between full-width dark sections and full-width light sections with the isometric grid to maintain the duality established in the hero."
+		},
+		"sections": {
+			"hero": {
+				"layout": "Diagonal split background. Centered typography. Floating 3D shapes overflowing the background split. Vertical scroll indicator line at the bottom."
+			},
+			"biography": {
+				"background": "dark",
+				"layout": "Two-column. Left: Clean typography with a bright blue accent heading. Right: Floating 3D element or a stylized photo of the developer."
+			},
+			"projects": {
+				"background": "light (with isometric grid)",
+				"layout": "CSS Grid (2 or 3 columns). Project cards with solid white background, soft drop shadow, dark text, and vibrant gradient borders on hover."
+			},
+			"skills": {
+				"background": "dark",
+				"layout": "Flexbox layout. Skills represented as pill-shaped tags or minimalist progress bars using the bright gradient palette."
+			},
+			"contacts": {
+				"background": "light",
+				"layout": "Centered minimalist form. Large typography for 'Let's work together'. Submit button in primary blue (#2563EB)."
+			}
+		}
+	}
+}

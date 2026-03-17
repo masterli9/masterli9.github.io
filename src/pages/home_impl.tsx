@@ -2,6 +2,7 @@ import Layout from '../components/Layout'
 import About from '../components/About'
 import Skills from '../components/Skills'
 import Projects from '../components/Projects'
+import Experience from '../components/Experience'
 
 export default function HomeImpl(){
   return (
@@ -22,6 +23,8 @@ export default function HomeImpl(){
       <Skills />
 
       <Projects />
+
+      <Experience />
 
       <section id="contact" className="py-12">
          <div className="max-w-4xl mx-auto px-4">

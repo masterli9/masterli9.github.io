@@ -115,6 +115,15 @@
     padding-bottom: calc(8vh + 6rem);
   }
 
+  /* Adjacent light sections should have less spacing between them */
+  .light-section + .light-section {
+    padding-top: 3rem;
+  }
+  
+  .light-section:has(+ .light-section) {
+    padding-bottom: 3rem;
+  }
+
   .floating {
     animation: float 6s ease-in-out infinite;
   }

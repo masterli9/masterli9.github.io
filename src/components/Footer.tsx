@@ -67,7 +67,7 @@ export default function Footer() {
             <div className="space-y-4">
               <button
                 onClick={copyEmail}
-                className="group flex items-center gap-3 text-text-mutedOnDark hover:text-white transition-all w-full text-left"
+                className="cursor-pointer group flex items-center gap-3 text-text-mutedOnDark hover:text-white transition-all w-full text-left"
               >
                 <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-brand-blue/20 transition-colors">
                   {copied ? <Check size={14} className="text-brand-neonGreen" /> : <Copy size={14} />}

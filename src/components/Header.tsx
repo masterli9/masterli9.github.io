@@ -60,7 +60,7 @@ export default function Header() {
 
         {showName && (
           <button 
-            className="md:hidden text-white ml-6 p-2 hover:bg-white/10 rounded-xl transition-colors shrink-0"
+            className="cursor-pointer md:hidden text-white ml-6 p-2 hover:bg-white/10 rounded-xl transition-colors shrink-0"
             aria-label="Toggle menu"
           >
             <Menu size={20} />

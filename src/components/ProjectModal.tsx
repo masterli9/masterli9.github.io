@@ -63,7 +63,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
             >
               <button 
                 onClick={onClose}
-                className="absolute top-6 right-6 z-30 p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors flex items-center justify-center"
+                className="cursor-pointer absolute top-6 right-6 z-30 p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors flex items-center justify-center"
               >
                 <X size={24} className="text-text-onLight" />
               </button>
@@ -89,13 +89,13 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
                       <>
                         <button 
                           onClick={prevImage}
-                          className="absolute left-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-0 group-hover:opacity-100"
+                          className="cursor-pointer absolute left-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-0 group-hover:opacity-100"
                         >
                           <ChevronLeft size={24} />
                         </button>
                         <button 
                           onClick={nextImage}
-                          className="absolute right-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-0 group-hover:opacity-100"
+                          className="cursor-pointer absolute right-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-0 group-hover:opacity-100"
                         >
                           <ChevronRight size={24} />
                         </button>
@@ -104,7 +104,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
                             <button
                               key={i}
                               onClick={() => setCurrentImageIndex(i)}
-                              className={`w-2.5 h-2.5 rounded-full transition-all ${
+                              className={`cursor-pointer w-2.5 h-2.5 rounded-full transition-all ${
                                 i === currentImageIndex ? 'w-8 bg-brand-blue' : 'bg-brand-blue/30'
                               }`}
                             />

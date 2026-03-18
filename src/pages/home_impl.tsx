@@ -4,6 +4,7 @@ import Skills from '../components/Skills'
 import Projects from '../components/Projects'
 import Experience from '../components/Experience'
 import Goals from '../components/Goals'
+import ContactForm from '../components/ContactForm'
 
 import { Mail, ArrowRight, Check, Copy } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -92,28 +93,26 @@ export default function HomeImpl(){
           >
              <h2 className="font-heading font-extrabold text-4xl md:text-6xl text-text-onLight mb-6">Pojďme tvořit spolu</h2>
              <p className="text-xl text-text-mutedOnLight mb-12">Pokud vás zaujal můj profil, rád se pobavím o možné spolupráci nebo stáži v IT.</p>
-             <div className="flex flex-col items-center gap-8">
-               <a href="mailto:andrej.zdvorak.123@gmail.com" className="inline-flex items-center px-12 py-5 bg-brand-blue text-white rounded-full text-xl font-bold hover:scale-105 transition-all gap-3 shadow-lg hover:shadow-brand-blue/30">
-                  <Mail size={24} /> Napsat e-mail
-               </a>
-               
-               <div className="flex flex-col items-center gap-6 font-heading text-lg">
-                  <button 
-                    onClick={copyEmail}
-                    className="group text-text-onLight font-bold flex items-center justify-center gap-3 bg-white/5 px-8 py-4 rounded-3xl border border-black/10 hover:border-brand-blue hover:bg-white shadow-sm hover:shadow-xl transition-all relative overflow-hidden"
-                  >
-                    <Mail className="text-brand-blue" size={24} /> 
-                    <span className="tracking-tight">andrej.zdvorak.123@gmail.com</span>
-                    {copied ? (
-                      <Check size={20} className="text-brand-neonGreen animate-bounce" />
-                    ) : (
-                      <Copy size={20} className="opacity-20 transition-opacity" />
-                    )}
-                    {copied && (
-                      <span className="absolute bottom-1 right-1/2 translate-x-1/2 text-[10px] text-brand-neonGreen font-black uppercase">Zkopírováno!</span>
-                    )}
-                  </button>
-               </div>
+             
+             <ContactForm />
+             
+             <div className="mt-10 flex flex-col items-center gap-4">
+               <p className="text-text-mutedOnLight text-sm">nebo přímo na e-mail</p>
+               <button 
+                 onClick={copyEmail}
+                 className="cursor-pointer group text-text-onLight font-bold flex items-center justify-center gap-3 bg-white/5 px-6 py-3 rounded-2xl border border-black/10 hover:border-brand-blue hover:bg-white shadow-sm hover:shadow-xl transition-all relative overflow-hidden text-sm"
+               >
+                 <Mail className="text-brand-blue" size={18} /> 
+                 <span className="tracking-tight">andrej.zdvorak.123@gmail.com</span>
+                 {copied ? (
+                   <Check size={16} className="text-brand-neonGreen animate-bounce" />
+                 ) : (
+                   <Copy size={16} className="opacity-20 transition-opacity" />
+                 )}
+                 {copied && (
+                   <span className="absolute bottom-1 right-1/2 translate-x-1/2 text-[10px] text-brand-neonGreen font-black uppercase">Zkopírováno!</span>
+                 )}
+               </button>
              </div>
           </motion.div>
       </section>

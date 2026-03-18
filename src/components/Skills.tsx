@@ -4,7 +4,7 @@ import { useLanguage } from '../i18n/useLanguage'
 
 export default function Skills() {
   const { t } = useLanguage()
-  
+
   const categories = [
     {
       title: t.skills.categories.technical,
@@ -23,9 +23,9 @@ export default function Skills() {
   return (
     <section id="skills" className="light-section bg-background-light text-text-onLight relative">
       <div className="absolute inset-0 isometric-grid pointer-events-none opacity-5"></div>
-      
+
       <div className="max-w-6xl mx-auto px-4 relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -42,8 +42,8 @@ export default function Skills() {
 
         <div className="grid md:grid-cols-2 gap-12">
           {categories.map((cat, idx) => (
-            <motion.div 
-              key={cat.title} 
+            <motion.div
+              key={cat.title}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -55,7 +55,7 @@ export default function Skills() {
               </h3>
               <div className="flex flex-wrap gap-3">
                 {cat.skills.map((skill, sIdx) => (
-                  <motion.span 
+                  <motion.span
                     key={skill}
                     initial={{ opacity: 0, scale: 0.9 }}
                     whileInView={{ opacity: 1, scale: 1 }}
@@ -72,36 +72,36 @@ export default function Skills() {
         </div>
 
         {/* Tools Section - Infinite Marquee */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.5 }}
+          transition={{ duration: 1, delay: .5 }}
           className="mt-32 pt-12 border-t border-black/10 overflow-hidden relative"
         >
-           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background-light to-transparent z-10"></div>
-           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background-light to-transparent z-10"></div>
-           
-           <div className="marquee-container opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-              <div className="flex whitespace-nowrap marquee items-center text-text-onLight">
-                {[
-                  'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js', 
-                  'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git', 'Supabase', 
-                  'Figma', 'Python', 'Docker'
-                ].map((tool, i) => (
-                  <span key={`tool-1-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight mx-6">{tool}</span>
-                ))}
-              </div>
-              <div className="flex whitespace-nowrap marquee items-center text-text-onLight" aria-hidden="true">
-                {[
-                  'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js', 
-                  'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git', 'Supabase', 
-                  'Figma', 'Python', 'Docker'
-                ].map((tool, i) => (
-                  <span key={`tool-2-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight mx-6">{tool}</span>
-                ))}
-              </div>
-           </div>
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background-light to-transparent z-10"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background-light to-transparent z-10"></div>
+
+          <div className="marquee-container opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+            <div className="flex whitespace-nowrap marquee items-center text-text-onLight">
+              {[
+                'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js',
+                'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git',
+                'Figma',
+              ].map((tool, i) => (
+                <span key={`tool-1-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight mx-6">{tool}</span>
+              ))}
+            </div>
+            <div className="flex whitespace-nowrap marquee items-center text-text-onLight" aria-hidden="true">
+              {[
+                'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js',
+                'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git',
+                'Figma',
+              ].map((tool, i) => (
+                <span key={`tool-2-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight mx-6">{tool}</span>
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>

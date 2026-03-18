@@ -44,7 +44,7 @@ export default function HomeImpl(){
         <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
           <p className="font-heading font-semibold text-brand-blue tracking-widest uppercase mb-4 animate-[fadeInUp_0.8s_ease-out]">{t.hero.subtitle}</p>
           
-          <div className="h-[120px] md:h-[200px] flex items-center justify-center mb-8">
+          <div className="h-[120px] md:h-[200px] flex items-center justify-center mb-8 relative">
             {!showNavbarName && (
                 <motion.h1 
                     layoutId="shared-name"

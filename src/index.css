@@ -1,196 +1,241 @@
 @import "tailwindcss";
 
 @theme {
-  /* Background colors */
-  --color-background-dark: #0A0A0A;
-  --color-background-light: #FFFFFF;
+	/* Background colors */
+	--color-background-dark: #0a0a0a;
+	--color-background-light: #ffffff;
 
-  /* Brand Accents */
-  --color-brand-blue: #2563EB;
-  --color-brand-neonGreen: #A3E635;
-  --color-brand-cyan: #06B6D4;
-  --color-brand-socialBlue: #3B82F6;
-  --color-brand-socialPink: #EC4899;
-  --color-brand-socialDark: #111827;
+	/* Brand Accents */
+	--color-brand-blue: #2563eb;
+	--color-brand-neonGreen: #a3e635;
+	--color-brand-cyan: #06b6d4;
+	--color-brand-socialBlue: #3b82f6;
+	--color-brand-socialPink: #ec4899;
+	--color-brand-socialDark: #111827;
 
-  /* Text colors */
-  --color-text-onDark: #FFFFFF;
-  --color-text-onLight: #0F0F0F;
-  --color-text-mutedOnDark: #BBBBBB;
-  --color-text-mutedOnLight: #555555;
+	/* Text colors */
+	--color-text-onDark: #ffffff;
+	--color-text-onLight: #0f0f0f;
+	--color-text-mutedOnDark: #bbbbbb;
+	--color-text-mutedOnLight: #555555;
 
-  /* Custom fonts */
-  --font-heading: 'Poppins', 'Montserrat', sans-serif;
-  --font-body: 'Inter', 'Roboto', sans-serif;
+	/* Custom fonts */
+	--font-heading: "Poppins", "Montserrat", sans-serif;
+	--font-body: "Inter", "Roboto", sans-serif;
 
-  /* Gradients & Backgrounds */
-  --background-image-shape-1: linear-gradient(to right, #FF7A00, #FF004D, #B200FF, #00E5FF);
-  --background-image-shape-2: linear-gradient(to right, #A8FF78, #78FFD6);
+	/* Gradients & Backgrounds */
+	--background-image-shape-1: linear-gradient(
+		to right,
+		#ff7a00,
+		#ff004d,
+		#b200ff,
+		#00e5ff
+	);
+	--background-image-shape-2: linear-gradient(to right, #a8ff78, #78ffd6);
 }
 
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: dark light;
+	font-family: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+	color-scheme: dark light;
 }
 
 @layer utilities {
-  .isometric-grid {
-    background-image: 
-      linear-gradient(30deg, #000 12%, transparent 12.5%, transparent 87%, #000 87.5%, #000),
-      linear-gradient(150deg, #000 12%, transparent 12.5%, transparent 87%, #000 87.5%, #000),
-      linear-gradient(30deg, #000 12%, transparent 12.5%, transparent 87%, #000 87.5%, #000),
-      linear-gradient(150deg, #000 12%, transparent 12.5%, transparent 87%, #000 87.5%, #000),
-      linear-gradient(60deg, #0000000d 25%, transparent 25.5%, transparent 75%, #0000000d 75%, #0000000d),
-      linear-gradient(60deg, #0000000d 25%, transparent 25.5%, transparent 75%, #0000000d 75%, #0000000d);
-    background-size: 80px 140px;
-    background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
-    opacity: 0.03; /* Reduced from 0.05 */
-  }
+	.isometric-grid {
+		background-image:
+			linear-gradient(
+				30deg,
+				#000 12%,
+				transparent 12.5%,
+				transparent 87%,
+				#000 87.5%,
+				#000
+			),
+			linear-gradient(
+				150deg,
+				#000 12%,
+				transparent 12.5%,
+				transparent 87%,
+				#000 87.5%,
+				#000
+			),
+			linear-gradient(
+				30deg,
+				#000 12%,
+				transparent 12.5%,
+				transparent 87%,
+				#000 87.5%,
+				#000
+			),
+			linear-gradient(
+				150deg,
+				#000 12%,
+				transparent 12.5%,
+				transparent 87%,
+				#000 87.5%,
+				#000
+			),
+			linear-gradient(
+				60deg,
+				#0000000d 25%,
+				transparent 25.5%,
+				transparent 75%,
+				#0000000d 75%,
+				#0000000d
+			),
+			linear-gradient(
+				60deg,
+				#0000000d 25%,
+				transparent 25.5%,
+				transparent 75%,
+				#0000000d 75%,
+				#0000000d
+			);
+		background-size: 80px 140px;
+		background-position:
+			0 0,
+			0 0,
+			40px 70px,
+			40px 70px,
+			0 0,
+			40px 70px;
+		opacity: 0.03; /* Reduced from 0.05 */
+	}
 
-  .diagonal-split-v2 {
-    clip-path: polygon(0 0, 100% 0, 100% 75%, 0 88%);
-  }
+	.diagonal-split-v2 {
+		clip-path: polygon(0 0, 100% 0, 100% 75%, 0 88%);
+	}
 
-  /* 
+	/* 
    * Skewed dark sections
    * Hero bottom edge: right at 75%, left at 88% = slopes DOWN from right to left
    * Dark sections must match: left side LOWER than right side
    */
 
-  /* First dark section after hero */
-  .skewed-section-first {
-    position: relative;
-    z-index: 10;
-    margin-top: -8vh;
-    margin-bottom: -8vh;
-    padding-top: calc(8vh + 6rem);
-    padding-bottom: calc(8vh + 6rem);
-    clip-path: polygon(
-      0 8%,       /* top-left (lower) */
-      100% 0,     /* top-right (higher) */
-      100% 92%,   /* bottom-right (higher) */
-      0 100%      /* bottom-left (lower) */
-    );
-  }
+	/* First dark section after hero */
+	.skewed-section-first {
+		position: relative;
+		z-index: 10;
+		margin-top: -8vh;
+		margin-bottom: -8vh;
+		padding-top: calc(8vh + 6rem);
+		padding-bottom: calc(8vh + 6rem);
+		clip-path: polygon(
+			0 8%,
+			/* top-left (lower) */ 100% 0,
+			/* top-right (higher) */ 100% 92%,
+			/* bottom-right (higher) */ 0 100% /* bottom-left (lower) */
+		);
+	}
 
-  @media (max-width: 768px) {
-    .skewed-section-first {
-        clip-path: polygon(
-            0 8%,       /* top-left - keep as is to match hero */
-            100% 0,     /* top-right */
-            100% calc(100% - 3rem),   /* bottom-right */
-            0 100%      /* bottom-left */
-        );
-    }
-  }
+	@media (max-width: 768px) {
+		.skewed-section-first {
+			clip-path: polygon(
+				0 8%,
+				/* top-left - keep as is to match hero */ 100% 0,
+				/* top-right */ 100% calc(100% - 3rem),
+				/* bottom-right */ 0 100% /* bottom-left */
+			);
+		}
+	}
 
-  /* Middle dark sections */
-  .skewed-section {
-    position: relative;
-    z-index: 10;
-    margin-top: -8vh;
-    margin-bottom: -8vh;
-    padding-top: calc(8vh + 6rem);
-    padding-bottom: calc(8vh + 6rem);
-    clip-path: polygon(
-      0 8%,
-      100% 0,
-      100% 92%,
-      0 100%
-    );
-  }
+	/* Middle dark sections */
+	.skewed-section {
+		position: relative;
+		z-index: 10;
+		margin-top: -8vh;
+		margin-bottom: -8vh;
+		padding-top: calc(8vh + 6rem);
+		padding-bottom: calc(8vh + 6rem);
+		clip-path: polygon(0 8%, 100% 0, 100% 92%, 0 100%);
+	}
 
-  @media (max-width: 768px) {
-    .skewed-section {
-        clip-path: polygon(
-            0 3rem,
-            100% 0,
-            100% calc(100% - 3rem),
-            0 100%
-        );
-    }
-  }
+	@media (max-width: 768px) {
+		.skewed-section {
+			clip-path: polygon(0 3rem, 100% 0, 100% calc(100% - 3rem), 0 100%);
+		}
+	}
 
-  /* Last dark section */
-  .skewed-section-last {
-    position: relative;
-    z-index: 10;
-    margin-top: -8vh;
-    margin-bottom: -8vh;
-    padding-top: calc(8vh + 6rem);
-    padding-bottom: calc(8vh + 6rem);
-    clip-path: polygon(
-      0 8%,
-      100% 0,
-      100% 92%,
-      0 100%
-    );
-  }
+	/* Last dark section */
+	.skewed-section-last {
+		position: relative;
+		z-index: 10;
+		margin-top: -8vh;
+		margin-bottom: -8vh;
+		padding-top: calc(8vh + 6rem);
+		padding-bottom: calc(8vh + 6rem);
+		clip-path: polygon(0 8%, 100% 0, 100% 92%, 0 100%);
+	}
 
-  @media (max-width: 768px) {
-    .skewed-section-last {
-        clip-path: polygon(
-            0 3rem,
-            100% 0,
-            100% calc(100% - 3rem),
-            0 100%
-        );
-    }
-  }
+	@media (max-width: 768px) {
+		.skewed-section-last {
+			clip-path: polygon(0 3rem, 100% 0, 100% calc(100% - 3rem), 0 100%);
+		}
+	}
 
-  /* Light sections need padding to account for dark section overlap */
-  .light-section {
-    position: relative;
-    z-index: 1;
-    padding-top: calc(8vh + 6rem);
-    padding-bottom: calc(8vh + 6rem);
-  }
+	/* Light sections need padding to account for dark section overlap */
+	.light-section {
+		position: relative;
+		z-index: 1;
+		padding-top: calc(8vh + 6rem);
+		padding-bottom: calc(8vh + 6rem);
+	}
 
-  /* Adjacent light sections should have less spacing between them */
-  .light-section + .light-section {
-    padding-top: 3rem;
-  }
-  
-  .light-section:has(+ .light-section) {
-    padding-bottom: 3rem;
-  }
+	/* Adjacent light sections should have less spacing between them */
+	.light-section + .light-section {
+		padding-top: 3rem;
+	}
 
-  .floating {
-    animation: float 6s ease-in-out infinite;
-  }
+	.light-section:has(+ .light-section) {
+		padding-bottom: 3rem;
+	}
 
-  @keyframes float {
-    0% { transform: translatey(0px); }
-    50% { transform: translatey(-20px); }
-    100% { transform: translatey(0px); }
-  }
-  .marquee-container {
-    display: flex;
-    width: max-content;
-  }
+	.floating {
+		animation: float 6s ease-in-out infinite;
+	}
 
-  .marquee {
-    animation: marquee 25s linear infinite;
-    will-change: transform;
-    flex-shrink: 0;
-  }
+	@keyframes float {
+		0% {
+			transform: translatey(0px);
+		}
+		50% {
+			transform: translatey(-20px);
+		}
+		100% {
+			transform: translatey(0px);
+		}
+	}
+	.marquee-container {
+		display: flex;
+		width: max-content;
+	}
 
-  @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-  }
+	.marquee {
+		animation: marquee 30s linear infinite;
+		will-change: transform;
+		flex-shrink: 0;
+	}
+
+	@keyframes marquee {
+		0% {
+			transform: translateX(0);
+		}
+		100% {
+			transform: translateX(-100%);
+		}
+	}
 }
 
-html, body {
-  margin: 0;
-  min-height: 100vh;
-  min-width: 100%;
-  overflow-x: hidden;
-  scroll-behavior: smooth;
+html,
+body {
+	margin: 0;
+	min-height: 100vh;
+	min-width: 100%;
+	overflow-x: hidden;
+	scroll-behavior: smooth;
 }
 
 #root {
-  min-height: 100vh;
+	min-height: 100vh;
 }

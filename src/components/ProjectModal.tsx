@@ -77,9 +77,9 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
             >
               <button 
                 onClick={onClose}
-                className="cursor-pointer absolute top-6 right-6 z-30 p-2 bg-black/10 hover:bg-black/20 rounded-full transition-colors flex items-center justify-center"
+                className="cursor-pointer absolute top-4 right-4 md:top-6 md:right-6 z-30 p-2 bg-white/80 backdrop-blur-md shadow-lg hover:bg-white rounded-full transition-colors flex items-center justify-center"
               >
-                <X size={24} className="text-text-onLight" />
+                <X size={24} className="text-black" />
               </button>
 
               {/* Image Section / Carousel */}
@@ -103,13 +103,13 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
                       <>
                         <button 
                           onClick={prevImage}
-                          className="cursor-pointer absolute left-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-0 group-hover:opacity-100"
+                          className="cursor-pointer absolute left-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                         >
                           <ChevronLeft size={24} />
                         </button>
                         <button 
                           onClick={nextImage}
-                          className="cursor-pointer absolute right-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-0 group-hover:opacity-100"
+                          className="cursor-pointer absolute right-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                         >
                           <ChevronRight size={24} />
                         </button>

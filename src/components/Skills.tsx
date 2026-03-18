@@ -82,22 +82,25 @@ export default function Skills() {
            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background-light to-transparent z-10"></div>
            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background-light to-transparent z-10"></div>
            
-           <div className="flex whitespace-nowrap marquee gap-12 items-center opacity-40 grayscale hover:grayscale-0 transition-all duration-500 text-text-onLight">
-              {[
-                'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js', 
-                'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git', 'Supabase', 
-                'Figma', 'Python', 'Docker'
-              ].map((tool, i) => (
-                <span key={`tool-1-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight">{tool}</span>
-              ))}
-              {/* Duplicate for seamless loop */}
-              {[
-                'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js', 
-                'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git', 'Supabase', 
-                'Figma', 'Python', 'Docker'
-              ].map((tool, i) => (
-                <span key={`tool-2-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight">{tool}</span>
-              ))}
+           <div className="marquee-container opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+              <div className="flex whitespace-nowrap marquee items-center text-text-onLight">
+                {[
+                  'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js', 
+                  'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git', 'Supabase', 
+                  'Figma', 'Python', 'Docker'
+                ].map((tool, i) => (
+                  <span key={`tool-1-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight mx-6">{tool}</span>
+                ))}
+              </div>
+              <div className="flex whitespace-nowrap marquee items-center text-text-onLight" aria-hidden="true">
+                {[
+                  'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js', 
+                  'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git', 'Supabase', 
+                  'Figma', 'Python', 'Docker'
+                ].map((tool, i) => (
+                  <span key={`tool-2-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight mx-6">{tool}</span>
+                ))}
+              </div>
            </div>
         </motion.div>
       </div>

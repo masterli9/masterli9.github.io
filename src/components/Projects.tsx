@@ -54,8 +54,8 @@ export default function Projects() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="font-heading font-extrabold text-4xl text-text-onLight tracking-tighter uppercase mb-2">{t.projects.sectionTitle}</h2>
-          <p className="text-text-mutedOnLight">{t.projects.subtitle}</p>
+          <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-text-onLight tracking-tighter uppercase mb-2">{t.projects.sectionTitle}</h2>
+          <p className="text-xl text-text-mutedOnLight leading-relaxed">{t.projects.subtitle}</p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-12">

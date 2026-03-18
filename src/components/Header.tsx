@@ -34,7 +34,7 @@ export default function Header() {
   return (
     <>
       <div className="fixed w-full z-50 top-6 px-4 flex justify-center pointer-events-none">
-        <motion.header 
+        <motion.header
           layout
           className={`
             pointer-events-auto
@@ -43,30 +43,31 @@ export default function Header() {
             px-8 py-4
             rounded-2xl
             shadow-2xl
-            ${isScrolled 
-              ? 'bg-background-dark/80 backdrop-blur-xl border border-white/10' 
+            ${isScrolled
+              ? 'bg-background-dark/80 backdrop-blur-xl border border-white/10'
               : 'bg-background-dark/30 backdrop-blur-md border border-white/5'
             }
             ${showName ? 'max-w-5xl w-full' : 'max-w-max'}
           `}
         >
           <div className="flex items-center">
-              {showName && (
-                  <motion.div 
-                      layoutId="shared-name"
-                      className="font-heading font-black text-lg tracking-tighter text-white whitespace-nowrap mr-8 cursor-pointer hover:text-brand-neonGreen transition-colors"
-                      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  >
-                      ANDREJ ZDVOŘÁK
-                  </motion.div>
-              )}
+            {showName && (
+              <motion.div
+                layoutId="shared-name"
+                className="font-heading font-black text-lg tracking-tighter text-white whitespace-nowrap mr-8 cursor-pointer hover:text-brand-neonGreen transition-colors flex items-center gap-2"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              >
+                <img src="Logo.png" alt="logo" className='w-5 h-5' />
+                ANDREJ  ZDVOŘÁK
+              </motion.div>
+            )}
           </div>
 
           <nav className="hidden md:flex gap-6 md:gap-8 text-[11px] font-bold tracking-[0.2em] uppercase items-center">
             {(['about', 'projects', 'skills', 'experience', 'contact'] as const).map((id) => (
-              <a 
-                key={id} 
-                href={`#${id}`} 
+              <a
+                key={id}
+                href={`#${id}`}
                 className="text-white/60 hover:text-brand-neonGreen transition-colors whitespace-nowrap"
               >
                 {t.nav[id]}
@@ -75,7 +76,7 @@ export default function Header() {
             <LanguageSwitcher />
           </nav>
 
-          <button 
+          <button
             className="cursor-pointer md:hidden text-white p-2 hover:bg-white/10 rounded-xl transition-colors shrink-0"
             onClick={() => setIsMenuOpen(true)}
             aria-label="Open menu"
@@ -93,7 +94,7 @@ export default function Header() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-background-dark/95 backdrop-blur-xl flex items-center justify-center p-4"
           >
-            <button 
+            <button
               onClick={() => setIsMenuOpen(false)}
               className="absolute top-6 right-6 p-4 text-white hover:bg-white/10 rounded-full transition-colors"
             >

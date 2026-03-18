@@ -34,7 +34,8 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2 space-y-6">
-            <h2 className="font-heading font-black text-2xl tracking-tighter">ANDREJ ZDVOŘÁK</h2>
+            <h2 className="font-heading font-black text-2xl tracking-tighter flex items-center gap-2">ANDREJ <img src="Logo.png" alt="logo" className='w-10 h-10' /> ZDVOŘÁK</h2>
+
             <p className="text-text-mutedOnDark max-w-sm">
               {t.footer.description}
             </p>

@@ -24,7 +24,7 @@ export default function Experience() {
   ];
 
   return (
-    <section id="experience" className="py-24 bg-background-dark text-text-onDark overflow-hidden">
+    <section id="experience" className="skewed-section bg-background-dark text-text-onDark overflow-hidden">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-16">
           {/* Work Experience */}

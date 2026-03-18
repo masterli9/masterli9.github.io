@@ -24,7 +24,7 @@ export default function Skills() {
   ];
 
   return (
-    <section id="skills" className="py-24 bg-background-light text-text-onLight relative">
+    <section id="skills" className="light-section bg-background-light text-text-onLight relative">
       <div className="absolute inset-0 isometric-grid pointer-events-none opacity-5"></div>
       
       <div className="max-w-6xl mx-auto px-4 relative z-10">

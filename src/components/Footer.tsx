@@ -21,7 +21,7 @@ export default function Footer() {
   const socialLinks = [
     { icon: <Github size={20} />, href: 'https://github.com/masterli9', label: 'GitHub' },
     { icon: <Linkedin size={20} />, href: '#', label: 'LinkedIn' },
-    { icon: <Instagram size={20} />, href: '#', label: 'Instagram' },
+    { icon: <Instagram size={20} />, href: 'https://www.instagram.com/andrej_zdvorak/', label: 'Instagram' },
   ]
 
   return (
@@ -36,9 +36,10 @@ export default function Footer() {
             </p>
             <div className="flex gap-4">
               {socialLinks.map((link, i) => (
-                <a 
-                  key={i} 
-                  href={link.href} 
+                <a
+                  key={i}
+                  href={link.href}
+                  target='_blank'
                   className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-blue hover:scale-110 transition-all"
                   aria-label={link.label}
                 >
@@ -64,7 +65,7 @@ export default function Footer() {
           <div className="space-y-6">
             <h3 className="font-heading font-bold uppercase tracking-widest text-sm text-brand-blue">Rychlý kontakt</h3>
             <div className="space-y-4">
-              <button 
+              <button
                 onClick={copyEmail}
                 className="group flex items-center gap-3 text-text-mutedOnDark hover:text-white transition-all w-full text-left"
               >
@@ -73,9 +74,9 @@ export default function Footer() {
                 </div>
                 <span className="text-sm truncate">andrej.zdvorak.123@gmail.com</span>
               </button>
-              
-              <a 
-                href="mailto:andrej.zdvorak.123@gmail.com" 
+
+              <a
+                href="mailto:andrej.zdvorak.123@gmail.com"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-brand-blue/10 border border-brand-blue/20 text-brand-blue rounded-xl font-bold hover:bg-brand-blue hover:text-white transition-all w-full justify-center"
               >
                 <Mail size={18} /> Napsat e-mail

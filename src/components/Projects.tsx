@@ -41,7 +41,7 @@ export default function Projects() {
   ];
 
   return (
-    <section id="projects" className="py-24 bg-background-light relative overflow-hidden">
+    <section id="projects" className="light-section bg-background-light relative overflow-hidden">
       <div className="absolute inset-0 isometric-grid pointer-events-none opacity-5"></div>
 
       <div className="max-w-6xl mx-auto px-4 relative z-10">

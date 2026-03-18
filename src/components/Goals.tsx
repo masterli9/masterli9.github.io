@@ -27,7 +27,7 @@ export default function Goals() {
   ];
 
   return (
-    <section id="goals" className="py-24 bg-background-dark overflow-hidden">
+    <section id="goals" className="skewed-section-last bg-background-dark overflow-hidden">
       <div className="max-w-6xl mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}

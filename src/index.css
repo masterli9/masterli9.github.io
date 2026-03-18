@@ -53,6 +53,68 @@
     clip-path: polygon(0 0, 100% 0, 100% 75%, 0 88%);
   }
 
+  /* 
+   * Skewed dark sections
+   * Hero bottom edge: right at 75%, left at 88% = slopes DOWN from right to left
+   * Dark sections must match: left side LOWER than right side
+   */
+
+  /* First dark section after hero */
+  .skewed-section-first {
+    position: relative;
+    z-index: 10;
+    margin-top: -8vh;
+    margin-bottom: -8vh;
+    padding-top: calc(8vh + 6rem);
+    padding-bottom: calc(8vh + 6rem);
+    clip-path: polygon(
+      0 8%,       /* top-left (lower) */
+      100% 0,     /* top-right (higher) */
+      100% 92%,   /* bottom-right (higher) */
+      0 100%      /* bottom-left (lower) */
+    );
+  }
+
+  /* Middle dark sections */
+  .skewed-section {
+    position: relative;
+    z-index: 10;
+    margin-top: -8vh;
+    margin-bottom: -8vh;
+    padding-top: calc(8vh + 6rem);
+    padding-bottom: calc(8vh + 6rem);
+    clip-path: polygon(
+      0 8%,
+      100% 0,
+      100% 92%,
+      0 100%
+    );
+  }
+
+  /* Last dark section */
+  .skewed-section-last {
+    position: relative;
+    z-index: 10;
+    margin-top: -8vh;
+    margin-bottom: -8vh;
+    padding-top: calc(8vh + 6rem);
+    padding-bottom: calc(8vh + 6rem);
+    clip-path: polygon(
+      0 8%,
+      100% 0,
+      100% 92%,
+      0 100%
+    );
+  }
+
+  /* Light sections need padding to account for dark section overlap */
+  .light-section {
+    position: relative;
+    z-index: 1;
+    padding-top: calc(8vh + 6rem);
+    padding-bottom: calc(8vh + 6rem);
+  }
+
   .floating {
     animation: float 6s ease-in-out infinite;
   }

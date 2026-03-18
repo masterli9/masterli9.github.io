@@ -1,8 +1,10 @@
-import { Mail, Github, Linkedin, Instagram, Copy, Check } from 'lucide-react'
+import { Github, Linkedin, Instagram, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
+import PrivacyModal from './PrivacyModal'
 
 export default function Footer() {
   const [copied, setCopied] = useState(false)
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
 
   const copyEmail = () => {
     navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
@@ -20,7 +22,7 @@ export default function Footer() {
 
   const socialLinks = [
     { icon: <Github size={20} />, href: 'https://github.com/masterli9', label: 'GitHub' },
-    { icon: <Linkedin size={20} />, href: '#', label: 'LinkedIn' },
+    { icon: <Linkedin size={20} />, href: 'https://www.linkedin.com/in/andrej-zdvořák-a403653b4/', label: 'LinkedIn' },
     { icon: <Instagram size={20} />, href: 'https://www.instagram.com/andrej_zdvorak/', label: 'Instagram' },
   ]
 
@@ -74,13 +76,6 @@ export default function Footer() {
                 </div>
                 <span className="text-sm truncate">andrej.zdvorak.123@gmail.com</span>
               </button>
-
-              <a
-                href="mailto:andrej.zdvorak.123@gmail.com"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-blue/10 border border-brand-blue/20 text-brand-blue rounded-xl font-bold hover:bg-brand-blue hover:text-white transition-all w-full justify-center"
-              >
-                <Mail size={18} /> Napsat e-mail
-              </a>
             </div>
           </div>
         </div>
@@ -88,11 +83,18 @@ export default function Footer() {
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-mutedOnDark">
           <p>© {new Date().getFullYear()} Andrej Zdvořák. Všechna práva vyhrazena.</p>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">Soukromí</a>
+            <button
+              onClick={() => setIsPrivacyOpen(true)}
+              className="cursor-pointer hover:text-white transition-colors"
+            >
+              Soukromí
+            </button>
             <a href="#" className="hover:text-white transition-colors">Cookies</a>
           </div>
         </div>
       </div>
+
+      <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </footer>
   )
 }

@@ -75,6 +75,17 @@
     );
   }
 
+  @media (max-width: 768px) {
+    .skewed-section-first {
+        clip-path: polygon(
+            0 8%,       /* top-left - keep as is to match hero */
+            100% 0,     /* top-right */
+            100% calc(100% - 3rem),   /* bottom-right */
+            0 100%      /* bottom-left */
+        );
+    }
+  }
+
   /* Middle dark sections */
   .skewed-section {
     position: relative;
@@ -91,6 +102,17 @@
     );
   }
 
+  @media (max-width: 768px) {
+    .skewed-section {
+        clip-path: polygon(
+            0 3rem,
+            100% 0,
+            100% calc(100% - 3rem),
+            0 100%
+        );
+    }
+  }
+
   /* Last dark section */
   .skewed-section-last {
     position: relative;
@@ -105,6 +127,17 @@
       100% 92%,
       0 100%
     );
+  }
+
+  @media (max-width: 768px) {
+    .skewed-section-last {
+        clip-path: polygon(
+            0 3rem,
+            100% 0,
+            100% calc(100% - 3rem),
+            0 100%
+        );
+    }
   }
 
   /* Light sections need padding to account for dark section overlap */

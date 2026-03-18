@@ -33,7 +33,7 @@ export default function HomeImpl(){
   return (
     <Layout>
       {/* Hero Section */}
-      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background-dark">
+      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background-dark pb-32 md:pb-0">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-background-light diagonal-split-v2"></div>
           <div className="absolute inset-0 isometric-grid opacity-5"></div>
@@ -82,7 +82,7 @@ export default function HomeImpl(){
       <Experience />
       <Goals />
       
-      <section id="contact" className="py-32 bg-background-light relative overflow-hidden">
+      <section id="contact" className="pt-48 pb-32 bg-background-light relative overflow-hidden">
           <div className="absolute inset-0 isometric-grid opacity-5 pointer-events-none"></div>
           <motion.div 
             initial={{ opacity: 0, y: 30 }}

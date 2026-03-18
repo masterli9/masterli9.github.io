@@ -65,21 +65,21 @@ export default function Projects() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: idx * 0.2 }}
               onClick={() => setSelectedProject(p)}
-              className="group relative bg-white border border-black/10 rounded-[2.5rem] p-10 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 cursor-pointer overflow-hidden"
+              className="group relative bg-white border border-black/10 rounded-[2.5rem] p-6 md:p-10 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 cursor-pointer overflow-hidden"
             >
               <div className="absolute inset-0 rounded-[2.5rem] border-2 border-transparent group-hover:border-brand-blue/20 transition-all pointer-events-none"></div>
 
-              <div className="flex justify-between items-start mb-8">
+              <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 md:gap-0">
                 <div className="flex items-center gap-5">
-                  <div className="w-16 h-16 rounded-2xl bg-brand-blue/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-brand-blue/10 transition-all">
+                  <div className="w-16 h-16 rounded-2xl bg-brand-blue/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-brand-blue/10 transition-all shrink-0">
                     {p.icon}
                   </div>
                   <div>
                     <span className="text-xs font-bold uppercase tracking-widest text-brand-blue mb-1 block">{p.type}</span>
-                    <h3 className="font-heading font-extrabold text-3xl text-text-onLight">{p.title}</h3>
+                    <h3 className="font-heading font-extrabold text-2xl md:text-3xl text-text-onLight">{p.title}</h3>
                   </div>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue group-hover:bg-brand-blue group-hover:text-white transition-all transform group-hover:rotate-45">
+                <div className="w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue group-hover:bg-brand-blue group-hover:text-white transition-all transform group-hover:rotate-45 self-end md:self-auto shrink-0">
                   <ArrowRight size={24} />
                 </div>
               </div>

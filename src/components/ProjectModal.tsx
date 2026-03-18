@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ExternalLink, Globe, Layers, ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -22,9 +23,20 @@ interface ProjectModalProps {
 export default function ProjectModal({ project, isOpen, onClose }: ProjectModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentImageIndex(0);
   }, [project]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
 
   if (!project) return null;
 
@@ -40,7 +52,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
     }
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -50,11 +62,11 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background-dark/95 backdrop-blur-xl z-[60] cursor-pointer"
+            className="fixed inset-0 bg-background-dark/95 backdrop-blur-xl z-[9999] cursor-pointer"
           />
 
           {/* Modal Container */}
-          <div className="fixed inset-0 flex items-center justify-center z-[70] p-4 md:p-8 pointer-events-none">
+          <div className="fixed inset-0 flex items-center justify-center z-[10000] p-4 md:p-8 pointer-events-none">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -161,6 +173,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
           </div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }

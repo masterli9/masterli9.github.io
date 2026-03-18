@@ -43,7 +43,7 @@ export default function About() {
                   className="p-4 border border-white/10 rounded-2xl bg-white/5"
                 >
                   <p className="text-brand-blue font-bold text-2xl mb-1 flex items-center gap-2">
-                    <Globe size={24} /> C2
+                    <Globe size={24} /> {t.about.czechLevel}
                   </p>
                   <p className="text-sm uppercase tracking-wider opacity-60">{t.about.czech}</p>
                 </motion.div>
@@ -55,7 +55,7 @@ export default function About() {
                   className="p-4 border border-white/10 rounded-2xl bg-white/5"
                 >
                   <p className="text-brand-blue font-bold text-2xl mb-1 flex items-center gap-2">
-                    <Globe size={24} /> C1
+                    <Globe size={24} /> {t.about.englishLevel}
                   </p>
                   <p className="text-sm uppercase tracking-wider opacity-60">{t.about.english}</p>
                 </motion.div>

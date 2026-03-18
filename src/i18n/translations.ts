@@ -28,7 +28,9 @@ export const translations = {
       p2Highlight: 'AI nástrojů',
       p2End: 'pro zefektivnění vývojového procesu.',
       czech: 'Čeština',
+      czechLevel: 'Rodilý mluvčí',
       english: 'Angličtina',
+      englishLevel: 'C1',
       outsideCode: 'Mimo svět kódu',
       interests: {
         music: { name: 'Hudba', desc: 'Klavír, kytara, produkce' },
@@ -215,7 +217,9 @@ export const translations = {
       p2Highlight: 'AI tools',
       p2End: 'to streamline the development process.',
       czech: 'Czech',
+      czechLevel: 'Native speaker',
       english: 'English',
+      englishLevel: 'C1',
       outsideCode: 'Outside the code world',
       interests: {
         music: { name: 'Music', desc: 'Piano, guitar, production' },

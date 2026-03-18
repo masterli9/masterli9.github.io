@@ -1,21 +1,9 @@
 import { Award, Briefcase, Calendar } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useLanguage } from '../i18n/useLanguage'
 
 export default function Experience() {
-  const experiences = [
-    {
-      title: "Webforte Technologies s.r.o.",
-      role: "AI Web Application Developer (Brigáda)",
-      date: "Současnost",
-      desc: "Vývoj webových aplikací s využitím moderních AI nástrojů a technologií."
-    },
-    {
-      title: "Individuální podnikatel",
-      role: "Junior Web Developer (Odborná praxe)",
-      date: "V minulosti",
-      desc: "Praxe zaměřená na vývoj webových stránek a implementaci AI pro zefektivnění práce."
-    }
-  ];
+  const { t } = useLanguage()
 
   const certifications = [
     "Cisco CCNA (Switching, Routing, and Wireless Essentials)",
@@ -35,12 +23,12 @@ export default function Experience() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-heading font-extrabold text-brand-blue text-lg tracking-widest uppercase mb-12 flex items-center gap-3">
-              <Briefcase size={20} /> Zkušenosti
+              <Briefcase size={20} /> {t.experience.sectionTitle}
             </h2>
             <div className="space-y-12 relative">
               <div className="absolute left-[11px] top-2 bottom-2 w-[2px] bg-white/10"></div>
               
-              {experiences.map((exp, idx) => (
+              {t.experience.items.map((exp, idx) => (
                 <motion.div 
                   key={exp.title} 
                   initial={{ opacity: 0, x: -20 }}
@@ -71,7 +59,7 @@ export default function Experience() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-heading font-extrabold text-brand-blue text-lg tracking-widest uppercase mb-12 flex items-center gap-3">
-              <Award size={20} /> Certifikace & Úspěchy
+              <Award size={20} /> {t.experience.certTitle}
             </h2>
             <div className="space-y-6">
               {certifications.map((cert, idx) => (

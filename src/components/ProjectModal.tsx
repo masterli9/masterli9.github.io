@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ExternalLink, Globe, Layers, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLanguage } from '../i18n/useLanguage'
 
 interface Project {
   title: string;
@@ -22,6 +23,7 @@ interface ProjectModalProps {
 
 export default function ProjectModal({ project, isOpen, onClose }: ProjectModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { t } = useLanguage()
 
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -145,7 +147,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
 
                 <div className="mb-10">
                   <h4 className="text-sm font-bold uppercase tracking-widest text-text-onLight mb-5 flex items-center gap-2">
-                    <Layers size={18} className="text-brand-blue" /> Stack technologií
+                    <Layers size={18} className="text-brand-blue" /> {t.projectModal.techStack}
                   </h4>
                   <div className="flex flex-wrap gap-2.5">
                     {project.tech.map(t => (
@@ -164,7 +166,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
                       rel="noopener noreferrer" 
                       className="w-full px-8 py-5 bg-black text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-brand-blue transition-all shadow-xl"
                     >
-                      <Globe size={18} /> Navštívit projekt <ExternalLink size={16} />
+                      <Globe size={18} /> {t.projectModal.visitProject} <ExternalLink size={16} />
                     </a>
                   )}
                 </div>

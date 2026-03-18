@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { ArrowRight, Smartphone, Layout as LayoutIcon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import ProjectModal from './ProjectModal'
+import { useLanguage } from '../i18n/useLanguage'
 
 export interface Project {
   title: string;
@@ -16,24 +17,25 @@ export interface Project {
 
 export default function Projects() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const { t } = useLanguage()
 
   const projects: Project[] = [
     {
       title: "RehearsalHub",
-      type: "Mobilní aplikace",
+      type: t.projects.types.mobile,
       icon: <Smartphone size={32} className="text-brand-blue" />,
-      desc: "Aplikace pro menší kapely usnadňující organizaci zkoušek a sdílení materiálů.",
-      longDesc: "RehearsalHub je můj ročníkový projekt zaměřený na potřeby hudebních těles. Umožňuje členům kapely snadno plánovat zkoušky, sdílet setlisty, nahrávky a notové zápisy. Systém zahrnuje real-time oznámení a offline režim pro použití v místech se slabým signálem.",
-      tech: ["React Native", "Firebase", "TypeScript", "Expo", "NativeWind"],
+      desc: t.projects.items.rehearsalHub.desc,
+      longDesc: t.projects.items.rehearsalHub.longDesc,
+      tech: ["React Native", "Firebase", "TypeScript", "Expo", "NativeWind", "WIP"],
       images: ["/projects-photos/rehearsalHub/image1.png", "/projects-photos/rehearsalHub/image2.png"],
       link: "#"
     },
     {
       title: "The GT Series",
-      type: "Webová platforma",
+      type: t.projects.types.web,
       icon: <LayoutIcon size={32} className="text-brand-blue" />,
-      desc: "Komplexní systém pro správu a prezentaci závodní ligy ve hře Forza Horizon 5.",
-      longDesc: "Robustní webová platforma vyvinutá pro americkou komunitu hráčů Forza Horizon. Jezdci a fanoušci si mohou zobrazit výsledky všech závodů a kvalifikací, průběžné pořadí, kalendář závodů nebo i statistiky jezdců. Přítomen je i kompletní administrační systém, který umožňuje zadávání výsledků, správu jezdců nebo i automatické generování grafik.",
+      desc: t.projects.items.gtSeries.desc,
+      longDesc: t.projects.items.gtSeries.longDesc,
       tech: ["React", "PostgreSQL", "Node.js", "TypeScript", "Sanity.io"],
       images: ["/projects-photos/gt-series/image1.png", "/projects-photos/gt-series/image2.png"],
       link: "https://www.thegtseries.com"
@@ -45,15 +47,15 @@ export default function Projects() {
       <div className="absolute inset-0 isometric-grid pointer-events-none opacity-5"></div>
 
       <div className="max-w-6xl mx-auto px-4 relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="font-heading font-extrabold text-4xl text-text-onLight tracking-tighter uppercase mb-2">Projekty</h2>
-          <p className="text-text-mutedOnLight">Výběr mých nejvýznamnějších prací</p>
+          <h2 className="font-heading font-extrabold text-4xl text-text-onLight tracking-tighter uppercase mb-2">{t.projects.sectionTitle}</h2>
+          <p className="text-text-mutedOnLight">{t.projects.subtitle}</p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-12">

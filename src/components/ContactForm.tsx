@@ -2,6 +2,7 @@ import { useState, useRef, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { Send, Loader2, CheckCircle, AlertCircle, User, Mail, MessageSquare, Tag } from 'lucide-react'
 import emailjs from '@emailjs/browser'
+import { useLanguage } from '../i18n/useLanguage'
 
 type FormStatus = 'idle' | 'sending' | 'success' | 'error'
 
@@ -10,6 +11,7 @@ export default function ContactForm() {
   const [status, setStatus] = useState<FormStatus>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [focused, setFocused] = useState<string | null>(null)
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -30,15 +32,15 @@ export default function ContactForm() {
       setTimeout(() => setStatus('idle'), 5000)
     } catch (error) {
       setStatus('error')
-      setErrorMessage('Nepodařilo se odeslat zprávu. Zkuste to prosím znovu.')
+      setErrorMessage(t.contact.form.error)
       console.error('EmailJS error:', error)
     }
   }
 
   const inputFields = [
-    { name: 'from_name', type: 'text', placeholder: 'Vaše jméno', icon: User, required: true },
-    { name: 'reply_to', type: 'email', placeholder: 'Váš e-mail', icon: Mail, required: true },
-    { name: 'subject', type: 'text', placeholder: 'Předmět', icon: Tag, required: true },
+    { name: 'from_name', type: 'text', placeholder: t.contact.form.name, icon: User, required: true },
+    { name: 'reply_to', type: 'email', placeholder: t.contact.form.email, icon: Mail, required: true },
+    { name: 'subject', type: 'text', placeholder: t.contact.form.subject, icon: Tag, required: true },
   ]
 
   return (
@@ -93,7 +95,7 @@ export default function ContactForm() {
             </div>
             <textarea
               name="message"
-              placeholder="Vaše zpráva..."
+              placeholder={t.contact.form.message}
               required
               rows={4}
               onFocus={() => setFocused('message')}
@@ -123,22 +125,22 @@ export default function ContactForm() {
           {status === 'sending' ? (
             <>
               <Loader2 size={20} className="animate-spin" />
-              <span>Odesílám...</span>
+              <span>{t.contact.form.sending}</span>
             </>
           ) : status === 'success' ? (
             <>
               <CheckCircle size={20} />
-              <span>Odesláno!</span>
+              <span>{t.contact.form.sent}</span>
             </>
           ) : status === 'error' ? (
             <>
               <AlertCircle size={20} />
-              <span>Zkusit znovu</span>
+              <span>{t.contact.form.retry}</span>
             </>
           ) : (
             <>
               <Send size={20} />
-              <span>Odeslat zprávu</span>
+              <span>{t.contact.form.send}</span>
             </>
           )}
         </motion.button>
@@ -149,7 +151,7 @@ export default function ContactForm() {
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 text-center text-brand-neonGreen font-medium text-sm"
           >
-            Děkuji za zprávu! Ozvu se co nejdříve.
+            {t.contact.form.success}
           </motion.p>
         )}
 

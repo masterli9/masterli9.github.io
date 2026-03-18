@@ -9,10 +9,12 @@ import ContactForm from '../components/ContactForm'
 import { Mail, ArrowRight, Check, Copy } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useLanguage } from '../i18n/useLanguage'
 
 export default function HomeImpl(){
   const [scrollPos, setScrollPos] = useState(0)
   const [copied, setCopied] = useState(false)
+  const { t } = useLanguage()
 
   const copyEmail = () => {
     navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
@@ -40,7 +42,7 @@ export default function HomeImpl(){
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
-          <p className="font-heading font-semibold text-brand-blue tracking-widest uppercase mb-4 animate-[fadeInUp_0.8s_ease-out]">Student IT & Vývojář</p>
+          <p className="font-heading font-semibold text-brand-blue tracking-widest uppercase mb-4 animate-[fadeInUp_0.8s_ease-out]">{t.hero.subtitle}</p>
           
           <div className="h-[120px] md:h-[200px] flex items-center justify-center mb-8">
             {!showNavbarName && (
@@ -57,15 +59,14 @@ export default function HomeImpl(){
             className="max-w-xl mx-auto text-lg text-text-onLight/80 mb-10 animate-[fadeInUp_1.2s_ease-out] transition-opacity duration-300"
             style={{ opacity: showNavbarName ? 0 : 1 }}
           >
-            Vyvíjím webové a mobilní aplikace, které lidem zjednodušují a zefektivňují práci. 
-            Baví mě hledat chytrá řešení a využívat umělou inteligenci v praxi.
+            {t.hero.description}
           </p>
           <div className="flex flex-col md:flex-row gap-6 justify-center animate-[fadeInUp_1.4s_ease-out]">
             <a href="#contact" className="px-10 py-4 bg-brand-blue text-white rounded-full font-bold hover:scale-105 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2">
-              Kontaktujte mě <ArrowRight size={20} />
+              {t.hero.contactBtn} <ArrowRight size={20} />
             </a>
             <a href="#projects" className="px-10 py-4 border-2 border-brand-blue text-brand-blue rounded-full font-bold hover:bg-brand-blue hover:text-white transition-all">
-              Projekty
+              {t.hero.projectsBtn}
             </a>
           </div>
         </div>
@@ -91,13 +92,13 @@ export default function HomeImpl(){
             transition={{ duration: 0.8 }}
             className="max-w-4xl mx-auto px-4 text-center relative z-10"
           >
-             <h2 className="font-heading font-extrabold text-4xl md:text-6xl text-text-onLight mb-6">Pojďme tvořit spolu</h2>
-             <p className="text-xl text-text-mutedOnLight mb-12">Pokud vás zaujal můj profil, rád se pobavím o možné spolupráci nebo stáži v IT.</p>
+             <h2 className="font-heading font-extrabold text-4xl md:text-6xl text-text-onLight mb-6">{t.contact.title}</h2>
+             <p className="text-xl text-text-mutedOnLight mb-12">{t.contact.subtitle}</p>
              
              <ContactForm />
              
              <div className="mt-10 flex flex-col items-center gap-4">
-               <p className="text-text-mutedOnLight text-sm">nebo přímo na e-mail</p>
+               <p className="text-text-mutedOnLight text-sm">{t.contact.orEmail}</p>
                <button 
                  onClick={copyEmail}
                  className="cursor-pointer group text-text-onLight font-bold flex items-center justify-center gap-3 bg-white/5 px-6 py-3 rounded-2xl border border-black/10 hover:border-brand-blue hover:bg-white shadow-sm hover:shadow-xl transition-all relative overflow-hidden text-sm"
@@ -110,7 +111,7 @@ export default function HomeImpl(){
                    <Copy size={16} className="opacity-20 transition-opacity" />
                  )}
                  {copied && (
-                   <span className="absolute bottom-1 right-1/2 translate-x-1/2 text-[10px] text-brand-neonGreen font-black uppercase">Zkopírováno!</span>
+                   <span className="absolute bottom-1 right-1/2 translate-x-1/2 text-[10px] text-brand-neonGreen font-black uppercase">{t.contact.copied}</span>
                  )}
                </button>
              </div>

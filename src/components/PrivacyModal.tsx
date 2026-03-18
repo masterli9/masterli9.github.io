@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Shield } from 'lucide-react'
+import { useLanguage } from '../i18n/useLanguage'
 
 interface PrivacyModalProps {
   isOpen: boolean
@@ -7,6 +8,8 @@ interface PrivacyModalProps {
 }
 
 export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
+  const { t } = useLanguage()
+  
   return (
     <AnimatePresence>
       {isOpen && (
@@ -43,9 +46,8 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                   </div>
                   <div>
                     <h2 className="font-heading font-black text-3xl text-text-onLight tracking-tighter">
-                      Ochrana soukromí
+                      {t.privacy.title}
                     </h2>
-                    <p className="text-text-mutedOnLight text-sm">Poslední aktualizace: březen 2026</p>
                   </div>
                 </div>
 
@@ -54,64 +56,37 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 <div className="space-y-8 text-text-mutedOnLight leading-relaxed">
                   <section>
                     <h3 className="font-heading font-bold text-lg text-text-onLight mb-3">
-                      Jaké údaje shromažďuji
+                      {t.privacy.sections.intro.title}
                     </h3>
-                    <p>
-                      Tato webová stránka je osobním portfoliem a neshromažďuje žádné osobní údaje automaticky. 
-                      Pokud mě kontaktujete prostřednictvím kontaktního formuláře, zpracovávám pouze informace, 
-                      které mi dobrovolně poskytnete – typicky jméno, e-mailovou adresu a obsah zprávy.
-                    </p>
+                    <p>{t.privacy.sections.intro.content}</p>
                   </section>
 
                   <section>
                     <h3 className="font-heading font-bold text-lg text-text-onLight mb-3">
-                      Účel zpracování
+                      {t.privacy.sections.collect.title}
                     </h3>
-                    <p>
-                      Vaše údaje z kontaktního formuláře používám výhradně k odpovědi na váš dotaz nebo 
-                      nabídku spolupráce. Data nejsou využívána k marketingovým účelům ani sdílena s třetími stranami.
-                    </p>
+                    <p>{t.privacy.sections.collect.content}</p>
                   </section>
 
                   <section>
                     <h3 className="font-heading font-bold text-lg text-text-onLight mb-3">
-                      Cookies a analytika
+                      {t.privacy.sections.cookies.title}
                     </h3>
-                    <p>
-                      Tato stránka nepoužívá sledovací cookies ani analytické nástroje třetích stran. 
-                      Mohou být použity pouze technicky nezbytné cookies pro správné fungování webu.
-                    </p>
+                    <p>{t.privacy.sections.cookies.content}</p>
                   </section>
 
                   <section>
                     <h3 className="font-heading font-bold text-lg text-text-onLight mb-3">
-                      Uchovávání dat
+                      {t.privacy.sections.thirdParty.title}
                     </h3>
-                    <p>
-                      Zprávy z kontaktního formuláře uchovávám pouze po dobu nezbytnou k vyřízení 
-                      vašeho požadavku. Po ukončení komunikace jsou data smazána.
-                    </p>
+                    <p>{t.privacy.sections.thirdParty.content}</p>
                   </section>
 
                   <section>
                     <h3 className="font-heading font-bold text-lg text-text-onLight mb-3">
-                      Vaše práva
+                      {t.privacy.sections.contact.title}
                     </h3>
-                    <p>
-                      Máte právo požádat o přístup k vašim údajům, jejich opravu nebo výmaz. 
-                      Pro jakékoliv dotazy ohledně ochrany osobních údajů mě kontaktujte na e-mailu 
-                      uvedeném v kontaktní sekci.
-                    </p>
-                  </section>
-
-                  <section>
-                    <h3 className="font-heading font-bold text-lg text-text-onLight mb-3">
-                      Zabezpečení
-                    </h3>
-                    <p>
-                      Web je provozován s použitím HTTPS protokolu, který zajišťuje šifrovanou 
-                      komunikaci mezi vaším prohlížečem a serverem.
-                    </p>
+                    <p>{t.privacy.sections.contact.content}</p>
                   </section>
                 </div>
 
@@ -120,7 +95,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                     onClick={onClose}
                     className="cursor-pointer w-full px-8 py-4 bg-black text-white rounded-2xl font-bold hover:bg-brand-blue transition-all"
                   >
-                    Rozumím
+                    {t.privacy.close}
                   </button>
                 </div>
               </div>

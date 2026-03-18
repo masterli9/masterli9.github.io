@@ -1,25 +1,22 @@
 import { Users, Terminal } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useLanguage } from '../i18n/useLanguage'
 
 export default function Skills() {
+  const { t } = useLanguage()
+  
   const categories = [
     {
-      title: "Odborné dovednosti",
+      title: t.skills.categories.technical,
       color: "brand-blue",
       icon: <Terminal size={24} />,
-      skills: [
-        "Full-stack vývoj", "Mobilní aplikace", "Správa databází", 
-        "Síťová administrace", "Implementace AI", "Cloud deployment"
-      ]
+      skills: t.skills.technicalSkills
     },
     {
-      title: "Měkké dovednosti",
+      title: t.skills.categories.soft,
       color: "brand-blue",
       icon: <Users size={24} />,
-      skills: [
-        "Samostatné učení", "Analytické myšlení", "Práce pod tlakem", 
-        "Kreativita", "Týmová spolupráce", "Adaptabilita"
-      ]
+      skills: t.skills.softSkills
     }
   ];
 
@@ -36,10 +33,10 @@ export default function Skills() {
           className="max-w-2xl mb-16"
         >
           <h2 className="font-heading font-extrabold text-4xl md:text-5xl tracking-tighter mb-6 uppercase text-text-onLight">
-            Dovednosti & <br /> Tech Stack
+            {t.skills.sectionTitle} <br /> {t.skills.sectionTitle2}
           </h2>
           <p className="text-xl text-text-mutedOnLight leading-relaxed">
-            Kombinace technické preciznosti a analytického myšlení mi umožňuje doručovat efektivní řešení.
+            {t.skills.subtitle}
           </p>
         </motion.div>
 

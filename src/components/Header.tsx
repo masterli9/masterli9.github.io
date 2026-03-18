@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useLanguage } from '../i18n/useLanguage'
+import LanguageSwitcher from './LanguageSwitcher'
 
 export default function Header() {
+  const { t } = useLanguage()
   const [isScrolled, setIsScrolled] = useState(false)
   const [showName, setShowName] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -60,15 +63,16 @@ export default function Header() {
           </div>
 
           <nav className="hidden md:flex gap-6 md:gap-8 text-[11px] font-bold tracking-[0.2em] uppercase items-center">
-            {['about', 'projects', 'skills', 'experience', 'contact'].map((id) => (
+            {(['about', 'projects', 'skills', 'experience', 'contact'] as const).map((id) => (
               <a 
                 key={id} 
                 href={`#${id}`} 
                 className="text-white/60 hover:text-brand-neonGreen transition-colors whitespace-nowrap"
               >
-                {id === 'about' ? 'O mně' : id === 'skills' ? 'Dovednosti' : id === 'projects' ? 'Projekty' : id === 'experience' ? 'Zkušenosti' : 'Kontakt'}
+                {t.nav[id]}
               </a>
             ))}
+            <LanguageSwitcher />
           </nav>
 
           <button 
@@ -97,7 +101,7 @@ export default function Header() {
             </button>
 
             <nav className="flex flex-col items-center gap-8">
-              {['about', 'projects', 'skills', 'experience', 'contact'].map((id, index) => (
+              {(['about', 'projects', 'skills', 'experience', 'contact'] as const).map((id, index) => (
                 <motion.a
                   key={id}
                   href={`#${id}`}
@@ -107,9 +111,16 @@ export default function Header() {
                   onClick={() => setIsMenuOpen(false)}
                   className="text-2xl font-heading font-bold text-white hover:text-brand-neonGreen transition-colors tracking-widest uppercase"
                 >
-                  {id === 'about' ? 'O mně' : id === 'skills' ? 'Dovednosti' : id === 'projects' ? 'Projekty' : id === 'experience' ? 'Zkušenosti' : 'Kontakt'}
+                  {t.nav[id]}
                 </motion.a>
               ))}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <LanguageSwitcher />
+              </motion.div>
             </nav>
           </motion.div>
         )}

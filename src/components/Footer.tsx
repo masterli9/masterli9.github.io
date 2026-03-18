@@ -1,10 +1,12 @@
 import { Github, Linkedin, Instagram, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
 import PrivacyModal from './PrivacyModal'
+import { useLanguage } from '../i18n/useLanguage'
 
 export default function Footer() {
   const [copied, setCopied] = useState(false)
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
+  const { t } = useLanguage()
 
   const copyEmail = () => {
     navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
@@ -13,11 +15,11 @@ export default function Footer() {
   }
 
   const navLinks = [
-    { name: 'O mně', href: '#about' },
-    { name: 'Projekty', href: '#projects' },
-    { name: 'Dovednosti', href: '#skills' },
-    { name: 'Zkušenosti', href: '#experience' },
-    { name: 'Kontakt', href: '#contact' },
+    { name: t.nav.about, href: '#about' },
+    { name: t.nav.projects, href: '#projects' },
+    { name: t.nav.skills, href: '#skills' },
+    { name: t.nav.experience, href: '#experience' },
+    { name: t.nav.contact, href: '#contact' },
   ]
 
   const socialLinks = [
@@ -34,7 +36,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2 space-y-6">
             <h2 className="font-heading font-black text-2xl tracking-tighter">ANDREJ ZDVOŘÁK</h2>
             <p className="text-text-mutedOnDark max-w-sm">
-              Vývojář se zaměřením na moderní webové technologie a efektivní využití AI.
+              {t.footer.description}
             </p>
             <div className="flex gap-4">
               {socialLinks.map((link, i) => (
@@ -53,7 +55,7 @@ export default function Footer() {
 
           {/* Links */}
           <div className="space-y-6">
-            <h3 className="font-heading font-bold uppercase tracking-widest text-sm text-brand-blue">Navigace</h3>
+            <h3 className="font-heading font-bold uppercase tracking-widest text-sm text-brand-blue">{t.footer.navigation}</h3>
             <ul className="space-y-4">
               {navLinks.map((link) => (
                 <li key={link.name}>
@@ -65,7 +67,7 @@ export default function Footer() {
 
           {/* Contact Fast */}
           <div className="space-y-6">
-            <h3 className="font-heading font-bold uppercase tracking-widest text-sm text-brand-blue">Rychlý kontakt</h3>
+            <h3 className="font-heading font-bold uppercase tracking-widest text-sm text-brand-blue">{t.footer.quickContact}</h3>
             <div className="space-y-4">
               <button
                 onClick={copyEmail}
@@ -81,15 +83,15 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-mutedOnDark">
-          <p>© {new Date().getFullYear()} Andrej Zdvořák. Všechna práva vyhrazena.</p>
+          <p>© {new Date().getFullYear()} Andrej Zdvořák. {t.footer.rights}</p>
           <div className="flex gap-8">
             <button
               onClick={() => setIsPrivacyOpen(true)}
               className="cursor-pointer hover:text-white transition-colors"
             >
-              Soukromí
+              {t.footer.privacy}
             </button>
-            <a href="#" className="hover:text-white transition-colors">Cookies</a>
+            <a href="#" className="hover:text-white transition-colors">{t.footer.cookies}</a>
           </div>
         </div>
       </div>

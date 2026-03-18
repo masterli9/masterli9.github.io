@@ -17,6 +17,29 @@ export default function ContactForm() {
     e.preventDefault()
     if (!formRef.current) return
 
+    // Honeypot check
+    const formData = new FormData(formRef.current)
+    const honeypot = formData.get('website_url')
+    if (honeypot) {
+      // Silently fail for bots
+      setStatus('success')
+      formRef.current.reset()
+      setTimeout(() => setStatus('idle'), 5000)
+      return
+    }
+
+    // Rate limiting (5 minutes)
+    const lastSubmission = localStorage.getItem('lastContactSubmission')
+    if (lastSubmission) {
+      const timeSince = Date.now() - parseInt(lastSubmission, 10)
+      if (timeSince < 5 * 60 * 1000) {
+        setStatus('error')
+        // @ts-ignore - rateLimit is added but TS might not pick it up immediately in editor context
+        setErrorMessage(t.contact.form.rateLimit || 'Too many requests. Please try again later.')
+        return
+      }
+    }
+
     setStatus('sending')
     setErrorMessage('')
 
@@ -27,6 +50,8 @@ export default function ContactForm() {
         formRef.current,
         import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       )
+      
+      localStorage.setItem('lastContactSubmission', Date.now().toString())
       setStatus('success')
       formRef.current.reset()
       setTimeout(() => setStatus('idle'), 5000)
@@ -53,7 +78,12 @@ export default function ContactForm() {
       transition={{ duration: 0.8 }}
       className="w-full max-w-lg mx-auto"
     >
-      <div className="p-6 md:p-8 border border-black/10 rounded-3xl bg-white/60 backdrop-blur-md shadow-xl">
+      <div className="relative p-6 md:p-8 border border-black/10 rounded-3xl bg-white/60 backdrop-blur-md shadow-xl">
+        {/* Honeypot field */}
+        <div className="absolute opacity-0 pointer-events-none h-0 w-0 overflow-hidden" aria-hidden="true">
+          <input type="text" name="website_url" tabIndex={-1} autoComplete="off" />
+        </div>
+
         <div className="space-y-5">
           {inputFields.map((field, idx) => (
             <motion.div

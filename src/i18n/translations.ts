@@ -136,6 +136,7 @@ export const translations = {
         send: 'Odeslat zprávu',
         success: 'Děkuji za zprávu! Ozvu se co nejdříve.',
         error: 'Nepodařilo se odeslat zprávu. Zkuste to prosím znovu.',
+        rateLimit: 'Příliš mnoho žádostí. Zkuste to prosím později.',
       },
     },
 
@@ -322,6 +323,7 @@ export const translations = {
         send: 'Send message',
         success: 'Thank you for your message! I\'ll get back to you soon.',
         error: 'Failed to send message. Please try again.',
+        rateLimit: 'Too many requests. Please try again later.',
       },
     },
 

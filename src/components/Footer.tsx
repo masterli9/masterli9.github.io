@@ -92,7 +92,12 @@ export default function Footer() {
             >
               {t.footer.privacy}
             </button>
-            <a href="#" className="hover:text-white transition-colors">{t.footer.cookies}</a>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-banner'))} 
+              className="cursor-pointer hover:text-white transition-colors"
+            >
+              {t.footer.cookies}
+            </button>
           </div>
         </div>
       </div>

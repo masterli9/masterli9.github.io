@@ -173,7 +173,7 @@ export const translations = {
         },
         cookies: {
           title: 'Cookies a analytika',
-          content: 'Tato stránka nepoužívá cookies třetích stran ani analytické nástroje, které by sledovaly vaše chování.'
+          content: 'Tato stránka používá službu Google Analytics k analýze návštěvnosti. Data jsou sbírána pouze v případě, že k tomu udělíte souhlas v cookie liště.'
         },
         thirdParty: {
           title: 'Služby třetích stran',
@@ -185,6 +185,14 @@ export const translations = {
         },
       },
       close: 'Zavřít'
+    },
+
+    // Cookie Banner
+    cookieBanner: {
+      text: 'Tato stránka používá cookies pro analýzu návštěvnosti prostřednictvím Google Analytics. Chcete mi pomoci vylepšovat web povolením analytických cookies?',
+      accept: 'Povolit',
+      decline: 'Odmítnout',
+      privacyLink: 'Zásady soukromí',
     },
   },
 
@@ -362,7 +370,7 @@ export const translations = {
         },
         cookies: {
           title: 'Cookies and analytics',
-          content: 'This site does not use third-party cookies or analytics tools that would track your behavior.'
+          content: 'This site uses Google Analytics to analyze traffic. Data is collected only if you grant consent in the cookie banner.'
         },
         thirdParty: {
           title: 'Third-party services',
@@ -374,6 +382,14 @@ export const translations = {
         },
       },
       close: 'Close'
+    },
+
+    // Cookie Banner
+    cookieBanner: {
+      text: 'This site uses cookies for traffic analysis via Google Analytics. Would you like to help me improve the site by enabling analytical cookies?',
+      accept: 'Accept',
+      decline: 'Decline',
+      privacyLink: 'Privacy Policy',
     },
   },
 } as const

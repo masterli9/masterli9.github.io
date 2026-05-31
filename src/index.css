@@ -100,6 +100,7 @@
 			40px 70px,
 			0 0,
 			40px 70px;
+		background-attachment: fixed;
 		opacity: 0.03; /* Reduced from 0.05 */
 	}
 

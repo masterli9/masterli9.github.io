@@ -41,7 +41,7 @@ test('the visual system uses the approved tokens and local Instrument Sans font'
   const packageJson = await read('package.json')
 
   for (const token of ['#050505', '#F7F7F5', '#F21868', '#355CFF', '#777777']) {
-    assert.match(css, new RegExp(token.replace('#', '#')))
+    assert.match(css, new RegExp(token.replace('#', '#'), 'i'))
   }
   assert.match(main, /@fontsource\/instrument-sans/)
   assert.match(packageJson, /@fontsource\/instrument-sans/)

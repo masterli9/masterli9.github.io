@@ -1,0 +1,63 @@
+.assembly-cell {
+  width: min(100%, 22rem);
+  color: var(--color-soft-white);
+  overflow: visible;
+}
+
+.assembly-cell--hero {
+  width: min(100%, 22rem);
+}
+
+.assembly-cell--selected-work {
+  width: min(100%, 30rem);
+  color: var(--color-signal-pink);
+}
+
+.assembly-cell--trace {
+  width: min(100%, 10rem);
+}
+
+.assembly-cell--queue {
+  width: min(100%, 18rem);
+}
+
+.assembly-cell--static {
+  width: min(100%, 20rem);
+}
+
+.assembly-cell__rail {
+  color: var(--color-line-gray);
+}
+
+.assembly-cell__module {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.assembly-cell__output {
+  color: var(--color-soft-white);
+}
+
+.assembly-cell__output--active {
+  color: var(--color-signal-pink);
+}
+
+@media (max-width: 640px) {
+  .assembly-cell,
+  .assembly-cell--hero,
+  .assembly-cell--selected-work,
+  .assembly-cell--static {
+    width: min(100%, 17rem);
+  }
+
+  .assembly-cell--queue {
+    width: min(100%, 15rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assembly-cell__module,
+  .assembly-cell__output {
+    animation: none;
+  }
+}

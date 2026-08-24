@@ -1,105 +1,46 @@
-import React, { useState } from 'react'
-import { ArrowRight, Smartphone, Layout as LayoutIcon } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { ArrowRight } from '@phosphor-icons/react'
+import ProjectIcon from './ProjectIcon'
 import ProjectModal from './ProjectModal'
+import { projects, type ProjectRecord } from '../data/projects'
 import { useLanguage } from '../i18n/useLanguage'
 
-export interface Project {
-  title: string;
-  type: string;
-  icon: React.ReactNode;
-  desc: string;
-  tech: string[];
-  link: string;
-  images?: string[];
-  longDesc?: string;
-}
-
 export default function Projects() {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const { t } = useLanguage()
-
-  const projects: Project[] = [
-    {
-      title: "RehearsalHub",
-      type: t.projects.types.mobile,
-      icon: <Smartphone size={32} className="text-brand-blue" />,
-      desc: t.projects.items.rehearsalHub.desc,
-      longDesc: t.projects.items.rehearsalHub.longDesc,
-      tech: ["React Native", "Firebase", "TypeScript", "Expo", "NativeWind", "WIP"],
-      images: ["/projects-photos/rehearsalHub/image1.png", "/projects-photos/rehearsalHub/image2.png"],
-      link: "#"
-    },
-    {
-      title: "The GT Series",
-      type: t.projects.types.web,
-      icon: <LayoutIcon size={32} className="text-brand-blue" />,
-      desc: t.projects.items.gtSeries.desc,
-      longDesc: t.projects.items.gtSeries.longDesc,
-      tech: ["React", "PostgreSQL", "Node.js", "TypeScript", "Sanity.io"],
-      images: ["/projects-photos/gt-series/image1.png", "/projects-photos/gt-series/image2.png"],
-      link: "https://www.thegtseries.com"
-    }
-  ];
+  const [selectedProject, setSelectedProject] = useState<ProjectRecord | null>(null)
+  const supportingProjects = projects.filter((project) => !project.featured)
 
   return (
-    <section id="projects" className="light-section bg-background-light relative overflow-hidden">
-      <div className="absolute inset-0 isometric-grid pointer-events-none opacity-5"></div>
+    <div className="mt-24 border-t border-white-line pt-8 md:mt-32">
+      <div className="mb-8 flex items-center justify-between gap-5">
+        <p className="text-sm text-line-gray">{t.projects.otherOutputs}</p>
+        <span className="text-xs text-line-gray">{String(supportingProjects.length).padStart(2, '0')}</span>
+      </div>
 
-      <div className="max-w-6xl mx-auto px-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="font-heading font-extrabold text-4xl md:text-5xl text-text-onLight tracking-tighter uppercase mb-2">{t.projects.sectionTitle}</h2>
-          <p className="text-xl text-text-mutedOnLight leading-relaxed">{t.projects.subtitle}</p>
-        </motion.div>
-
-        <div className="grid md:grid-cols-2 gap-12">
-          {projects.map((p, idx) => (
-            <motion.div
-              key={p.title}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: idx * 0.2 }}
-              onClick={() => setSelectedProject(p)}
-              className="group relative bg-white border border-black/10 rounded-[2.5rem] p-6 md:p-10 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 cursor-pointer overflow-hidden"
-            >
-              <div className="absolute inset-0 rounded-[2.5rem] border-2 border-transparent group-hover:border-brand-blue/20 transition-all pointer-events-none"></div>
-
-              <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4 md:gap-0">
-                <div className="flex items-center gap-5">
-                  <div className="w-16 h-16 rounded-2xl bg-brand-blue/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-brand-blue/10 transition-all shrink-0">
-                    {p.icon}
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-brand-blue mb-1 block">{p.type}</span>
-                    <h3 className="font-heading font-extrabold text-2xl md:text-3xl text-text-onLight">{p.title}</h3>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue group-hover:bg-brand-blue group-hover:text-white transition-all transform group-hover:rotate-45 self-end md:self-auto shrink-0">
-                  <ArrowRight size={24} />
+      <div className="divide-y divide-white-line">
+        {supportingProjects.map((project) => {
+          const copy = t.projects.items[project.translationKey]
+          return (
+            <div key={project.id} className="grid gap-5 py-6 md:grid-cols-[minmax(0,1fr)_minmax(14rem,0.8fr)_auto] md:items-center md:gap-10">
+              <div className="flex items-center gap-4">
+                <ProjectIcon name={project.icon} size={20} className="text-cobalt" />
+                <div>
+                  <h3 className="font-heading text-2xl font-medium tracking-[-0.03em] text-soft-white">{project.title}</h3>
+                  <p className="mt-1 text-sm text-line-gray">{t.projects.types[project.type]}</p>
                 </div>
               </div>
-
-              <p className="text-text-mutedOnLight text-lg mb-10 leading-relaxed">
-                {p.desc}
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-                {p.tech.map(t => (
-                  <span key={t} className="px-4 py-1.5 bg-background-light border border-black/5 rounded-full text-[13px] font-bold text-text-onLight shadow-sm">
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              <p className="max-w-md text-sm leading-relaxed text-muted">{copy.desc}</p>
+              <button
+                type="button"
+                onClick={() => setSelectedProject(project)}
+                className="inline-flex items-center gap-3 justify-self-start text-sm font-semibold text-soft-white transition-colors hover:text-signal-pink md:justify-self-end"
+              >
+                {t.projects.openDetails}
+                <ArrowRight size={17} weight="bold" aria-hidden="true" />
+              </button>
+            </div>
+          )
+        })}
       </div>
 
       <ProjectModal
@@ -107,6 +48,6 @@ export default function Projects() {
         isOpen={!!selectedProject}
         onClose={() => setSelectedProject(null)}
       />
-    </section>
+    </div>
   )
 }

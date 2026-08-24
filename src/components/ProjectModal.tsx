@@ -1,181 +1,139 @@
-import React, { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, ExternalLink, Globe, Layers, ChevronLeft, ChevronRight } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowSquareOut, CaretLeft, CaretRight, Globe, Stack, X } from '@phosphor-icons/react'
 import { useLanguage } from '../i18n/useLanguage'
-
-interface Project {
-  title: string;
-  type: string;
-  icon: React.ReactNode;
-  desc: string;
-  tech: string[];
-  link: string;
-  images?: string[];
-  longDesc?: string;
-}
+import type { ProjectRecord } from '../data/projects'
 
 interface ProjectModalProps {
-  project: Project | null;
-  isOpen: boolean;
-  onClose: () => void;
+  project: ProjectRecord | null
+  isOpen: boolean
+  onClose: () => void
 }
 
 export default function ProjectModal({ project, isOpen, onClose }: ProjectModalProps) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { t } = useLanguage()
 
   useEffect(() => {
-    setCurrentImageIndex(0);
-  }, [project]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentImageIndex(0)
+  }, [project])
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
+    if (!isOpen) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
     }
+    document.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.overflow = 'unset'
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
     }
-  }, [isOpen])
+  }, [isOpen, onClose])
 
-  if (!project) return null;
+  if (!project) return null
+  const copy = t.projects.items[project.translationKey]
 
-  const nextImage = () => {
-    if (project.images) {
-      setCurrentImageIndex((prev) => (prev + 1) % project.images!.length);
-    }
-  };
-
-  const prevImage = () => {
-    if (project.images) {
-      setCurrentImageIndex((prev) => (prev - 1 + project.images!.length) % project.images!.length);
-    }
-  };
+  const nextImage = () => setCurrentImageIndex((index) => (index + 1) % project.images.length)
+  const previousImage = () => setCurrentImageIndex((index) => (index - 1 + project.images.length) % project.images.length)
 
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
+        <div className="fixed inset-0 z-[200] flex justify-end">
+          <motion.button
+            type="button"
+            aria-label={t.projectModal.close}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background-dark/95 backdrop-blur-xl z-[9999] cursor-pointer"
+            className="absolute inset-0 cursor-default bg-ink/90"
           />
 
-          {/* Modal Container */}
-          <div className="fixed inset-0 flex items-center justify-center z-[10000] p-4 md:p-8 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              className="bg-white w-full max-w-5xl max-h-[90vh] rounded-[2.5rem] overflow-hidden shadow-2xl pointer-events-auto flex flex-col md:flex-row relative"
+          <motion.aside
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="project-modal-title"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }}
+            className="relative z-10 flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-white-line bg-soft-white text-ink"
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute right-5 top-5 z-10 border border-transparent p-2 text-ink transition-colors hover:border-ink hover:text-signal-pink"
             >
-              <button 
-                onClick={onClose}
-                className="cursor-pointer absolute top-4 right-4 md:top-6 md:right-6 z-30 p-2 bg-white/80 backdrop-blur-md shadow-lg hover:bg-white rounded-full transition-colors flex items-center justify-center"
-              >
-                <X size={24} className="text-black" />
-              </button>
+              <X size={22} aria-hidden="true" />
+            </button>
 
-              {/* Image Section / Carousel */}
-              <div className="md:w-3/5 bg-background-light flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-brand-blue/5 to-brand-cyan/5 group min-h-[300px]">
-                {project.images && project.images.length > 0 ? (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <AnimatePresence mode="wait">
-                      <motion.img 
-                        key={currentImageIndex}
-                        src={project.images[currentImageIndex]} 
-                        alt={`${project.title} - ${currentImageIndex + 1}`} 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="w-full h-full object-contain p-4 md:p-8 rounded-[2rem]"
+            <div className="relative flex min-h-[18rem] items-center justify-center border-b border-ink/15 bg-ink-soft p-6 md:min-h-[28rem] md:p-10">
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentImageIndex}
+                  src={project.images[currentImageIndex]}
+                  alt={`${project.title} — ${currentImageIndex + 1}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="max-h-full w-full object-contain"
+                />
+              </AnimatePresence>
+
+              {project.images.length > 1 && (
+                <>
+                  <button type="button" onClick={previousImage} aria-label="Previous image" className="absolute left-4 border border-soft-white/30 p-2 text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink">
+                    <CaretLeft size={20} aria-hidden="true" />
+                  </button>
+                  <button type="button" onClick={nextImage} aria-label="Next image" className="absolute right-4 border border-soft-white/30 p-2 text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink">
+                    <CaretRight size={20} aria-hidden="true" />
+                  </button>
+                  <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2" aria-label="Image selector">
+                    {project.images.map((image, index) => (
+                      <button
+                        key={image}
+                        type="button"
+                        aria-label={`Show image ${index + 1}`}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`h-2 w-2 border border-soft-white ${index === currentImageIndex ? 'bg-signal-pink' : 'bg-transparent'}`}
                       />
-                    </AnimatePresence>
-
-                    {project.images.length > 1 && (
-                      <>
-                        <button 
-                          onClick={prevImage}
-                          className="cursor-pointer absolute left-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                        >
-                          <ChevronLeft size={24} />
-                        </button>
-                        <button 
-                          onClick={nextImage}
-                          className="cursor-pointer absolute right-4 p-3 bg-white/80 hover:bg-white rounded-full shadow-lg text-brand-blue transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                        >
-                          <ChevronRight size={24} />
-                        </button>
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                          {project.images.map((_, i) => (
-                            <button
-                              key={i}
-                              onClick={() => setCurrentImageIndex(i)}
-                              className={`cursor-pointer w-2.5 h-2.5 rounded-full transition-all ${
-                                i === currentImageIndex ? 'w-8 bg-brand-blue' : 'bg-brand-blue/30'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-full aspect-video flex items-center justify-center">
-                     <div className="scale-[3] opacity-20">{project.icon}</div>
-                  </div>
-                )}
-              </div>
-
-              {/* Content Section */}
-              <div className="md:w-2/5 p-8 md:p-12 overflow-y-auto bg-white">
-                <div className="mb-10">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-brand-blue mb-2 block">{project.type}</span>
-                  <h3 className="font-heading font-black text-4xl text-text-onLight tracking-tighter mb-4 leading-[1.1]">{project.title}</h3>
-                  <div className="w-12 h-1 bg-brand-blue mb-6"></div>
-                  <p className="text-text-mutedOnLight text-lg leading-relaxed font-medium">
-                    {project.longDesc || project.desc}
-                  </p>
-                </div>
-
-                <div className="mb-10">
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-text-onLight mb-5 flex items-center gap-2">
-                    <Layers size={18} className="text-brand-blue" /> {t.projectModal.techStack}
-                  </h4>
-                  <div className="flex flex-wrap gap-2.5">
-                    {project.tech.map(t => (
-                      <span key={t} className="px-4 py-2 bg-background-light border border-black/5 rounded-xl text-sm font-bold text-text-onLight shadow-sm">
-                        {t}
-                      </span>
                     ))}
                   </div>
-                </div>
+                </>
+              )}
+            </div>
 
-                <div className="flex flex-col gap-4 pt-8 border-t border-black/5">
-                  {project.link !== "#" && (
-                    <a 
-                      href={project.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="w-full px-8 py-5 bg-black text-white rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-brand-blue transition-all shadow-xl"
-                    >
-                      <Globe size={18} /> {t.projectModal.visitProject} <ExternalLink size={16} />
-                    </a>
-                  )}
+            <div className="flex flex-1 flex-col p-7 md:p-12">
+              <div className="flex items-center gap-3 text-cobalt">
+                <Globe size={18} aria-hidden="true" />
+                <span className="text-sm font-semibold">{t.projects.types[project.type]}</span>
+              </div>
+              <h2 id="project-modal-title" className="mt-5 font-heading text-4xl font-medium tracking-[-0.05em] md:text-5xl">{project.title}</h2>
+              <p className="mt-7 text-lg leading-relaxed text-ink/70">{copy.longDesc}</p>
+
+              <div className="mt-10 border-t border-ink/15 pt-6">
+                <h3 className="flex items-center gap-3 text-sm font-semibold text-ink"><Stack size={17} aria-hidden="true" />{t.projectModal.techStack}</h3>
+                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-ink/60">
+                  {project.technologies.map((technology) => <span key={technology}>{technology}</span>)}
                 </div>
               </div>
-            </motion.div>
-          </div>
-        </>
+
+              {project.href !== '#' && (
+                <a href={project.href} target="_blank" rel="noreferrer" className="mt-auto inline-flex items-center justify-center gap-3 border border-ink bg-ink px-6 py-4 font-semibold text-soft-white transition-colors hover:border-signal-pink hover:bg-signal-pink">
+                  {t.projectModal.visitProject}
+                  <ArrowSquareOut size={18} aria-hidden="true" />
+                </a>
+              )}
+            </div>
+          </motion.aside>
+        </div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   )
 }

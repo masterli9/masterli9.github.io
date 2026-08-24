@@ -66,9 +66,12 @@ export default function Header() {
           </nav>
 
           <button
+            type="button"
             className="cursor-pointer shrink-0 p-2 text-soft-white transition-colors hover:text-signal-pink md:hidden"
             onClick={() => setIsMenuOpen(true)}
             aria-label="Open menu"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-navigation"
           >
             <Menu size={20} />
           </button>
@@ -82,8 +85,13 @@ export default function Header() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] flex items-center justify-center bg-ink p-4"
+            id="mobile-navigation"
+            role="dialog"
+            aria-modal="true"
           >
             <button
+              type="button"
+              aria-label="Close menu"
               onClick={() => setIsMenuOpen(false)}
               className="absolute right-6 top-6 border border-transparent p-4 text-soft-white transition-colors hover:border-white-line hover:text-signal-pink"
             >

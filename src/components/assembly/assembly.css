@@ -53,6 +53,10 @@
   .assembly-cell--queue {
     width: min(100%, 15rem);
   }
+
+  .assembly-cell--hero .assembly-cell__module:nth-of-type(4) {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

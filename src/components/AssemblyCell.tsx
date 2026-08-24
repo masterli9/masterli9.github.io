@@ -47,6 +47,7 @@ export default function AssemblyCell({ mode = 'hero', className = '', labelledBy
         <motion.g
           key={module.x}
           className={`assembly-cell__module ${module.color}`}
+          data-module-index={index}
           initial={shouldAnimate ? { x: -30, opacity: 0.2 } : { x: stableOutput ? 0 : -30, opacity: 1 }}
           animate={shouldAnimate
             ? { x: [-30, 0, 0, 0], opacity: [0.2, 1, 1, 0.35] }

@@ -77,7 +77,8 @@ select {
   }
 
   .foundry-container {
-    width: min(100% - 3rem, 76rem);
+    width: calc(100% - 3rem);
+    max-width: 76rem;
     margin-inline: auto;
   }
 
@@ -97,7 +98,7 @@ select {
 
 @media (max-width: 640px) {
   .foundry-container {
-    width: min(100% - 2rem, 76rem);
+    width: calc(100% - 2rem);
   }
 }
 

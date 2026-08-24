@@ -15,9 +15,9 @@ export default function Hero() {
   }, [])
 
   return (
-    <section id="hero" className="foundry-page min-h-[min(52rem,100dvh)] flex items-center pt-28 pb-20 md:pt-36">
-      <div className="foundry-container grid items-center gap-16 md:grid-cols-[minmax(0,1.1fr)_minmax(16rem,0.7fr)] md:gap-12">
-        <div className="max-w-2xl">
+    <section id="hero" className="foundry-page flex items-center py-24 md:min-h-[min(52rem,100dvh)] md:py-36">
+      <div className="foundry-container grid items-center gap-10 md:grid-cols-[minmax(0,1.1fr)_minmax(16rem,0.7fr)] md:gap-12">
+        <div className="max-w-2xl md:col-start-1">
           <div className="mb-7 flex items-center gap-4 text-cobalt">
             <span className="foundry-rule" aria-hidden="true" />
             <p className="foundry-label text-cobalt">{t.hero.role}</p>
@@ -41,22 +41,6 @@ export default function Hero() {
             {t.hero.description}
           </p>
 
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="#projects"
-              className="inline-flex items-center justify-center gap-3 bg-soft-white px-6 py-4 font-semibold text-ink transition-colors hover:bg-signal-pink"
-            >
-              {t.hero.projectsBtn}
-              <ArrowUpRight size={18} weight="bold" aria-hidden="true" />
-            </a>
-            <a
-              href="#contact"
-              className="inline-flex items-center justify-center gap-3 border border-white-line px-6 py-4 font-semibold text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink"
-            >
-              {t.hero.contactBtn}
-              <ArrowRight size={18} weight="bold" aria-hidden="true" />
-            </a>
-          </div>
         </div>
 
         <div className="flex flex-col items-start gap-5 md:items-end">
@@ -66,6 +50,23 @@ export default function Hero() {
             <span className="h-2 w-2 bg-signal-pink" aria-hidden="true" />
             <span>{t.hero.assemblyStatus}</span>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row md:col-start-1">
+          <a
+            href="#projects"
+            className="inline-flex items-center justify-center gap-3 bg-soft-white px-6 py-4 font-semibold text-ink transition-colors hover:bg-signal-pink"
+          >
+            {t.hero.projectsBtn}
+            <ArrowUpRight size={18} weight="bold" aria-hidden="true" />
+          </a>
+          <a
+            href="#contact"
+            className="inline-flex items-center justify-center gap-3 border border-white-line px-6 py-4 font-semibold text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink"
+          >
+            {t.hero.contactBtn}
+            <ArrowRight size={18} weight="bold" aria-hidden="true" />
+          </a>
         </div>
       </div>
     </section>

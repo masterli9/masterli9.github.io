@@ -117,6 +117,7 @@ export const translations = {
     // Goals Section
     goals: {
       sectionTitle: 'Cíle a plány',
+      queueTitle: 'Další moduly ve frontě',
       items: [
         {
           title: 'Krátkodobé cíle',
@@ -330,6 +331,7 @@ export const translations = {
     // Goals Section
     goals: {
       sectionTitle: 'Goals & Plans',
+      queueTitle: 'More modules in the queue',
       items: [
         {
           title: 'Short-term Goals',

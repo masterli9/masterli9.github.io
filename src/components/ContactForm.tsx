@@ -1,6 +1,5 @@
-import { useState, useRef, type FormEvent } from 'react'
-import { motion } from 'framer-motion'
-import { Send, Loader2, CheckCircle, AlertCircle, User, Mail, MessageSquare, Tag } from 'lucide-react'
+import { useRef, useState, type FormEvent } from 'react'
+import { CheckCircle, PaperPlaneRight, WarningCircle } from '@phosphor-icons/react'
 import emailjs from '@emailjs/browser'
 import { useLanguage } from '../i18n/useLanguage'
 
@@ -10,34 +9,25 @@ export default function ContactForm() {
   const formRef = useRef<HTMLFormElement>(null)
   const [status, setStatus] = useState<FormStatus>('idle')
   const [errorMessage, setErrorMessage] = useState('')
-  const [focused, setFocused] = useState<string | null>(null)
   const { t } = useLanguage()
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     if (!formRef.current) return
 
-    // Honeypot check
     const formData = new FormData(formRef.current)
-    const honeypot = formData.get('website_url')
-    if (honeypot) {
-      // Silently fail for bots
+    if (formData.get('website_url')) {
       setStatus('success')
       formRef.current.reset()
-      setTimeout(() => setStatus('idle'), 5000)
+      window.setTimeout(() => setStatus('idle'), 5000)
       return
     }
 
-    // Rate limiting (5 minutes)
     const lastSubmission = localStorage.getItem('lastContactSubmission')
-    if (lastSubmission) {
-      const timeSince = Date.now() - parseInt(lastSubmission, 10)
-      if (timeSince < 5 * 60 * 1000) {
-        setStatus('error')
-        // @ts-ignore - rateLimit is added but TS might not pick it up immediately in editor context
-        setErrorMessage(t.contact.form.rateLimit || 'Too many requests. Please try again later.')
-        return
-      }
+    if (lastSubmission && Date.now() - Number.parseInt(lastSubmission, 10) < 5 * 60 * 1000) {
+      setStatus('error')
+      setErrorMessage(t.contact.form.rateLimit)
+      return
     }
 
     setStatus('sending')
@@ -48,13 +38,12 @@ export default function ContactForm() {
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         formRef.current,
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
       )
-      
       localStorage.setItem('lastContactSubmission', Date.now().toString())
       setStatus('success')
       formRef.current.reset()
-      setTimeout(() => setStatus('idle'), 5000)
+      window.setTimeout(() => setStatus('idle'), 5000)
     } catch (error) {
       setStatus('error')
       setErrorMessage(t.contact.form.error)
@@ -62,139 +51,59 @@ export default function ContactForm() {
     }
   }
 
-  const inputFields = [
-    { name: 'from_name', type: 'text', placeholder: t.contact.form.name, icon: User, required: true },
-    { name: 'reply_to', type: 'email', placeholder: t.contact.form.email, icon: Mail, required: true },
-    { name: 'subject', type: 'text', placeholder: t.contact.form.subject, icon: Tag, required: true },
-  ]
+  const fields = [
+    { id: 'from_name', name: 'from_name', type: 'text', label: t.contact.form.name },
+    { id: 'reply_to', name: 'reply_to', type: 'email', label: t.contact.form.email },
+    { id: 'subject', name: 'subject', type: 'text', label: t.contact.form.subject },
+  ] as const
 
   return (
-    <motion.form
-      ref={formRef}
-      onSubmit={handleSubmit}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8 }}
-      className="w-full max-w-lg mx-auto"
-    >
-      <div className="relative p-6 md:p-8 border border-black/10 rounded-3xl bg-white/60 backdrop-blur-md shadow-xl">
-        {/* Honeypot field */}
-        <div className="absolute opacity-0 pointer-events-none h-0 w-0 overflow-hidden" aria-hidden="true">
-          <input type="text" name="website_url" tabIndex={-1} autoComplete="off" />
-        </div>
-
-        <div className="space-y-5">
-          {inputFields.map((field, idx) => (
-            <motion.div
-              key={field.name}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 * idx, duration: 0.5 }}
-              className="relative group"
-            >
-              <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${
-                focused === field.name ? 'text-brand-blue' : 'text-text-mutedOnLight/40'
-              }`}>
-                <field.icon size={18} />
-              </div>
-              <input
-                type={field.type}
-                name={field.name}
-                placeholder={field.placeholder}
-                required={field.required}
-                onFocus={() => setFocused(field.name)}
-                onBlur={() => setFocused(null)}
-                className="w-full pl-12 pr-5 py-4 rounded-2xl border-2 border-transparent bg-black/[0.03] text-text-onLight placeholder:text-text-mutedOnLight/50 focus:outline-none focus:border-brand-blue focus:bg-white transition-all duration-300"
-              />
-            </motion.div>
-          ))}
-
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="relative group"
-          >
-            <div className={`absolute left-4 top-5 transition-colors duration-300 ${
-              focused === 'message' ? 'text-brand-blue' : 'text-text-mutedOnLight/40'
-            }`}>
-              <MessageSquare size={18} />
-            </div>
-            <textarea
-              name="message"
-              placeholder={t.contact.form.message}
-              required
-              rows={4}
-              onFocus={() => setFocused('message')}
-              onBlur={() => setFocused(null)}
-              className="w-full pl-12 pr-5 py-4 rounded-2xl border-2 border-transparent bg-black/[0.03] text-text-onLight placeholder:text-text-mutedOnLight/50 focus:outline-none focus:border-brand-blue focus:bg-white transition-all duration-300 resize-none"
-            />
-          </motion.div>
-        </div>
-
-        <motion.button
-          type="submit"
-          disabled={status === 'sending'}
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          whileHover={{ scale: status === 'sending' ? 1 : 1.02 }}
-          whileTap={{ scale: status === 'sending' ? 1 : 0.98 }}
-          className={`cursor-pointer mt-6 w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-3 transition-all duration-300 ${
-            status === 'success' 
-              ? 'bg-brand-neonGreen text-background-dark' 
-              : status === 'error'
-              ? 'bg-red-500'
-              : 'bg-brand-blue hover:shadow-[0_0_30px_rgba(37,99,235,0.4)]'
-          } disabled:opacity-70 disabled:cursor-not-allowed`}
-        >
-          {status === 'sending' ? (
-            <>
-              <Loader2 size={20} className="animate-spin" />
-              <span>{t.contact.form.sending}</span>
-            </>
-          ) : status === 'success' ? (
-            <>
-              <CheckCircle size={20} />
-              <span>{t.contact.form.sent}</span>
-            </>
-          ) : status === 'error' ? (
-            <>
-              <AlertCircle size={20} />
-              <span>{t.contact.form.retry}</span>
-            </>
-          ) : (
-            <>
-              <Send size={20} />
-              <span>{t.contact.form.send}</span>
-            </>
-          )}
-        </motion.button>
-
-        {status === 'success' && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 text-center text-brand-neonGreen font-medium text-sm"
-          >
-            {t.contact.form.success}
-          </motion.p>
-        )}
-
-        {status === 'error' && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 text-center text-red-500 font-medium text-sm"
-          >
-            {errorMessage}
-          </motion.p>
-        )}
+    <form ref={formRef} onSubmit={handleSubmit} className="w-full max-w-2xl">
+      <div className="absolute h-0 w-0 overflow-hidden opacity-0" aria-hidden="true">
+        <label htmlFor="website_url">Website</label>
+        <input id="website_url" type="text" name="website_url" tabIndex={-1} autoComplete="off" />
       </div>
-    </motion.form>
+
+      <div className="divide-y divide-white-line border-y border-white-line">
+        {fields.map((field) => (
+          <div key={field.id} className="py-5">
+            <label htmlFor={field.id} className="block text-sm font-semibold text-soft-white">{field.label}</label>
+            <input
+              id={field.id}
+              name={field.name}
+              type={field.type}
+              required
+              className="mt-2 block w-full bg-transparent py-2 text-lg text-soft-white placeholder:text-line-gray focus:border-signal-pink focus:outline-none"
+            />
+          </div>
+        ))}
+
+        <div className="py-5">
+          <label htmlFor="message" className="block text-sm font-semibold text-soft-white">{t.contact.form.message}</label>
+          <textarea
+            id="message"
+            name="message"
+            required
+            rows={5}
+            className="mt-2 block w-full resize-y bg-transparent py-2 text-lg leading-relaxed text-soft-white placeholder:text-line-gray focus:border-signal-pink focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={status === 'sending'}
+        className={`mt-7 inline-flex w-full items-center justify-center gap-3 px-6 py-4 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${status === 'success' ? 'bg-signal-pink text-ink' : status === 'error' ? 'border border-signal-pink text-signal-pink' : 'bg-signal-pink text-ink hover:bg-soft-white'}`}
+      >
+        {status === 'sending' && <span className="h-4 w-4 animate-spin border-2 border-ink border-t-transparent" aria-hidden="true" />}
+        {status === 'success' && <CheckCircle size={18} aria-hidden="true" />}
+        {status === 'error' && <WarningCircle size={18} aria-hidden="true" />}
+        {status === 'idle' && <PaperPlaneRight size={18} aria-hidden="true" />}
+        <span>{status === 'sending' ? t.contact.form.sending : status === 'success' ? t.contact.form.sent : status === 'error' ? t.contact.form.retry : t.contact.form.send}</span>
+      </button>
+
+      {status === 'success' && <p className="mt-4 flex items-center gap-2 text-sm text-signal-pink" role="status"><CheckCircle size={16} aria-hidden="true" />{t.contact.form.success}</p>}
+      {status === 'error' && <p className="mt-4 flex items-center gap-2 text-sm text-signal-pink" role="alert"><WarningCircle size={16} aria-hidden="true" />{errorMessage}</p>}
+    </form>
   )
 }

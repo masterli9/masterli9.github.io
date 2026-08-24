@@ -1,19 +1,12 @@
-import { Github, Linkedin, Instagram, Copy, Check } from 'lucide-react'
+import { Check, Copy, GithubLogo, InstagramLogo, LinkedinLogo } from '@phosphor-icons/react'
 import { useState } from 'react'
 import PrivacyModal from './PrivacyModal'
 import { useLanguage } from '../i18n/useLanguage'
 
 export default function Footer() {
+  const { t } = useLanguage()
   const [copied, setCopied] = useState(false)
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
-  const { t } = useLanguage()
-
-  const copyEmail = () => {
-    navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   const navLinks = [
     { name: t.nav.about, href: '#about' },
     { name: t.nav.projects, href: '#projects' },
@@ -21,87 +14,58 @@ export default function Footer() {
     { name: t.nav.experience, href: '#experience' },
     { name: t.nav.contact, href: '#contact' },
   ]
-
   const socialLinks = [
-    { icon: <Github size={20} />, href: 'https://github.com/masterli9', label: 'GitHub' },
-    { icon: <Linkedin size={20} />, href: 'https://www.linkedin.com/in/andrej-zdvořák-a403653b4/', label: 'LinkedIn' },
-    { icon: <Instagram size={20} />, href: 'https://www.instagram.com/andrej_zdvorak/', label: 'Instagram' },
+    { icon: GithubLogo, href: 'https://github.com/masterli9', label: 'GitHub' },
+    { icon: LinkedinLogo, href: 'https://www.linkedin.com/in/andrej-zdvořák-a403653b4/', label: 'LinkedIn' },
+    { icon: InstagramLogo, href: 'https://www.instagram.com/andrej_zdvorak/', label: 'Instagram' },
   ]
 
-  return (
-    <footer className="bg-background-dark text-white pt-24 pb-12 border-t border-white/5">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-12 mb-16">
-          {/* Brand */}
-          <div className="col-span-1 md:col-span-2 space-y-6">
-            <h2 className="font-heading font-black text-2xl tracking-tighter flex items-center gap-2">ANDREJ <img src="Logo.png" alt="logo" className='w-10 h-10' /> ZDVOŘÁK</h2>
+  const copyEmail = async () => {
+    await navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 2000)
+  }
 
-            <p className="text-text-mutedOnDark max-w-sm">
-              {t.footer.description}
-            </p>
-            <div className="flex gap-4">
-              {socialLinks.map((link, i) => (
-                <a
-                  key={i}
-                  href={link.href}
-                  target='_blank'
-                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-blue hover:scale-110 transition-all"
-                  aria-label={link.label}
-                >
-                  {link.icon}
+  return (
+    <footer className="foundry-page border-t border-white-line py-12 md:py-16">
+      <div className="foundry-container">
+        <div className="grid gap-12 md:grid-cols-[minmax(0,1.4fr)_minmax(10rem,0.6fr)_minmax(14rem,0.8fr)] md:gap-16">
+          <div>
+            <p className="font-heading text-2xl font-semibold tracking-[-0.04em] text-soft-white">Andrej Zdvořák</p>
+            <p className="mt-5 max-w-sm leading-relaxed text-muted">{t.footer.description}</p>
+            <div className="mt-8 flex gap-4">
+              {socialLinks.map(({ icon: Icon, href, label }) => (
+                <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="text-line-gray transition-colors hover:text-signal-pink">
+                  <Icon size={20} aria-hidden="true" />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Links */}
-          <div className="space-y-6">
-            <h3 className="font-heading font-bold uppercase tracking-widest text-sm text-brand-blue">{t.footer.navigation}</h3>
-            <ul className="space-y-4">
-              {navLinks.map((link) => (
-                <li key={link.name}>
-                  <a href={link.href} className="text-text-mutedOnDark hover:text-white transition-colors">{link.name}</a>
-                </li>
-              ))}
-            </ul>
+          <div>
+            <h2 className="text-sm font-semibold text-signal-pink">{t.footer.navigation}</h2>
+            <nav className="mt-5 flex flex-col items-start gap-3">
+              {navLinks.map((link) => <a key={link.href} href={link.href} className="text-sm text-muted transition-colors hover:text-soft-white">{link.name}</a>)}
+            </nav>
           </div>
 
-          {/* Contact Fast */}
-          <div className="space-y-6">
-            <h3 className="font-heading font-bold uppercase tracking-widest text-sm text-brand-blue">{t.footer.quickContact}</h3>
-            <div className="space-y-4">
-              <button
-                onClick={copyEmail}
-                className="cursor-pointer group flex items-center gap-3 text-text-mutedOnDark hover:text-white transition-all w-full text-left"
-              >
-                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-brand-blue/20 transition-colors">
-                  {copied ? <Check size={14} className="text-brand-neonGreen" /> : <Copy size={14} />}
-                </div>
-                <span className="text-sm truncate">andrej.zdvorak.123@gmail.com</span>
-              </button>
-            </div>
+          <div>
+            <h2 className="text-sm font-semibold text-signal-pink">{t.footer.quickContact}</h2>
+            <button onClick={copyEmail} className="mt-5 inline-flex max-w-full items-center gap-3 text-left text-sm text-muted transition-colors hover:text-soft-white">
+              {copied ? <Check size={17} className="text-signal-pink" aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
+              <span className="break-all">andrej.zdvorak.123@gmail.com</span>
+            </button>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-mutedOnDark">
+        <div className="mt-14 flex flex-col gap-4 border-t border-white-line pt-6 text-sm text-line-gray md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} Andrej Zdvořák. {t.footer.rights}</p>
-          <div className="flex gap-8">
-            <button
-              onClick={() => setIsPrivacyOpen(true)}
-              className="cursor-pointer hover:text-white transition-colors"
-            >
-              {t.footer.privacy}
-            </button>
-            <button 
-              onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-banner'))} 
-              className="cursor-pointer hover:text-white transition-colors"
-            >
-              {t.footer.cookies}
-            </button>
+          <div className="flex gap-6">
+            <button onClick={() => setIsPrivacyOpen(true)} className="transition-colors hover:text-soft-white">{t.footer.privacy}</button>
+            <button onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-banner'))} className="transition-colors hover:text-soft-white">{t.footer.cookies}</button>
           </div>
         </div>
       </div>
-
       <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </footer>
   )

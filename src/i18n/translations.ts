@@ -12,9 +12,18 @@ export const translations = {
     // Hero Section
     hero: {
       subtitle: 'Student IT & Vývojář',
+      role: 'Student IT a vývojář',
       description: 'Vyvíjím webové a mobilní aplikace, které lidem zjednodušují a zefektivňují práci. Baví mě hledat chytrá řešení a využívat umělou inteligenci v praxi.',
       contactBtn: 'Kontaktujte mě',
       projectsBtn: 'Projekty',
+      assemblyLabel: 'Assembly cell / 01',
+      assemblyStatus: 'Výstup připraven',
+    },
+
+    statement: {
+      label: 'Jak pracuji',
+      headline: 'Z několika přesných modulů vzniká rozhraní, které dává smysl.',
+      description: 'Spojuji technickou preciznost s hledáním jednoduchého řešení. Každý projekt stavím tak, aby byl čitelný, použitelný a připravený růst.',
     },
 
     // About Section
@@ -44,6 +53,11 @@ export const translations = {
     projects: {
       sectionTitle: 'Projekty',
       subtitle: 'Výběr mých nejvýznamnějších prací',
+      featuredLabel: 'Vybraný výstup / 01',
+      previewLabel: 'Živý výstup z assembly cell',
+      otherOutputs: 'Další výstup',
+      openPreview: 'Otevřít náhled',
+      openDetails: 'Detail projektu',
       types: {
         mobile: 'Mobilní aplikace',
         web: 'Webová platforma',
@@ -123,6 +137,7 @@ export const translations = {
 
     // Contact Section
     contact: {
+      sectionLabel: 'Nový request',
       title: 'Pojďme tvořit spolu',
       subtitle: 'Pokud vás zaujal můj profil, rád se pobavím o možné spolupráci nebo stáži v IT.',
       orEmail: 'nebo přímo na e-mail',
@@ -209,9 +224,18 @@ export const translations = {
     // Hero Section
     hero: {
       subtitle: 'IT Student & Developer',
+      role: 'IT student and developer',
       description: 'I develop web and mobile applications that simplify and streamline people\'s work. I enjoy finding smart solutions and applying artificial intelligence in practice.',
       contactBtn: 'Contact me',
       projectsBtn: 'Projects',
+      assemblyLabel: 'Assembly cell / 01',
+      assemblyStatus: 'Output ready',
+    },
+
+    statement: {
+      label: 'How I work',
+      headline: 'A clear interface is assembled from a few precise modules.',
+      description: 'I pair technical precision with a search for the simplest useful solution. Every project is built to be readable, usable, and ready to grow.',
     },
 
     // About Section
@@ -241,6 +265,11 @@ export const translations = {
     projects: {
       sectionTitle: 'Projects',
       subtitle: 'Selection of my most significant works',
+      featuredLabel: 'Selected output / 01',
+      previewLabel: 'Live output from the assembly cell',
+      otherOutputs: 'Another output',
+      openPreview: 'Open preview',
+      openDetails: 'Project details',
       types: {
         mobile: 'Mobile App',
         web: 'Web Platform',
@@ -320,6 +349,7 @@ export const translations = {
 
     // Contact Section
     contact: {
+      sectionLabel: 'New request',
       title: 'Let\'s create together',
       subtitle: 'If you found my profile interesting, I\'d be happy to discuss potential collaboration or an IT internship.',
       orEmail: 'or directly via email',

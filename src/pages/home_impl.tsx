@@ -1,121 +1,62 @@
+import { useState } from 'react'
+import { Check, Copy, Envelope as Mail } from '@phosphor-icons/react'
 import Layout from '../components/Layout'
+import Hero from '../components/Hero'
+import Statement from '../components/Statement'
+import SelectedWork from '../components/SelectedWork'
 import About from '../components/About'
 import Skills from '../components/Skills'
-import Projects from '../components/Projects'
 import Experience from '../components/Experience'
 import Goals from '../components/Goals'
 import ContactForm from '../components/ContactForm'
-
-import { Mail, ArrowRight, Check, Copy } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { useLanguage } from '../i18n/useLanguage'
 
-export default function HomeImpl(){
-  const [scrollPos, setScrollPos] = useState(0)
-  const [copied, setCopied] = useState(false)
+export default function HomeImpl() {
   const { t } = useLanguage()
+  const [copied, setCopied] = useState(false)
 
-  const copyEmail = () => {
-    navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
+  const copyEmail = async () => {
+    await navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    window.setTimeout(() => setCopied(false), 2000)
   }
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollPos(window.scrollY)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const showNavbarName = scrollPos > 300
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background-dark pb-32 md:pb-0">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-background-light diagonal-split-v2"></div>
-          <div className="absolute inset-0 isometric-grid opacity-5"></div>
-        </div>
-
-        <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
-          <p className="font-heading font-semibold text-brand-blue tracking-widest uppercase mb-4 animate-[fadeInUp_0.8s_ease-out]">{t.hero.subtitle}</p>
-          
-          <div className="h-[120px] md:h-[200px] flex items-center justify-center mb-8 relative">
-            {!showNavbarName && (
-                <motion.h1 
-                    layoutId="shared-name"
-                    className="font-heading font-extrabold text-5xl md:text-8xl text-text-onLight tracking-tighter leading-none drop-shadow-sm"
-                >
-                    ANDREJ <br /> ZDVOŘÁK
-                </motion.h1>
-            )}
-          </div>
-
-          <p 
-            className="max-w-xl mx-auto text-lg text-text-onLight/80 mb-10 animate-[fadeInUp_1.2s_ease-out] transition-opacity duration-300"
-            style={{ opacity: showNavbarName ? 0 : 1 }}
-          >
-            {t.hero.description}
-          </p>
-          <div className="flex flex-col md:flex-row gap-6 justify-center animate-[fadeInUp_1.4s_ease-out]">
-            <a href="#contact" className="px-10 py-4 bg-brand-blue text-white rounded-full font-bold hover:scale-105 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2">
-              {t.hero.contactBtn} <ArrowRight size={20} />
-            </a>
-            <a href="#projects" className="px-10 py-4 border-2 border-brand-blue text-brand-blue rounded-full font-bold hover:bg-brand-blue hover:text-white transition-all">
-              {t.hero.projectsBtn}
-            </a>
-          </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center">
-           <div className="w-[2px] h-16 bg-gradient-to-b from-brand-blue to-transparent"></div>
-        </div>
-      </section>
-
+      <Hero />
+      <Statement />
+      <SelectedWork />
       <About />
-      <Projects />
       <Skills />
       <Experience />
       <Goals />
-      
-      <section id="contact" className="pt-48 pb-32 bg-background-light relative overflow-hidden">
-          <div className="absolute inset-0 isometric-grid opacity-5 pointer-events-none"></div>
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="max-w-4xl mx-auto px-4 text-center relative z-10"
-          >
-             <h2 className="font-heading font-extrabold text-4xl md:text-6xl text-text-onLight mb-6">{t.contact.title}</h2>
-             <p className="text-xl text-text-mutedOnLight mb-12">{t.contact.subtitle}</p>
-             
-             <ContactForm />
-             
-             <div className="mt-10 flex flex-col items-center gap-4">
-               <p className="text-text-mutedOnLight text-sm">{t.contact.orEmail}</p>
-               <button 
-                 onClick={copyEmail}
-                 className="cursor-pointer group text-text-onLight font-bold flex items-center justify-center gap-3 bg-white/5 px-6 py-3 rounded-2xl border border-black/10 hover:border-brand-blue hover:bg-white shadow-sm hover:shadow-xl transition-all relative overflow-hidden text-sm"
-               >
-                 <Mail className="text-brand-blue" size={18} /> 
-                 <span className="tracking-tight">andrej.zdvorak.123@gmail.com</span>
-                 {copied ? (
-                   <Check size={16} className="text-brand-neonGreen animate-bounce" />
-                 ) : (
-                   <Copy size={16} className="opacity-20 transition-opacity" />
-                 )}
-                 {copied && (
-                   <span className="absolute bottom-1 right-1/2 translate-x-1/2 text-[10px] text-brand-neonGreen font-black uppercase">{t.contact.copied}</span>
-                 )}
-               </button>
-             </div>
-          </motion.div>
+
+      <section id="contact" className="foundry-page border-t border-white-line py-28 md:py-40">
+        <div className="foundry-container grid gap-12 md:grid-cols-[minmax(12rem,0.55fr)_minmax(0,1fr)] md:gap-20">
+          <div>
+            <p className="foundry-label mb-6">{t.contact.sectionLabel}</p>
+            <h2 className="max-w-md font-heading text-[clamp(2.5rem,5vw,5rem)] font-medium leading-[0.95] tracking-[-0.055em] text-soft-white">
+              {t.contact.title}
+            </h2>
+            <p className="mt-7 max-w-sm text-lg leading-relaxed text-muted">
+              {t.contact.subtitle}
+            </p>
+
+            <div className="mt-10 border-t border-white-line pt-5">
+              <p className="text-sm text-line-gray">{t.contact.orEmail}</p>
+              <button
+                onClick={copyEmail}
+                className="mt-3 inline-flex max-w-full items-center gap-3 text-left text-sm font-semibold text-soft-white transition-colors hover:text-signal-pink"
+              >
+                <Mail size={17} aria-hidden="true" />
+                <span className="break-all">andrej.zdvorak.123@gmail.com</span>
+                {copied ? <Check size={16} className="text-signal-pink" aria-label={t.contact.copied} /> : <Copy size={16} className="text-line-gray" aria-hidden="true" />}
+              </button>
+            </div>
+          </div>
+
+          <ContactForm />
+        </div>
       </section>
     </Layout>
   )

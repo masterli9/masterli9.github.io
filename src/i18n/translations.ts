@@ -79,6 +79,7 @@ export const translations = {
       sectionTitle: 'Dovednosti &',
       sectionTitle2: 'Tech Stack',
       subtitle: 'Kombinace technické preciznosti a analytického myšlení mi umožňuje doručovat efektivní řešení.',
+      toolsLabel: 'Nástroje a prostředí',
       categories: {
         technical: 'Odborné dovednosti',
         soft: 'Měkké dovednosti',
@@ -291,6 +292,7 @@ export const translations = {
       sectionTitle: 'Skills &',
       sectionTitle2: 'Tech Stack',
       subtitle: 'A combination of technical precision and analytical thinking allows me to deliver effective solutions.',
+      toolsLabel: 'Tools and environment',
       categories: {
         technical: 'Technical Skills',
         soft: 'Soft Skills',

@@ -1,108 +1,57 @@
-import { Users, Terminal } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Terminal, Users } from '@phosphor-icons/react'
+import SectionLabel from './SectionLabel'
 import { useLanguage } from '../i18n/useLanguage'
+
+const tools = ['React', 'Next.js', 'React Native', 'TypeScript', 'Node.js', 'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git', 'Figma']
 
 export default function Skills() {
   const { t } = useLanguage()
-
   const categories = [
-    {
-      title: t.skills.categories.technical,
-      color: "brand-blue",
-      icon: <Terminal size={24} />,
-      skills: t.skills.technicalSkills
-    },
-    {
-      title: t.skills.categories.soft,
-      color: "brand-blue",
-      icon: <Users size={24} />,
-      skills: t.skills.softSkills
-    }
-  ];
+    { title: t.skills.categories.technical, icon: Terminal, skills: t.skills.technicalSkills },
+    { title: t.skills.categories.soft, icon: Users, skills: t.skills.softSkills },
+  ]
 
   return (
-    <section id="skills" className="light-section bg-background-light text-text-onLight relative">
-      <div className="absolute inset-0 isometric-grid pointer-events-none opacity-5"></div>
+    <section id="skills" className="foundry-light py-20 md:py-28">
+      <div className="foundry-container">
+        <div className="grid gap-12 md:grid-cols-[minmax(10rem,0.4fr)_minmax(0,1.2fr)] md:gap-20">
+          <SectionLabel index="03">{t.skills.sectionTitle}</SectionLabel>
 
-      <div className="max-w-6xl mx-auto px-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="max-w-2xl mb-16"
-        >
-          <h2 className="font-heading font-extrabold text-4xl md:text-5xl tracking-tighter mb-6 uppercase text-text-onLight">
-            {t.skills.sectionTitle} <br /> {t.skills.sectionTitle2}
-          </h2>
-          <p className="text-xl text-text-mutedOnLight leading-relaxed">
-            {t.skills.subtitle}
-          </p>
-        </motion.div>
+          <div>
+            <div className="max-w-2xl">
+              <h2 className="font-heading text-[clamp(2.7rem,5vw,5rem)] font-medium leading-[0.94] tracking-[-0.06em] text-ink">
+                {t.skills.sectionTitle2}
+              </h2>
+              <p className="mt-7 max-w-xl text-lg leading-relaxed text-ink/65">{t.skills.subtitle}</p>
+            </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
-          {categories.map((cat, idx) => (
-            <motion.div
-              key={cat.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: idx * 0.2 }}
-              className="space-y-6"
-            >
-              <h3 className={`font-heading font-bold text-sm uppercase tracking-widest flex items-center gap-3 text-brand-blue`}>
-                {cat.icon} {cat.title}
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {cat.skills.map((skill, sIdx) => (
-                  <motion.span
-                    key={skill}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.3, delay: (idx * 0.2) + (sIdx * 0.05) }}
-                    className={`px-6 py-3 rounded-full border border-black/10 bg-white font-bold text-sm tracking-wide shadow-sm hover:shadow-md hover:-translate-y-1 transition-all cursor-default text-text-onLight`}
-                  >
-                    {skill}
-                  </motion.span>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Tools Section - Infinite Marquee */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, delay: .5 }}
-          className="mt-32 pt-12 border-t border-black/10 overflow-hidden relative"
-        >
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background-light to-transparent z-10"></div>
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background-light to-transparent z-10"></div>
-
-          <div className="marquee-container opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-            <div className="flex whitespace-nowrap marquee items-center text-text-onLight">
-              {[
-                'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js',
-                'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git',
-                'Figma',
-              ].map((tool, i) => (
-                <span key={`tool-1-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight mx-6">{tool}</span>
+            <div className="mt-14 grid gap-12 border-t border-ink/15 pt-6 md:grid-cols-2 md:gap-16">
+              {categories.map(({ title, icon: Icon, skills }) => (
+                <div key={title}>
+                  <div className="flex items-center gap-3 text-cobalt">
+                    <Icon size={19} aria-hidden="true" />
+                    <h3 className="text-sm font-semibold text-ink">{title}</h3>
+                  </div>
+                  <ol className="mt-5 divide-y divide-ink/15 border-y border-ink/15">
+                    {skills.map((skill, index) => (
+                      <li key={skill} className="flex items-center justify-between gap-4 py-3 text-base text-ink">
+                        <span>{skill}</span>
+                        <span className="font-mono text-xs text-ink/40">{String(index + 1).padStart(2, '0')}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               ))}
             </div>
-            <div className="flex whitespace-nowrap marquee items-center text-text-onLight" aria-hidden="true">
-              {[
-                'React', 'Next.js', 'React Native', 'TypeScript', 'Node.js',
-                'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git',
-                'Figma',
-              ].map((tool, i) => (
-                <span key={`tool-2-${i}`} className="text-xl md:text-3xl font-heading font-black tracking-tight mx-6">{tool}</span>
-              ))}
+
+            <div className="mt-16 border-t border-ink/15 pt-5">
+              <p className="text-sm font-semibold text-signal-pink">{t.skills.toolsLabel}</p>
+              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-lg text-ink/70">
+                {tools.map((tool) => <span key={tool}>{tool}</span>)}
+              </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

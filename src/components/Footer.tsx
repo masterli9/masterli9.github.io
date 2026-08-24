@@ -1,5 +1,5 @@
 import { Check, Copy, GithubLogo, InstagramLogo, LinkedinLogo } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PrivacyModal from './PrivacyModal'
 import { useLanguage } from '../i18n/useLanguage'
 
@@ -7,6 +7,12 @@ export default function Footer() {
   const { t } = useLanguage()
   const [copied, setCopied] = useState(false)
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
+
+  useEffect(() => {
+    const handleOpenPrivacy = () => setIsPrivacyOpen(true)
+    window.addEventListener('open-privacy-modal', handleOpenPrivacy)
+    return () => window.removeEventListener('open-privacy-modal', handleOpenPrivacy)
+  }, [])
   const navLinks = [
     { name: t.nav.about, href: '#about' },
     { name: t.nav.projects, href: '#projects' },

@@ -1,5 +1,5 @@
 import { useLanguage } from '../i18n/useLanguage'
-import { Globe } from 'lucide-react'
+import { Globe } from '@phosphor-icons/react'
 
 export default function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage()
@@ -11,10 +11,12 @@ export default function LanguageSwitcher() {
   return (
     <button
       onClick={toggleLanguage}
-      className="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-white text-xs font-bold uppercase tracking-wider"
+      type="button"
+      aria-pressed="true"
+      className="cursor-pointer flex items-center gap-2 border-b border-white-line px-1 pb-1 text-sm font-semibold text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink"
       aria-label={language === 'cs' ? 'Switch to English' : 'Přepnout do češtiny'}
     >
-      <Globe size={14} />
+      <Globe size={14} aria-hidden="true" />
       <span>{language === 'cs' ? 'EN' : 'CZ'}</span>
     </button>
   )

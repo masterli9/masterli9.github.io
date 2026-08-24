@@ -1,83 +1,57 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '../i18n/useLanguage';
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useLanguage } from '../i18n/useLanguage'
 
 export default function CookieBanner() {
-  const { t } = useLanguage();
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Check if user has already made a choice
-    const consent = localStorage.getItem('cookieConsent');
-    if (consent === null) {
-      setIsVisible(true);
-    } else if (consent === 'granted') {
-      updateGtagConsent('granted');
-    }
-
-    const handleOpenBanner = () => setIsVisible(true);
-    window.addEventListener('open-cookie-banner', handleOpenBanner);
-    
-    return () => {
-      window.removeEventListener('open-cookie-banner', handleOpenBanner);
-    };
-  }, []);
+  const { t } = useLanguage()
+  const [isVisible, setIsVisible] = useState(false)
 
   const updateGtagConsent = (status: 'granted' | 'denied') => {
     if (typeof window.gtag === 'function') {
-      window.gtag('consent', 'update', {
-        'analytics_storage': status
-      });
+      window.gtag('consent', 'update', { analytics_storage: status })
     }
-  };
+  }
 
-  const handleAccept = () => {
-    localStorage.setItem('cookieConsent', 'granted');
-    updateGtagConsent('granted');
-    setIsVisible(false);
-  };
+  useEffect(() => {
+    const consent = localStorage.getItem('cookieConsent')
+    if (consent === null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsVisible(true)
+    } else if (consent === 'granted') {
+      updateGtagConsent('granted')
+    }
 
-  const handleDecline = () => {
-    localStorage.setItem('cookieConsent', 'denied');
-    updateGtagConsent('denied');
-    setIsVisible(false);
-  };
+    const handleOpenBanner = () => setIsVisible(true)
+    window.addEventListener('open-cookie-banner', handleOpenBanner)
+    return () => window.removeEventListener('open-cookie-banner', handleOpenBanner)
+  }, [])
+
+  const handleChoice = (consent: 'granted' | 'denied') => {
+    localStorage.setItem('cookieConsent', consent)
+    updateGtagConsent(consent)
+    setIsVisible(false)
+  }
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 pointer-events-none flex justify-center"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 16 }}
+          transition={{ duration: 0.25 }}
+          className="fixed inset-x-0 bottom-0 z-[100] border-t border-ink/20 bg-soft-white p-4 text-ink md:p-6"
         >
-          <div className="bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl p-5 md:p-6 w-full max-w-4xl flex flex-col md:flex-row items-center gap-6 pointer-events-auto">
-            
-            <div className="flex-1 text-text-light/80 dark:text-text-dark/80 text-sm md:text-base leading-relaxed">
-              <p>
-                {t.cookieBanner.text}
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
-              <button
-                onClick={handleDecline}
-                className="px-5 py-2.5 rounded-xl border border-white/10 text-text-light/70 dark:text-text-dark/70 hover:bg-white/5 transition-colors text-sm font-medium w-full sm:w-auto cursor-pointer"
-              >
-                {t.cookieBanner.decline}
-              </button>
-              <button
-                onClick={handleAccept}
-                className="px-5 py-2.5 rounded-xl bg-accent-primary text-white hover:bg-accent-primary/90 transition-colors text-sm font-medium w-full sm:w-auto shadow-lg shadow-accent-primary/20 cursor-pointer"
-              >
-                {t.cookieBanner.accept}
-              </button>
+          <div className="mx-auto flex max-w-6xl flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-10">
+            <p className="max-w-3xl text-sm leading-relaxed md:text-base">{t.cookieBanner.text}</p>
+            <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row">
+              <button type="button" onClick={() => handleChoice('denied')} className="border border-ink/25 px-5 py-3 text-sm font-semibold transition-colors hover:border-ink hover:bg-ink/5">{t.cookieBanner.decline}</button>
+              <button type="button" onClick={() => handleChoice('granted')} className="bg-signal-pink px-5 py-3 text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-soft-white">{t.cookieBanner.accept}</button>
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-privacy-modal'))} className="px-2 py-3 text-left text-sm text-ink/60 underline decoration-ink/25 underline-offset-4 transition-colors hover:text-ink sm:text-center">{t.cookieBanner.privacyLink}</button>
             </div>
           </div>
         </motion.div>
       )}
     </AnimatePresence>
-  );
+  )
 }

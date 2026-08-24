@@ -3,9 +3,8 @@ import CursorFollower from './components/CursorFollower'
 import CookieBanner from './components/CookieBanner'
 
 function App() {
-
   return (
-    <div className='bg-background-light dark:bg-background-dark min-h-screen'>
+    <div className="min-h-screen bg-ink text-soft-white relative">
       <CursorFollower />
       <Home />
       <CookieBanner />

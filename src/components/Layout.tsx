@@ -3,7 +3,7 @@ import Footer from './Footer'
 
 export default function Layout({ children }: { children: React.ReactNode }){
   return (
-    <div className="relative min-h-screen bg-background-dark font-sans selection:bg-brand-neonGreen selection:text-black">
+    <div className="relative min-h-screen bg-ink font-sans text-soft-white selection:bg-signal-pink selection:text-ink">
       <Header />
       <main>
         {children}

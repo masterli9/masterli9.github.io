@@ -11,7 +11,9 @@ export const translations = {
 
     // Hero Section
     hero: {
-      subtitle: 'Student IT & Vývojář',
+      subtitle: 'Student a vývojář',
+      buildPrefix: 'Stavím',
+      buildItems: ['weby', 'mobilní aplikace', 'webové aplikace', 'AI nástroje'],
       role: 'Student IT a vývojář',
       description: 'Vyvíjím webové a mobilní aplikace, které lidem zjednodušují a zefektivňují práci. Baví mě hledat chytrá řešení a využívat umělou inteligenci v praxi.',
       contactBtn: 'Kontaktujte mě',
@@ -225,7 +227,9 @@ export const translations = {
 
     // Hero Section
     hero: {
-      subtitle: 'IT Student & Developer',
+      subtitle: 'Student & developer',
+      buildPrefix: 'I build',
+      buildItems: ['websites', 'mobile apps', 'web applications', 'AI tools'],
       role: 'IT student and developer',
       description: 'I develop web and mobile applications that simplify and streamline people\'s work. I enjoy finding smart solutions and applying artificial intelligence in practice.',
       contactBtn: 'Contact me',

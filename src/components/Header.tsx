@@ -6,14 +6,14 @@ import LanguageSwitcher from './LanguageSwitcher'
 
 export default function Header() {
   const { t } = useLanguage()
-  const [showName, setShowName] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPos = window.scrollY
-      setShowName(scrollPos > 300)
+      setIsScrolled(window.scrollY > 24)
     }
+    handleScroll()
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -31,33 +31,33 @@ export default function Header() {
 
   return (
     <>
-      <div className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pointer-events-none">
+      <div className={`pointer-events-none fixed inset-x-0 top-6 z-50 flex justify-center transition-[padding] duration-500 ${isScrolled ? 'px-4' : 'px-0'}`}>
         <motion.header
           layout
           className={`
             pointer-events-auto
             flex items-center justify-between
-            w-full max-w-6xl border-b border-white-line bg-ink px-2 py-4
+            bg-ink px-6 py-4 transition-[max-width] duration-500
+            ${isScrolled ? 'w-full max-w-6xl' : 'w-full max-w-none'}
           `}
         >
           <div className="flex items-center">
-            {showName && (
-              <motion.div
-                layoutId="shared-name"
-                className="mr-8 flex cursor-pointer items-center gap-2 whitespace-nowrap font-heading text-lg font-semibold tracking-[-0.04em] text-soft-white transition-colors hover:text-signal-pink"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              >
-                Andrej Zdvořák
-              </motion.div>
-            )}
+            <a
+              href="#hero"
+              aria-label="Andrej Zdvořák — back to top"
+              className="flex items-center transition-opacity hover:opacity-80"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <img src="/Logo.png" alt="Andrej Zdvořák logo" className="h-8 w-8 object-contain" />
+            </a>
           </div>
 
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex md:gap-8">
+          <nav className="hidden items-center gap-7 text-base font-medium leading-none md:flex md:gap-10">
             {(['about', 'projects', 'skills', 'experience', 'contact'] as const).map((id) => (
               <a
                 key={id}
                 href={`#${id}`}
-                className="whitespace-nowrap text-muted transition-colors hover:text-signal-pink"
+                className="inline-flex items-center whitespace-nowrap text-muted transition-colors hover:text-signal-pink"
               >
                 {t.nav[id]}
               </a>
@@ -107,7 +107,7 @@ export default function Header() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   onClick={() => setIsMenuOpen(false)}
-                  className="font-heading text-3xl font-medium text-soft-white transition-colors hover:text-signal-pink"
+                  className="font-heading text-3xl font-normal text-soft-white transition-colors hover:text-signal-pink"
                 >
                   {t.nav[id]}
                 </motion.a>

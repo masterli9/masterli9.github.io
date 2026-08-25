@@ -1,0 +1,39 @@
+.hero-conveyor {
+  width: min(115%, 34rem);
+  overflow: hidden;
+  color: var(--color-soft-white);
+}
+
+.hero-conveyor__machine {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-conveyor__belt {
+  fill: var(--color-ink);
+  stroke-width: 3.5;
+}
+
+.hero-conveyor__tread {
+  opacity: 0.58;
+  stroke-dasharray: 12 16;
+}
+
+.hero-conveyor__roller {
+  fill: var(--color-ink);
+  stroke-width: 3;
+}
+
+.hero-conveyor__box,
+.hero-conveyor__box-bottom {
+  stroke-width: 3.5;
+}
+
+@media (max-width: 640px) {
+  .hero-conveyor {
+    width: min(100%, 22rem);
+  }
+}

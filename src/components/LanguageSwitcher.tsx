@@ -13,7 +13,7 @@ export default function LanguageSwitcher() {
       onClick={toggleLanguage}
       type="button"
       aria-pressed="true"
-      className="cursor-pointer flex items-center gap-2 border-b border-white-line px-1 pb-1 text-sm font-semibold text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink"
+      className="inline-flex cursor-pointer items-center gap-2 py-1 text-base font-medium leading-none text-soft-white transition-colors hover:text-signal-pink"
       aria-label={language === 'cs' ? 'Switch to English' : 'Přepnout do češtiny'}
     >
       <Globe size={14} aria-hidden="true" />

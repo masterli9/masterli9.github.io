@@ -20,7 +20,18 @@ const CursorFollower = () => {
     }
     const checkHover = (event: MouseEvent) => {
       const target = event.target as HTMLElement
-      setIsHovering(Boolean(target.closest('a, button, input, textarea, select, [role="button"]')))
+      const isClickable =
+        target.tagName === 'A' ||
+        target.tagName === 'BUTTON' ||
+        target.closest('a') ||
+        target.closest('button') ||
+        target.closest('[role="button"]') ||
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.classList.contains('clickable') ||
+        window.getComputedStyle(target).cursor === 'pointer'
+
+      setIsHovering(Boolean(isClickable))
     }
 
     window.addEventListener('mousemove', moveCursor)
@@ -40,11 +51,29 @@ const CursorFollower = () => {
       aria-hidden="true"
     >
       <motion.div
-        className="bg-signal-pink"
-        animate={{ scale: isHovering ? 1.5 : 1, opacity: isHovering ? 0.95 : 0.75 }}
-        transition={{ duration: 0.16, ease: 'easeOut' }}
-        style={{ width: 9, height: 9, transform: 'translate(10px, 10px)' }}
-      />
+        animate={{
+          x: isHovering ? '-50%' : '16px',
+          y: isHovering ? '-50%' : '18px',
+        }}
+        transition={{ type: 'spring', stiffness: 150, damping: 15, mass: 0.5 }}
+      >
+        <motion.div
+          className="bg-signal-pink"
+          animate={{
+            scale: isHovering ? 1.5 : 1,
+            opacity: isHovering ? 0.95 : 0.75,
+            rotate: isHovering ? 0 : 360,
+          }}
+          transition={{
+            scale: { duration: 0.16, ease: 'easeOut' },
+            opacity: { duration: 0.16, ease: 'easeOut' },
+            rotate: isHovering
+              ? { duration: 0.5, ease: 'backOut' }
+              : { duration: 3, repeat: Infinity, ease: 'linear' },
+          }}
+          style={{ width: 9, height: 9 }}
+        />
+      </motion.div>
     </motion.div>
   )
 }

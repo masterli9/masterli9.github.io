@@ -28,6 +28,25 @@ test('the hero timeline restores the measured cadence around its focal beats', a
   assert.equal(timeline.rotationStartAt, 5.65)
 })
 
+test('the conveyor appears as box, stopped machine, then running machine after fixed pauses', async () => {
+  const { createHeroConveyorIntroSchedule, createHeroTimeline } = await import('../src/components/heroTimeline.ts')
+  const timeline = createHeroTimeline({
+    name: 'Andrej Zdvořák',
+    subtitle: 'Student & developer',
+    buildPrefix: 'I build',
+  })
+
+  assert.deepEqual(createHeroConveyorIntroSchedule(timeline), [
+    { at: 2.85, stage: 'box-flash-on' },
+    { at: 2.9, stage: 'box-flash-off' },
+    { at: 2.97, stage: 'box-visible' },
+    { at: 3.42, stage: 'machine-flash-on' },
+    { at: 3.47, stage: 'machine-flash-off' },
+    { at: 3.54, stage: 'machine-visible' },
+    { at: 3.99, stage: 'running' },
+  ])
+})
+
 test('translated hero words keep stable identities and skip the intro after mount', async () => {
   const { createHeroTimeline, getHeroWordSlots } = await import('../src/components/heroTimeline.ts')
   const czechTimeline = createHeroTimeline({

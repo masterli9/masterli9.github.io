@@ -18,6 +18,7 @@ import {
   shouldReleaseConveyorPart,
   type ConveyorPartShape,
 } from './heroConveyorModel'
+import type { HeroConveyorIntroStage } from './heroTimeline'
 import { createRoundedBeltEndCollider } from './heroConveyorPhysics'
 import './hero-conveyor.css'
 
@@ -90,14 +91,35 @@ function PartGraphic({ shape, color }: PartSpec) {
   return <rect x="-11" y="-11" width="22" height="22" fill={color} />
 }
 
-export default function HeroConveyor() {
+interface HeroConveyorProps {
+  introStage: HeroConveyorIntroStage
+}
+
+const BOX_VISIBLE_STAGES: HeroConveyorIntroStage[] = [
+  'box-flash-on',
+  'box-visible',
+  'machine-flash-on',
+  'machine-flash-off',
+  'machine-visible',
+  'running',
+]
+
+const MACHINE_VISIBLE_STAGES: HeroConveyorIntroStage[] = [
+  'machine-flash-on',
+  'machine-visible',
+  'running',
+]
+
+export default function HeroConveyor({ introStage }: HeroConveyorProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const partNodes = useRef(new Map<number, SVGGElement>())
   const activeRef = useRef(false)
   const [parts, setParts] = useState<ConveyorPart[]>([])
   const reducedMotion = useReducedMotion() ?? false
   const isInView = useInView(svgRef, { amount: 0.15 })
-  const shouldAnimate = isInView && !reducedMotion
+  const shouldAnimate = isInView && !reducedMotion && introStage === 'running'
+  const isBoxVisible = BOX_VISIBLE_STAGES.includes(introStage)
+  const isMachineVisible = MACHINE_VISIBLE_STAGES.includes(introStage)
 
   useEffect(() => {
     activeRef.current = shouldAnimate
@@ -235,7 +257,10 @@ export default function HeroConveyor() {
         </linearGradient>
       </defs>
 
-      <g className="hero-conveyor__machine">
+      <g
+        className="hero-conveyor__machine"
+        visibility={isMachineVisible ? 'visible' : 'hidden'}
+      >
         <path d={`M222 ${BELT_BOTTOM_Y}V210M368 ${BELT_BOTTOM_Y}V210M208 210H236M354 210H382`} />
         <rect className="hero-conveyor__belt" x="112" y="83" width="408" height="48" rx="24" />
         <motion.path
@@ -286,7 +311,10 @@ export default function HeroConveyor() {
             </g>
           ))}
 
-      <g className="hero-conveyor__machine">
+      <g
+        className="hero-conveyor__machine"
+        visibility={isBoxVisible ? 'visible' : 'hidden'}
+      >
         <path className="hero-conveyor__box" d="M10 196V337H160V196" />
         <path className="hero-conveyor__box-bottom" data-conveyor-bottom="true" d="M10 337H160" />
       </g>

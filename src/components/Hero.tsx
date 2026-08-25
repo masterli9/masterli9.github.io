@@ -1,11 +1,13 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
 import HeroConveyor from './HeroConveyor'
 import {
   createHeroTimeline,
+  createHeroConveyorIntroSchedule,
   getBuildWordMotionState,
   getHeroWordSlots,
   type BuildWordPhase,
+  type HeroConveyorIntroStage,
   type HeroTimelineWord,
   type HeroWordGroup,
 } from './heroTimeline'
@@ -20,12 +22,28 @@ export default function Hero() {
   const isHeroInView = useInView(heroRef, { amount: 0.1 })
   const [activeBuildIndex, setActiveBuildIndex] = useState(0)
   const [buildWordPhase, setBuildWordPhase] = useState<BuildWordPhase>('visible')
+  const [conveyorIntroStage, setConveyorIntroStage] = useState<HeroConveyorIntroStage>('hidden')
   const buildItems = t.hero.buildItems
   const timeline = createHeroTimeline({
     name: 'Andrej Zdvořák',
     subtitle: t.hero.subtitle,
     buildPrefix: t.hero.buildPrefix,
   })
+  const { buildItemRevealAt, revealDuration } = timeline
+  const conveyorIntroSchedule = useMemo(
+    () => createHeroConveyorIntroSchedule({ buildItemRevealAt, revealDuration }),
+    [buildItemRevealAt, revealDuration],
+  )
+
+  useEffect(() => {
+    if (reducedMotion) return
+
+    const timers = conveyorIntroSchedule.map(({ at, stage }) => (
+      window.setTimeout(() => setConveyorIntroStage(stage), at * 1000)
+    ))
+
+    return () => timers.forEach((timer) => window.clearTimeout(timer))
+  }, [conveyorIntroSchedule, reducedMotion])
 
   useEffect(() => {
     if (reducedMotion || !isHeroInView || buildItems.length < 2) return
@@ -131,7 +149,7 @@ export default function Hero() {
         </div>
 
         <div className="flex items-center justify-center md:translate-x-6 md:translate-y-24 md:justify-end">
-          <HeroConveyor />
+          <HeroConveyor introStage={reducedMotion ? 'running' : conveyorIntroStage} />
         </div>
       </div>
     </section>

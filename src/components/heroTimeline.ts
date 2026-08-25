@@ -23,6 +23,21 @@ export interface HeroTimeline {
 
 export type BuildWordPhase = 'visible' | 'exiting' | 'entering'
 
+export type HeroConveyorIntroStage =
+  | 'hidden'
+  | 'box-flash-on'
+  | 'box-flash-off'
+  | 'box-visible'
+  | 'machine-flash-on'
+  | 'machine-flash-off'
+  | 'machine-visible'
+  | 'running'
+
+export interface HeroConveyorIntroEvent {
+  at: number
+  stage: HeroConveyorIntroStage
+}
+
 export type HeroWordGroup = 'name' | 'subtitle' | 'build-prefix'
 
 export interface HeroWordSlot extends HeroTimelineWord {
@@ -55,6 +70,26 @@ export function getBuildWordMotionState(phase: BuildWordPhase) {
 
 const splitWords = (text: string) => text.trim().split(/\s+/).filter(Boolean)
 const roundTime = (time: number) => Number(time.toFixed(2))
+
+export function createHeroConveyorIntroSchedule(
+  timeline: Pick<HeroTimeline, 'buildItemRevealAt' | 'revealDuration'>,
+): HeroConveyorIntroEvent[] {
+  const textCompleteAt = timeline.buildItemRevealAt + timeline.revealDuration
+  const event = (offset: number, stage: HeroConveyorIntroStage) => ({
+    at: roundTime(textCompleteAt + offset),
+    stage,
+  })
+
+  return [
+    event(0, 'box-flash-on'),
+    event(0.05, 'box-flash-off'),
+    event(0.12, 'box-visible'),
+    event(0.57, 'machine-flash-on'),
+    event(0.62, 'machine-flash-off'),
+    event(0.69, 'machine-visible'),
+    event(1.14, 'running'),
+  ]
+}
 
 export function createHeroTimeline({ name, subtitle, buildPrefix }: HeroTimelineInput): HeroTimeline {
   const nameWords = splitWords(name)

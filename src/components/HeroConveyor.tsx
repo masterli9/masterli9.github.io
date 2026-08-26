@@ -12,6 +12,7 @@ import {
   clampPhysicsDelta,
   getConveyorBeltBottomY,
   getConveyorMotion,
+  getConveyorPayloadDeficit,
   getConveyorPartCenterY,
   getRoundedEndTangentVelocity,
   getRoundedEndReleaseX,
@@ -33,7 +34,14 @@ interface ConveyorPart extends PartSpec {
   released: boolean
 }
 
-const MAX_PARTS = 20
+interface PartPosition {
+  x: number
+  y: number
+  angle: number
+}
+
+const MAX_PARTS = 30
+const MINIMUM_PAYLOAD = 4
 const BELT_LEFT_X = 112
 const BELT_TOP_Y = 83
 const BELT_HEIGHT = 48
@@ -66,9 +74,13 @@ const STATIC_PARTS = [
   { id: 7, shape: 'circle' as const, color: '#F21868', x: 105, y: 294, angle: 0 },
   { id: 8, shape: 'diamond' as const, color: '#355CFF', x: 135, y: 292, angle: 45 },
 ]
+const STARTER_POSITIONS: PartPosition[] = STATIC_PARTS
+  .slice(0, MINIMUM_PAYLOAD)
+  .map(({ x, y, angle }) => ({ x, y, angle }))
 
-function createPartBody(spec: PartSpec, index: number) {
-  const beltY = getConveyorPartCenterY(BELT_TOP_Y, spec.shape, PART_CLEARANCE)
+function createPartBody(spec: PartSpec, index: number, position?: PartPosition) {
+  const x = position?.x ?? 455
+  const y = position?.y ?? getConveyorPartCenterY(BELT_TOP_Y, spec.shape, PART_CLEARANCE)
   const options = {
     friction: 0.16,
     frictionAir: 0.008,
@@ -77,11 +89,14 @@ function createPartBody(spec: PartSpec, index: number) {
     label: `conveyor-part-${index}`,
   }
 
-  if (spec.shape === 'circle') return Bodies.circle(455, beltY, 11, options)
-  if (spec.shape === 'bar') return Bodies.rectangle(455, beltY, 30, 13, options)
+  const body = spec.shape === 'circle'
+    ? Bodies.circle(x, y, 11, options)
+    : spec.shape === 'bar'
+      ? Bodies.rectangle(x, y, 30, 13, options)
+      : Bodies.rectangle(x, y, 22, 22, options)
 
-  const body = Bodies.rectangle(455, beltY, 22, 22, options)
-  if (spec.shape === 'diamond') Body.setAngle(body, Math.PI / 4)
+  if (position) Body.setAngle(body, position.angle * (Math.PI / 180))
+  else if (spec.shape === 'diamond') Body.setAngle(body, Math.PI / 4)
   return body
 }
 
@@ -150,16 +165,41 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
     let simulatedTime = 0
     let lastSpawnAt = -1100
 
+    const addPart = (spec: PartSpec, position?: PartPosition, released = false) => {
+      const id = liveParts.length
+      const body = createPartBody(spec, id, position)
+      const part = { id, ...spec, body, released }
+      liveParts.push(part)
+      Composite.add(world, body)
+      return part
+    }
+
     const spawnPart = () => {
       const spec = PART_SPECS[liveParts.length]
       if (!spec) return
 
-      const body = createPartBody(spec, liveParts.length)
-      const part = { id: liveParts.length, ...spec, body, released: false }
-      liveParts.push(part)
-      Composite.add(world, body)
+      addPart(spec)
       setParts([...liveParts])
     }
+
+    const ensureMinimumPayload = (minimumPayload: number) => {
+      const deficit = getConveyorPayloadDeficit({
+        activeCount: liveParts.length,
+        minimumPayload,
+        maxParts: MAX_PARTS,
+      })
+
+      for (let index = 0; index < deficit; index += 1) {
+        const spec = PART_SPECS[liveParts.length]
+        const position = STARTER_POSITIONS[liveParts.length]
+        if (!spec || !position) break
+        addPart(spec, position, true)
+      }
+
+      setParts([...liveParts])
+    }
+
+    ensureMinimumPayload(MINIMUM_PAYLOAD)
 
     const tick = (time: number) => {
       frame = window.requestAnimationFrame(tick)
@@ -292,16 +332,18 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
         ))}
       </g>
 
-      {reducedMotion
-        ? STATIC_PARTS.map((part) => (
+      <g visibility={isBoxVisible ? 'visible' : 'hidden'}>
+        {reducedMotion
+          ? STATIC_PARTS.map((part) => (
             <g key={part.id} transform={`translate(${part.x} ${part.y}) rotate(${part.angle})`}>
               <PartGraphic shape={part.shape} color={part.color} />
             </g>
           ))
-        : parts.map((part) => (
+          : parts.map((part) => (
             <g
               key={part.id}
               data-conveyor-part={part.id}
+              transform={`translate(${part.body.position.x} ${part.body.position.y}) rotate(${part.body.angle * (180 / Math.PI)})`}
               ref={(node) => {
                 if (node) partNodes.current.set(part.id, node)
                 else partNodes.current.delete(part.id)
@@ -310,6 +352,7 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
               <PartGraphic shape={part.shape} color={part.color} />
             </g>
           ))}
+      </g>
 
       <g
         className="hero-conveyor__machine"

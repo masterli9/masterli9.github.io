@@ -16,6 +16,21 @@ export function canSpawnConveyorPart({
   return isActive && !reducedMotion && activeCount < maxParts
 }
 
+export interface ConveyorPayloadState {
+  activeCount: number
+  minimumPayload: number
+  maxParts: number
+}
+
+export function getConveyorPayloadDeficit({
+  activeCount,
+  minimumPayload,
+  maxParts,
+}: ConveyorPayloadState) {
+  const targetCount = Math.min(minimumPayload, maxParts)
+  return Math.max(0, targetCount - activeCount)
+}
+
 export function clampPhysicsDelta(elapsedMilliseconds: number) {
   return Math.min(elapsedMilliseconds, 1000 / 60)
 }

@@ -90,6 +90,20 @@ test('the hero conveyor stops feeding parts when its collection box is full or i
   assert.equal(conveyor.canSpawnConveyorPart({ activeCount: 2, maxParts: 7, isActive: true, reducedMotion: true }), false)
 })
 
+test('the conveyor guarantees a starter payload without exceeding its total capacity', async () => {
+  const conveyor = await import('../src/components/heroConveyorModel.ts').catch(() => ({}))
+
+  assert.equal(
+    typeof conveyor.getConveyorPayloadDeficit,
+    'function',
+    'the conveyor model should expose its minimum-payload contract',
+  )
+  assert.equal(conveyor.getConveyorPayloadDeficit({ activeCount: 0, minimumPayload: 4, maxParts: 30 }), 4)
+  assert.equal(conveyor.getConveyorPayloadDeficit({ activeCount: 3, minimumPayload: 4, maxParts: 30 }), 1)
+  assert.equal(conveyor.getConveyorPayloadDeficit({ activeCount: 8, minimumPayload: 4, maxParts: 30 }), 0)
+  assert.equal(conveyor.getConveyorPayloadDeficit({ activeCount: 28, minimumPayload: 40, maxParts: 30 }), 2)
+})
+
 test('the conveyor clamps slow frames to a stable Matter.js physics step', async () => {
   const conveyor = await import('../src/components/heroConveyorModel.ts')
 

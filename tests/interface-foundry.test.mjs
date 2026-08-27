@@ -217,6 +217,14 @@ test('the active page composes the black-led foundry sequence', async () => {
   assert.doesNotMatch(source, /BlobBackground|noise-overlay|bg-gradient|shadow-/)
 })
 
+test('the page separates two physics acts with the white about section', async () => {
+  const source = await read('src/pages/home_impl.tsx')
+  assert.match(source, /<FactoryFlowProvider>/)
+  assert.match(source, /<FactoryAct id="upper">[\s\S]*<Hero \/>[\s\S]*<Statement \/>[\s\S]*<SelectedWork \/>[\s\S]*<\/FactoryAct>/)
+  assert.match(source, /<About \/>[\s\S]*<FactoryAct id="lower">/)
+  assert.match(source, /<Skills \/>[\s\S]*<Experience \/>[\s\S]*<Goals \/>[\s\S]*<ContactSection \/>/)
+})
+
 test('the navbar returns the original logo and changes width after scrolling', async () => {
   const header = await read('src/components/Header.tsx')
 

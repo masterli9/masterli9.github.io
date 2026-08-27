@@ -1,0 +1,19 @@
+.factory-act {
+  position: relative;
+  isolation: isolate;
+}
+
+.factory-line__parts {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.factory-act > :not(.factory-line__parts) {
+  position: relative;
+  z-index: 1;
+}

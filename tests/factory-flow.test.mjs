@@ -31,3 +31,23 @@ test('the active band extends two viewports in both directions', async () => {
   assert.equal(shouldRecycleFactoryPart(3399, band), false)
   assert.equal(shouldRecycleFactoryPart(3401, band), true)
 })
+
+test('station coordinates resolve in a shared act coordinate space', async () => {
+  const geometry = await import('../src/factory/factoryGeometry.ts').catch(() => ({}))
+  assert.equal(typeof geometry.toActPoint, 'function')
+  assert.deepEqual(
+    geometry.toActPoint(
+      { left: 300, top: 900, width: 400, height: 200 },
+      { left: 100, top: 500 },
+      0.25,
+      0.75,
+    ),
+    { x: 300, y: 550 },
+  )
+})
+
+test('an act keeps neighboring stations active inside the same padded window', async () => {
+  const { isStationWithinWindow } = await import('../src/factory/factoryGeometry.ts')
+  assert.equal(isStationWithinWindow({ top: 700, bottom: 1500 }, { top: 0, bottom: 2400 }), true)
+  assert.equal(isStationWithinWindow({ top: 2500, bottom: 2900 }, { top: 0, bottom: 2400 }), false)
+})

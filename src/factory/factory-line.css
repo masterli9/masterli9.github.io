@@ -63,6 +63,12 @@
   fill: var(--color-soft-white);
 }
 
+.factory-line__paint-zone {
+  fill: none;
+  stroke: var(--color-signal-pink);
+  stroke-width: 3.5;
+}
+
 .statement-rebound,
 .selected-work-passage {
   min-height: 30rem;

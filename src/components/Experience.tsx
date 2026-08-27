@@ -1,6 +1,5 @@
 import { ArrowSquareOut, Calendar, Medal } from '@phosphor-icons/react'
-import SectionLabel from './SectionLabel'
-import FoundryTrace from './FoundryTrace'
+import PaintInspectionStation from '../factory/stations/PaintInspectionStation'
 import { useLanguage } from '../i18n/useLanguage'
 
 const certifications = [
@@ -14,40 +13,35 @@ export default function Experience() {
 
   return (
     <section id="experience" className="foundry-page py-20 md:py-32">
-      <div className="foundry-container">
-        <div className="grid gap-12 md:grid-cols-[minmax(10rem,0.4fr)_minmax(0,1.2fr)] md:gap-20">
-          <div>
-            <SectionLabel index="04" tone="light">{t.experience.sectionTitle}</SectionLabel>
-            <FoundryTrace variant="inspection" className="mt-16 h-6 w-6 text-cobalt" />
+      <div className="foundry-container grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,18rem)] lg:items-start lg:gap-20">
+        <div className="grid gap-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(14rem,0.7fr)] lg:gap-20">
+          <div className="relative border-l border-white-line pl-7 md:pl-10">
+            {t.experience.items.map((experience) => (
+              <article key={experience.title} className="relative pb-12 last:pb-0">
+                <span className="absolute -left-[calc(1.75rem+1px)] top-1 h-2.5 w-2.5 bg-signal-pink md:-left-[calc(2.5rem+1px)]" aria-hidden="true" />
+                <p className="flex items-center gap-2 text-sm text-soft-white"><Calendar size={15} aria-hidden="true" />{experience.date}</p>
+                <h2 className="mt-3 font-heading text-3xl font-medium leading-tight tracking-[-0.04em] text-soft-white">{experience.title}</h2>
+                <p className="mt-2 text-base font-semibold text-cobalt">{experience.role}</p>
+                <p className="mt-4 max-w-xl leading-relaxed text-soft-white">{experience.desc}</p>
+              </article>
+            ))}
           </div>
 
-          <div className="grid gap-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(14rem,0.7fr)] lg:gap-20">
-            <div className="relative border-l border-white-line pl-7 md:pl-10">
-              {t.experience.items.map((experience) => (
-                <article key={experience.title} className="relative pb-12 last:pb-0">
-                  <span className="absolute -left-[calc(1.75rem+1px)] top-1 h-2.5 w-2.5 bg-signal-pink md:-left-[calc(2.5rem+1px)]" aria-hidden="true" />
-                  <p className="flex items-center gap-2 text-sm text-soft-white"><Calendar size={15} aria-hidden="true" />{experience.date}</p>
-                  <h2 className="mt-3 font-heading text-3xl font-medium leading-tight tracking-[-0.04em] text-soft-white">{experience.title}</h2>
-                  <p className="mt-2 text-base font-semibold text-cobalt">{experience.role}</p>
-                  <p className="mt-4 max-w-xl leading-relaxed text-soft-white">{experience.desc}</p>
-                </article>
+          <div>
+            <h2 className="text-lg font-semibold text-signal-pink">{t.experience.certTitle}</h2>
+            <div className="mt-5 divide-y divide-white-line border-y border-white-line">
+              {certifications.map((cert) => (
+                <a key={cert.title} href={cert.link} target="_blank" rel="noreferrer" className="group flex items-start gap-4 py-5 text-soft-white transition-colors hover:text-cobalt">
+                  <Medal size={19} className="mt-0.5 shrink-0 text-cobalt" aria-hidden="true" />
+                  <span className="flex-1 text-sm font-semibold leading-relaxed">{cert.title}</span>
+                  <ArrowSquareOut size={17} className="mt-0.5 shrink-0 text-soft-white transition-colors group-hover:text-cobalt" aria-hidden="true" />
+                </a>
               ))}
-            </div>
-
-            <div>
-              <h2 className="text-sm font-semibold text-signal-pink">{t.experience.certTitle}</h2>
-              <div className="mt-5 divide-y divide-white-line border-y border-white-line">
-                {certifications.map((cert) => (
-                  <a key={cert.title} href={cert.link} target="_blank" rel="noreferrer" className="group flex items-start gap-4 py-5 text-soft-white transition-colors hover:text-cobalt">
-                    <Medal size={19} className="mt-0.5 shrink-0 text-cobalt" aria-hidden="true" />
-                    <span className="flex-1 text-sm font-semibold leading-relaxed">{cert.title}</span>
-                    <ArrowSquareOut size={17} className="mt-0.5 shrink-0 text-soft-white transition-colors group-hover:text-cobalt" aria-hidden="true" />
-                  </a>
-                ))}
-              </div>
             </div>
           </div>
         </div>
+
+        <PaintInspectionStation />
       </div>
     </section>
   )

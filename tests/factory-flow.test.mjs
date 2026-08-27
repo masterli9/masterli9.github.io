@@ -105,3 +105,12 @@ test('the forming press senses, covers, transforms, reveals, and releases one pa
   state = model.advanceFormingPress(state, 'gate-open')
   assert.equal(state.phase, 'released')
 })
+
+test('paint colors repeat white, pink, and blue without changing part identity', async () => {
+  const model = await import('../src/factory/stations/paintInspectionModel.ts').catch(() => ({}))
+  assert.deepEqual([0, 1, 2, 3].map(model.getPaintColor), ['#FFFFFF', '#F21868', '#355CFF', '#FFFFFF'])
+  assert.deepEqual(
+    model.advanceInspection({ id: 'part-4', sequence: 4, shape: 'button', color: '#F21868', stage: 'formed' }, true),
+    { id: 'part-4', sequence: 4, shape: 'button', color: '#F21868', stage: 'painted' },
+  )
+})

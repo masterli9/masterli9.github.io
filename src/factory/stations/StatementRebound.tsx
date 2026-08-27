@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { Body, Bodies, Events, type Body as MatterBody } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
-import { getReboundImpulse, getReboundPlatformGeometry } from './statementReboundModel'
+import { getReboundLaunchVelocity, getReboundPlatformGeometry } from './statementReboundModel'
 
 const VIEWBOX_WIDTH = 360
 const VIEWBOX_HEIGHT = 480
@@ -67,7 +67,19 @@ export default function StatementRebound() {
       geometry.catcher.height * scaleY,
       { isStatic: true, friction: 0.16, restitution: 0.18, label: 'statement-rebound-catcher' },
     )
-    return [platform, catcher]
+    const output = createSegmentCollider(
+      geometry.catcher.x + (geometry.catcher.width / 2),
+      geometry.catcher.y + geometry.catcher.height,
+      geometry.catcher.x + (geometry.catcher.width / 2),
+      VIEWBOX_HEIGHT - 4,
+      geometry.platform.thickness,
+      'statement-rebound-output',
+      scaleX,
+      scaleY,
+      offsetX,
+      offsetY,
+    )
+    return [platform, catcher, output]
   }, [geometry.catcher.height, geometry.catcher.width, geometry.catcher.x, geometry.catcher.y, geometry.platform.thickness, geometry.platform.x1, geometry.platform.x2, geometry.platform.y1, geometry.platform.y2])
 
   useFactoryStation({ id: 'statement', elementRef: stationRef, buildColliders })
@@ -82,20 +94,13 @@ export default function StatementRebound() {
             ? pair.bodyB
             : null
         const surface = pair.bodyA.label === 'statement-rebound-platform'
-          || pair.bodyA.label === 'statement-rebound-catcher'
           ? pair.bodyA
           : pair.bodyB.label === 'statement-rebound-platform'
-            || pair.bodyB.label === 'statement-rebound-catcher'
             ? pair.bodyB
             : null
         if (!part || !surface || handled.has(part.id)) continue
         handled.add(part.id)
-        const direction = getReboundImpulse({ incomingX: part.velocity.x, incomingY: part.velocity.y })
-        const forceScale = surface.label === 'statement-rebound-platform' ? 0.0014 : 0.0005
-        Body.applyForce(part, part.position, {
-          x: direction.x * forceScale,
-          y: direction.y * forceScale,
-        })
+        Body.setVelocity(part, getReboundLaunchVelocity({ incomingX: part.velocity.x, incomingY: part.velocity.y }))
       }
     }
     Events.on(engine, 'collisionStart', handleCollision)
@@ -120,7 +125,7 @@ export default function StatementRebound() {
           className="factory-line__rail factory-line__rail--white"
         />
         <path
-          d={`M${geometry.catcher.x} ${geometry.catcher.y + geometry.catcher.height}H${geometry.catcher.x - 36}`}
+          d={`M${geometry.catcher.x + (geometry.catcher.width / 2)} ${geometry.catcher.y + geometry.catcher.height}V${VIEWBOX_HEIGHT - 4}`}
           className="factory-line__rail factory-line__rail--pink"
         />
       </svg>

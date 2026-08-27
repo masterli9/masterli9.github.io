@@ -32,6 +32,17 @@ test('the active band extends two viewports in both directions', async () => {
   assert.equal(shouldRecycleFactoryPart(3401, band), true)
 })
 
+test('the lower act keeps its longer mobile route inside a bounded active band', async () => {
+  const { getFactoryActBand } = await import('../src/factory/factoryFlowModel.ts')
+
+  assert.deepEqual(getFactoryActBand('upper', 1000, 800), { minY: -600, maxY: 3400 })
+  assert.deepEqual(getFactoryActBand('lower', 1000, 800), { minY: -1400, maxY: 4200 })
+  assert.deepEqual(
+    getFactoryActBand('lower', 1000, 800, { minY: 500, maxY: 6500 }),
+    { minY: 500, maxY: 6500 },
+  )
+})
+
 test('station coordinates resolve in a shared act coordinate space', async () => {
   const geometry = await import('../src/factory/factoryGeometry.ts').catch(() => ({}))
   assert.equal(typeof geometry.toActPoint, 'function')
@@ -75,6 +86,10 @@ test('statement words reveal once with stable language-independent slots', async
 test('the rebound platform sends released parts across the statement instead of into a pipe', async () => {
   const model = await import('../src/factory/stations/statementReboundModel.ts')
   assert.deepEqual(model.getReboundImpulse({ incomingX: -0.4, incomingY: 3.2 }), { x: 2.4, y: -2.2 })
+  const launch = model.getReboundLaunchVelocity({ incomingX: -0.4, incomingY: 3.2 })
+  assert.ok(launch.x > 0)
+  assert.ok(launch.y < 0)
+  assert.ok(Math.abs(Math.hypot(launch.x, launch.y) - 16) < 1e-9)
 })
 
 test('the statement platform and catcher stay inside their station bounds', async () => {
@@ -84,6 +99,18 @@ test('the statement platform and catcher stay inside their station bounds', asyn
   assert.ok(geometry.platform.x2 <= 360)
   assert.ok(geometry.catcher.x >= 0)
   assert.ok(geometry.catcher.x + geometry.catcher.width <= 360)
+})
+
+test('the statement platform catches the hero box span and exits on the selected-work spine', async () => {
+  const { getReboundPlatformGeometry } = await import('../src/factory/stations/statementReboundModel.ts')
+  const geometry = getReboundPlatformGeometry({ left: 0, top: 0, width: 360, height: 480 })
+  const outputX = geometry.catcher.x + (geometry.catcher.width / 2)
+
+  assert.equal(geometry.platform.x1, 0)
+  assert.ok(geometry.platform.x2 > 160)
+  assert.ok(geometry.platform.y2 > geometry.platform.y1)
+  assert.ok(outputX - geometry.platform.x2 >= 120)
+  assert.ok(outputX < 320)
 })
 
 test('an act tears down only after neither it nor its boundary neighbor can be seen', async () => {
@@ -122,6 +149,21 @@ test('the goals sorter distributes parts across three lanes that share one exit'
   assert.deepEqual([0, 1, 2].map((lane) => model.getGoalLaneExit(lane, bounds)), [
     { x: 400, y: 900 }, { x: 400, y: 900 }, { x: 400, y: 900 },
   ])
+  const routeVectors = [0, 1, 2].map((sequence) => model.getGoalRoutingVelocity(sequence, { x: 0, y: 4 }))
+  assert.ok(routeVectors[0].x < 0)
+  assert.equal(routeVectors[1].x, 0)
+  assert.ok(routeVectors[2].x > 0)
+  assert.ok(routeVectors.every(({ y }) => y > 0))
+})
+
+test('goal merge sensors steer outer lanes back to the common exit', async () => {
+  const model = await import('../src/factory/stations/goalSorterModel.ts')
+  const mergeVectors = [0, 1, 2].map((lane) => model.getGoalMergeVelocity(lane, { x: 0, y: 4 }))
+
+  assert.ok(mergeVectors[0].x > 0)
+  assert.equal(mergeVectors[1].x, 0)
+  assert.ok(mergeVectors[2].x < 0)
+  assert.ok(mergeVectors.every(({ y }) => y > 0))
 })
 
 test('five unique parts assemble the browser once and later parts remain overflow', async () => {
@@ -146,4 +188,13 @@ test('the factory narrows its active body pool on small viewports', async () => 
 
   assert.equal(getFactoryActiveLimit(1440), 42)
   assert.equal(getFactoryActiveLimit(390), 20)
+})
+
+test('a continuous stream only spawns while its act is active and visible', async () => {
+  const { shouldSpawnFactoryPart } = await import('../src/factory/factoryFlowModel.ts')
+
+  assert.equal(shouldSpawnFactoryPart({ actVisible: true, documentVisible: true, reducedMotion: false }), true)
+  assert.equal(shouldSpawnFactoryPart({ actVisible: false, documentVisible: true, reducedMotion: false }), false)
+  assert.equal(shouldSpawnFactoryPart({ actVisible: true, documentVisible: false, reducedMotion: false }), false)
+  assert.equal(shouldSpawnFactoryPart({ actVisible: true, documentVisible: true, reducedMotion: true }), false)
 })

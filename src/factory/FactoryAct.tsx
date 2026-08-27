@@ -18,10 +18,11 @@ import {
 } from 'matter-js'
 import {
   createFactoryPartSpec,
-  getActiveBand,
+  getFactoryActBand,
   getFactoryActiveLimit,
   getReducedFactorySnapshot,
   serializeFactoryPart,
+  shouldSpawnFactoryPart,
   shouldRecycleFactoryPart,
   shouldTeardownAct,
 } from './factoryFlowModel'
@@ -67,6 +68,7 @@ function createFactoryBody(spec: FactoryPartSpec, snapshot: Omit<FactoryPartSnap
     frictionAir: 0.008,
     restitution: 0.12,
     density: 0.0018,
+    collisionFilter: { group: -1 },
     label: `factory-part-${spec.id}`,
   }
   const body = spec.shape === 'circle' || spec.shape === 'radio'
@@ -98,7 +100,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   const engineClearedRef = useRef(false)
   const [parts, setParts] = useState<FactoryPartSnapshot[]>([])
   const [viewport, setViewport] = useState({ width: 1, height: 1 })
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
   const [engine] = useState(() => Engine.create({ gravity: { x: 0, y: 1, scale: 0.00145 } }))
 
   const measure = useCallback(() => {
@@ -222,9 +224,13 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       previousTime = time
       Engine.update(engine, delta)
       const viewportTop = window.scrollY
-      const band = getActiveBand(viewportTop, window.innerHeight)
+      const rootRect = root.getBoundingClientRect()
+      const band = getFactoryActBand(id, viewportTop, window.innerHeight, {
+        minY: rootRect.top + window.scrollY,
+        maxY: rootRect.bottom + window.scrollY,
+      })
       for (const [id, livePart] of partsRef.current) {
-        const y = livePart.body.position.y + root.getBoundingClientRect().top + window.scrollY
+        const y = livePart.body.position.y + rootRect.top + window.scrollY
         if (!shouldRecycleFactoryPart(y, band)) continue
         Composite.remove(engine.world, livePart.body, true)
         partsRef.current.delete(id)
@@ -235,13 +241,22 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     return () => {
       window.cancelAnimationFrame(frame)
     }
-  }, [engine, isVisible, reducedMotion])
+  }, [engine, id, isVisible, reducedMotion])
 
   useEffect(() => {
     if (id !== 'lower') return
-    if (reducedMotion) return
+    if (!shouldSpawnFactoryPart({
+      actVisible: isVisible,
+      documentVisible: document.visibilityState === 'visible',
+      reducedMotion,
+    })) return
     let sequence = 0
     const spawnAtSkillsEntry = () => {
+      if (!shouldSpawnFactoryPart({
+        actVisible: isVisible,
+        documentVisible: document.visibilityState === 'visible',
+        reducedMotion,
+      })) return
       if (partsRef.current.size >= getFactoryActiveLimit(window.innerWidth)) return
       const root = rootRef.current
       if (!root) return
@@ -271,7 +286,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       window.clearTimeout(initial)
       window.clearInterval(interval)
     }
-  }, [id, reducedMotion, spawnPart])
+  }, [id, isVisible, reducedMotion, spawnPart])
 
   useEffect(() => {
     if (!reducedMotion) return

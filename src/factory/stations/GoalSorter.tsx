@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { Body, Bodies, Events, type Body as MatterBody } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
-import { getGoalLane } from './goalSorterModel'
+import { getGoalMergeVelocity, getGoalRoutingVelocity } from './goalSorterModel'
 
 const VIEWBOX_WIDTH = 320
 const VIEWBOX_HEIGHT = 620
@@ -13,6 +13,7 @@ function createSegment(
   x2: number,
   y2: number,
   label: string,
+  options: { isSensor?: boolean } = {},
 ) {
   const scaleX = Math.max(metrics.elementRect.width, 1) / VIEWBOX_WIDTH
   const scaleY = Math.max(metrics.elementRect.height, 1) / VIEWBOX_HEIGHT
@@ -25,7 +26,7 @@ function createSegment(
     (start.y + end.y) / 2,
     Math.hypot(end.x - start.x, end.y - start.y),
     3.5 * Math.min(scaleX, scaleY),
-    { isStatic: true, friction: 0.08, restitution: 0.2, label },
+    { isStatic: true, isSensor: options.isSensor ?? false, friction: 0.08, restitution: 0.2, label },
   )
   Body.setAngle(body, Math.atan2(end.y - start.y, end.x - start.x))
   return body
@@ -38,6 +39,8 @@ function getPartId(body: MatterBody) {
 export default function GoalSorter() {
   const stationRef = useRef<HTMLDivElement>(null)
   const routedRef = useRef(new Set<string>())
+  const mergedRef = useRef(new Set<string>())
+  const alignedRef = useRef(new Set<string>())
   const { engine } = useFactoryAct()
 
   const buildColliders = useCallback((metrics: FactoryStationMetrics): MatterBody[] => [
@@ -48,15 +51,15 @@ export default function GoalSorter() {
       metrics.elementRect.top - metrics.actRect.top + (208 * (metrics.elementRect.height / VIEWBOX_HEIGHT)),
       92 * (metrics.elementRect.width / VIEWBOX_WIDTH),
       5 * (metrics.elementRect.height / VIEWBOX_HEIGHT),
-      { isStatic: true, friction: 0.08, restitution: 0.2, label: 'goals-diverter' },
+      { isStatic: true, isSensor: true, friction: 0.08, restitution: 0.2, label: 'goals-diverter' },
     ),
     createSegment(metrics, 30, 226, 30, 416, 'goals-lane-left'),
     createSegment(metrics, 130, 226, 130, 416, 'goals-lane-0-1-boundary'),
     createSegment(metrics, 190, 226, 190, 416, 'goals-lane-1-2-boundary'),
     createSegment(metrics, 290, 226, 290, 416, 'goals-lane-right'),
-    createSegment(metrics, 30, 416, 160, 570, 'goals-merge-0'),
-    createSegment(metrics, 160, 416, 160, 570, 'goals-merge-1'),
-    createSegment(metrics, 290, 416, 160, 570, 'goals-merge-2'),
+    createSegment(metrics, 30, 416, 160, 570, 'goals-merge-0', { isSensor: true }),
+    createSegment(metrics, 290, 416, 160, 570, 'goals-merge-2', { isSensor: true }),
+    createSegment(metrics, 160, 570, 160, 616, 'goals-common-exit', { isSensor: true }),
   ], [])
 
   useFactoryStation({ id: 'goals', elementRef: stationRef, buildColliders })
@@ -70,11 +73,26 @@ export default function GoalSorter() {
             ? pair.bodyB
             : null
         const diverter = pair.bodyA.label === 'goals-diverter' || pair.bodyB.label === 'goals-diverter'
-        if (!part || !diverter || routedRef.current.has(part.label)) continue
-        routedRef.current.add(part.label)
-        const lane = getGoalLane(Number(getPartId(part).replace('part-', '')))
-        const direction = lane - 1
-        Body.applyForce(part, part.position, { x: direction * 0.0018, y: 0.0002 })
+        const surface = pair.bodyA.label.startsWith('goals-')
+          ? pair.bodyA
+          : pair.bodyB.label.startsWith('goals-')
+            ? pair.bodyB
+            : null
+        if (!part || !surface) continue
+        const sequence = Number(getPartId(part).replace('part-', ''))
+        if (diverter && !routedRef.current.has(part.label)) {
+          routedRef.current.add(part.label)
+          Body.setVelocity(part, getGoalRoutingVelocity(sequence, part.velocity))
+        }
+        if ((surface.label === 'goals-merge-0' || surface.label === 'goals-merge-2') && !mergedRef.current.has(part.label)) {
+          mergedRef.current.add(part.label)
+          const lane = surface.label === 'goals-merge-0' ? 0 : 2
+          Body.setVelocity(part, getGoalMergeVelocity(lane, part.velocity))
+        }
+        if (surface.label === 'goals-common-exit' && !alignedRef.current.has(part.label)) {
+          alignedRef.current.add(part.label)
+          Body.setVelocity(part, getGoalMergeVelocity(1, part.velocity))
+        }
       }
     }
     Events.on(engine, 'collisionStart', handleCollision)
@@ -87,7 +105,8 @@ export default function GoalSorter() {
         <path d="M38 44 112 198M282 44 208 198" className="factory-line__rail factory-line__rail--white" />
         <path d="M114 208H206" className="factory-line__rail factory-line__rail--pink" />
         <path d="M30 226V416M130 226V416M190 226V416M290 226V416" className="factory-line__rail factory-line__rail--white" />
-        <path d="M30 416 160 570M160 416V570M290 416 160 570" className="factory-line__rail factory-line__rail--blue" />
+        <path d="M30 416 160 570M290 416 160 570" className="factory-line__rail factory-line__rail--blue" />
+        <path d="M160 570V616" className="factory-line__rail factory-line__rail--blue" />
       </svg>
     </div>
   )

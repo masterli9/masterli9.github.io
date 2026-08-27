@@ -259,6 +259,44 @@ test('active factory sections do not use obsolete visual hierarchy primitives', 
   }
 })
 
+test('each station reserves the same aspect-ratio footprint used by its colliders', async () => {
+  const css = await read('src/factory/factory-line.css')
+
+  assert.match(css, /\.factory-station\s*\{[\s\S]*align-self:\s*start/)
+  assert.match(css, /\.statement-rebound\s*\{[\s\S]*aspect-ratio:\s*3\s*\/\s*4/)
+  assert.match(css, /\.selected-work-passage\s*\{[\s\S]*aspect-ratio:\s*1\s*\/\s*2/)
+  assert.match(css, /\.forming-press\s*\{[\s\S]*aspect-ratio:\s*6\s*\/\s*13/)
+  assert.match(css, /\.paint-inspection\s*\{[\s\S]*aspect-ratio:\s*1\s*\/\s*2/)
+  assert.match(css, /\.goal-sorter\s*\{[\s\S]*aspect-ratio:\s*16\s*\/\s*31/)
+  assert.match(css, /\.final-assembler\s*\{[\s\S]*aspect-ratio:\s*8\s*\/\s*13/)
+  assert.match(css, /\.statement-rebound,[\s\S]*?\.selected-work-passage\s*\{[\s\S]*width:\s*32\.5rem/)
+  assert.match(css, /\.statement-rebound,[\s\S]*?margin-left:\s*calc\(100%\s*-\s*32\.5rem\)/)
+  assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*?\.statement-rebound,[\s\S]*?\.selected-work-passage\s*\{[\s\S]*margin-left:\s*auto/)
+})
+
+test('the goal sorter keeps a clear physical middle exit', async () => {
+  const source = await read('src/factory/stations/GoalSorter.tsx')
+
+  assert.doesNotMatch(source, /goals-merge-1/)
+  assert.doesNotMatch(source, /M160 416V570/)
+  assert.match(source, /isSensor:\s*true/)
+  assert.match(source, /goals-merge-0[\s\S]*isSensor/)
+  assert.match(source, /goals-merge-2[\s\S]*isSensor/)
+  assert.match(source, /goals-common-exit[\s\S]*isSensor/)
+})
+
+test('factory parts cannot deflect one another between station colliders', async () => {
+  const source = await read('src/factory/FactoryAct.tsx')
+
+  assert.match(source, /collisionFilter:\s*\{\s*group:\s*-1\s*\}/)
+})
+
+test('the contact frame leaves its capture edge physically passable', async () => {
+  const source = await read('src/factory/stations/FinalAssembler.tsx')
+
+  assert.match(source, /contact-frame-top',\s*\{\s*isSensor:\s*true\s*\}/)
+})
+
 test('the navbar returns the original logo and changes width after scrolling', async () => {
   const header = await read('src/components/Header.tsx')
 

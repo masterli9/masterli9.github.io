@@ -26,6 +26,7 @@ function createFrameSegment(
   x2: number,
   y2: number,
   label: string,
+  options: { isSensor?: boolean } = {},
 ) {
   const scaleX = Math.max(metrics.elementRect.width, 1) / VIEWBOX_WIDTH
   const scaleY = Math.max(metrics.elementRect.height, 1) / VIEWBOX_HEIGHT
@@ -38,7 +39,7 @@ function createFrameSegment(
     (start.y + end.y) / 2,
     Math.hypot(end.x - start.x, end.y - start.y),
     3.5 * Math.min(scaleX, scaleY),
-    { isStatic: true, friction: 0.12, restitution: 0.22, label },
+    { isStatic: true, isSensor: options.isSensor ?? false, friction: 0.12, restitution: 0.22, label },
   )
   Body.setAngle(body, Math.atan2(end.y - start.y, end.x - start.x))
   return body
@@ -88,7 +89,7 @@ export default function FinalAssembler() {
 
   const buildColliders = useCallback((metrics: FactoryStationMetrics): MatterBody[] => {
     const frame = [
-      createFrameSegment(metrics, 40, 180, 280, 180, 'contact-frame-top'),
+      createFrameSegment(metrics, 40, 180, 280, 180, 'contact-frame-top', { isSensor: true }),
       createFrameSegment(metrics, 40, 180, 40, 400, 'contact-frame-left'),
       createFrameSegment(metrics, 280, 180, 280, 400, 'contact-frame-right'),
       createFrameSegment(metrics, 40, 400, 280, 400, 'contact-frame-bottom'),

@@ -36,11 +36,42 @@ export function getFactoryActiveLimit(viewportWidth: number) {
   return viewportWidth <= 640 ? 20 : 42
 }
 
+export function shouldSpawnFactoryPart(input: {
+  actVisible: boolean
+  documentVisible: boolean
+  reducedMotion: boolean
+}) {
+  return input.actVisible && input.documentVisible && !input.reducedMotion
+}
+
 export function getActiveBand(viewportTop: number, viewportHeight: number) {
   return {
     minY: viewportTop - (viewportHeight * 2),
     maxY: viewportTop + (viewportHeight * 3),
   }
+}
+
+export function getFactoryActBand(
+  actId: 'upper' | 'lower',
+  viewportTop: number,
+  viewportHeight: number,
+  actBounds?: { minY: number; maxY: number },
+) {
+  const viewportBand = getActiveBand(viewportTop, viewportHeight)
+  if (actId === 'lower') {
+    const lowerBand = {
+      minY: viewportTop - (viewportHeight * 3),
+      maxY: viewportTop + (viewportHeight * 4),
+    }
+    if (actBounds) {
+      return {
+        minY: actBounds.minY,
+        maxY: actBounds.maxY,
+      }
+    }
+    return lowerBand
+  }
+  return viewportBand
 }
 
 export function shouldRecycleFactoryPart(y: number, band: { minY: number; maxY: number }) {

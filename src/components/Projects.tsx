@@ -12,10 +12,7 @@ export default function Projects() {
 
   return (
     <div className="mt-24 border-t border-white-line pt-8 md:mt-32">
-      <div className="mb-8 flex items-center justify-between gap-5">
-        <p className="text-sm text-line-gray">{t.projects.otherOutputs}</p>
-        <span className="text-xs text-line-gray">{String(supportingProjects.length).padStart(2, '0')}</span>
-      </div>
+      <p className="mb-8 text-sm font-semibold text-soft-white">{t.projects.otherOutputs}</p>
 
       <div className="divide-y divide-white-line">
         {supportingProjects.map((project) => {
@@ -26,10 +23,10 @@ export default function Projects() {
                 <ProjectIcon name={project.icon} size={20} className="text-cobalt" />
                 <div>
                   <h3 className="font-heading text-2xl font-medium tracking-[-0.03em] text-soft-white">{project.title}</h3>
-                  <p className="mt-1 text-sm text-line-gray">{t.projects.types[project.type]}</p>
+                   <p className="mt-1 text-sm text-soft-white">{t.projects.types[project.type]}</p>
                 </div>
               </div>
-              <p className="max-w-md text-sm leading-relaxed text-muted">{copy.desc}</p>
+               <p className="max-w-md text-sm leading-relaxed text-soft-white">{copy.desc}</p>
               <button
                 type="button"
                 onClick={() => setSelectedProject(project)}

@@ -15,5 +15,51 @@
 
 .factory-act > :not(.factory-line__parts) {
   position: relative;
-  z-index: 1;
+  z-index: 3;
+}
+
+.factory-station {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 18rem);
+  min-height: 30rem;
+  margin-left: auto;
+  pointer-events: none;
+}
+
+.factory-station > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.factory-line__rail {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.factory-line__rail--white {
+  stroke: var(--color-soft-white);
+}
+
+.factory-line__rail--pink {
+  stroke: var(--color-signal-pink);
+}
+
+.factory-line__rail--blue {
+  stroke: var(--color-cobalt);
+}
+
+.statement-rebound,
+.selected-work-passage {
+  min-height: 30rem;
+}
+
+@media (max-width: 1023px) {
+  .factory-station {
+    margin-right: auto;
+  }
 }

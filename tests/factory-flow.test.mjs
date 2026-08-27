@@ -57,3 +57,31 @@ test('the hero gate opens once the line starts and removes the waiting cap', asy
   assert.deepEqual(model.getHeroGateState(false), { open: false, waitingLimit: 30 })
   assert.deepEqual(model.getHeroGateState(true), { open: true, waitingLimit: Number.POSITIVE_INFINITY })
 })
+
+test('statement words reveal once with stable language-independent slots', async () => {
+  const model = await import('../src/factory/stations/statementReboundModel.ts').catch(() => ({}))
+  assert.deepEqual(model.createStatementReveal(['One', 'clear', 'idea'], 3), [
+    { key: 'statement-0', word: 'One', revealAt: 0 },
+    { key: 'statement-1', word: 'clear', revealAt: 0.075 },
+    { key: 'statement-2', word: 'idea', revealAt: 0.15 },
+  ])
+  assert.deepEqual(model.createStatementReveal(['Jasná', 'myšlenka'], 3).map(({ key, word }) => ({ key, word })), [
+    { key: 'statement-0', word: 'Jasná' },
+    { key: 'statement-1', word: 'myšlenka' },
+    { key: 'statement-2', word: '' },
+  ])
+})
+
+test('the rebound platform sends released parts across the statement instead of into a pipe', async () => {
+  const model = await import('../src/factory/stations/statementReboundModel.ts')
+  assert.deepEqual(model.getReboundImpulse({ incomingX: -0.4, incomingY: 3.2 }), { x: 2.4, y: -2.2 })
+})
+
+test('the statement platform and catcher stay inside their station bounds', async () => {
+  const { getReboundPlatformGeometry } = await import('../src/factory/stations/statementReboundModel.ts')
+  const geometry = getReboundPlatformGeometry({ left: 0, top: 0, width: 360, height: 480 })
+  assert.ok(geometry.platform.x1 >= 0)
+  assert.ok(geometry.platform.x2 <= 360)
+  assert.ok(geometry.catcher.x >= 0)
+  assert.ok(geometry.catcher.x + geometry.catcher.width <= 360)
+})

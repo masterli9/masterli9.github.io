@@ -114,3 +114,12 @@ test('paint colors repeat white, pink, and blue without changing part identity',
     { id: 'part-4', sequence: 4, shape: 'button', color: '#F21868', stage: 'painted' },
   )
 })
+
+test('the goals sorter distributes parts across three lanes that share one exit', async () => {
+  const model = await import('../src/factory/stations/goalSorterModel.ts').catch(() => ({}))
+  assert.deepEqual([0, 1, 2, 3, 4, 5].map(model.getGoalLane), [0, 1, 2, 0, 1, 2])
+  const bounds = { left: 100, width: 600, bottom: 900 }
+  assert.deepEqual([0, 1, 2].map((lane) => model.getGoalLaneExit(lane, bounds)), [
+    { x: 400, y: 900 }, { x: 400, y: 900 }, { x: 400, y: 900 },
+  ])
+})

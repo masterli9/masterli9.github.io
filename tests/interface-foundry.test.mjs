@@ -274,6 +274,12 @@ test('each station reserves the same aspect-ratio footprint used by its collider
   assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*?\.statement-rebound,[\s\S]*?\.selected-work-passage\s*\{[\s\S]*margin-left:\s*auto/)
 })
 
+test('factory parts render above opaque act sections', async () => {
+  const css = await read('src/factory/factory-line.css')
+
+  assert.match(css, /\.factory-line__parts\s*\{[\s\S]*z-index:\s*4/)
+})
+
 test('the goal sorter keeps a clear physical middle exit', async () => {
   const source = await read('src/factory/stations/GoalSorter.tsx')
 

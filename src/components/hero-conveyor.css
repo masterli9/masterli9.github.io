@@ -1,5 +1,10 @@
-.hero-conveyor {
+.hero-conveyor-station {
   width: min(115%, 34rem);
+}
+
+.hero-conveyor {
+  display: block;
+  width: 100%;
   overflow: hidden;
   color: var(--color-soft-white);
 }
@@ -33,7 +38,7 @@
 }
 
 @media (max-width: 640px) {
-  .hero-conveyor {
+  .hero-conveyor-station {
     width: min(100%, 22rem);
   }
 }

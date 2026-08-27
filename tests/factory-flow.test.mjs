@@ -51,3 +51,9 @@ test('an act keeps neighboring stations active inside the same padded window', a
   assert.equal(isStationWithinWindow({ top: 700, bottom: 1500 }, { top: 0, bottom: 2400 }), true)
   assert.equal(isStationWithinWindow({ top: 2500, bottom: 2900 }, { top: 0, bottom: 2400 }), false)
 })
+
+test('the hero gate opens once the line starts and removes the waiting cap', async () => {
+  const model = await import('../src/components/heroConveyorModel.ts')
+  assert.deepEqual(model.getHeroGateState(false), { open: false, waitingLimit: 30 })
+  assert.deepEqual(model.getHeroGateState(true), { open: true, waitingLimit: Number.POSITIVE_INFINITY })
+})

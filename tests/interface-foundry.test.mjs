@@ -225,6 +225,16 @@ test('the page separates two physics acts with the white about section', async (
   assert.match(source, /<Skills \/>[\s\S]*<Experience \/>[\s\S]*<Goals \/>[\s\S]*<ContactSection \/>/)
 })
 
+test('the statement boundary starts the factory line and the hero reads its gate state', async () => {
+  const statement = await read('src/components/Statement.tsx')
+  const hero = await read('src/components/HeroConveyor.tsx')
+  assert.match(statement, /useFactoryFlow/)
+  assert.match(statement, /startLine/)
+  assert.match(statement, /IntersectionObserver/)
+  assert.match(hero, /lineStarted/)
+  assert.match(hero, /getHeroGateState/)
+})
+
 test('the navbar returns the original logo and changes width after scrolling', async () => {
   const header = await read('src/components/Header.tsx')
 

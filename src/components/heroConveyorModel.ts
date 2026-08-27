@@ -31,6 +31,13 @@ export function getConveyorPayloadDeficit({
   return Math.max(0, targetCount - activeCount)
 }
 
+export function getHeroGateState(lineStarted: boolean) {
+  return {
+    open: lineStarted,
+    waitingLimit: lineStarted ? Number.POSITIVE_INFINITY : 30,
+  }
+}
+
 export function clampPhysicsDelta(elapsedMilliseconds: number) {
   return Math.min(elapsedMilliseconds, 1000 / 60)
 }

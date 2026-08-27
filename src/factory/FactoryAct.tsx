@@ -46,6 +46,8 @@ export interface FactoryActApi {
     snapshot: Omit<FactoryPartSnapshot, keyof FactoryPartSpec>,
   ) => void
   registerStation: (registration: FactoryStationRegistration) => () => void
+  getPartBody: (id: string) => MatterBody | undefined
+  removePart: (id: string) => void
 }
 
 const FactoryActContext = createContext<FactoryActApi | null>(null)
@@ -126,6 +128,16 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
   }, [engine])
 
+  const getPartBody = useCallback((id: string) => partsRef.current.get(id)?.body, [])
+
+  const removePart = useCallback((id: string) => {
+    const livePart = partsRef.current.get(id)
+    if (!livePart) return
+    Composite.remove(engine.world, livePart.body, true)
+    partsRef.current.delete(id)
+    setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
+  }, [engine])
+
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
@@ -193,7 +205,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     Engine.clear(engine)
   }, [engine])
 
-  const api = useMemo(() => ({ actId: id, engine, spawnPart, registerStation }), [engine, id, registerStation, spawnPart])
+  const api = useMemo(() => ({ actId: id, engine, spawnPart, registerStation, getPartBody, removePart }), [engine, getPartBody, id, registerStation, removePart, spawnPart])
 
   return (
     <FactoryActContext.Provider value={api}>

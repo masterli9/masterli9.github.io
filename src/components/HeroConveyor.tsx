@@ -1,38 +1,29 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
+import { Body, Bodies, type Body as MatterBody } from 'matter-js'
 import {
-  Bodies,
-  Body,
-  Composite,
-  Engine,
-  type Body as MatterBody,
-} from 'matter-js'
+  createFactoryPartSpec,
+  getFactorySpawnDecision,
+} from '../factory/factoryFlowModel'
 import {
-  canSpawnConveyorPart,
-  clampPhysicsDelta,
+  useFactoryAct,
+  useFactoryStation,
+  type FactoryStationMetrics,
+} from '../factory/FactoryAct'
+import { useFactoryFlow } from '../factory/FactoryFlowProvider'
+import type { FactoryPartColor, FactoryPartSpec } from '../factory/factoryTypes'
+import {
   getConveyorBeltBottomY,
   getConveyorMotion,
-  getConveyorPayloadDeficit,
   getConveyorPartCenterY,
-  getRoundedEndTangentVelocity,
+  getHeroGateState,
   getRoundedEndReleaseX,
+  getRoundedEndTangentVelocity,
   shouldReleaseConveyorPart,
   type ConveyorPartShape,
 } from './heroConveyorModel'
 import type { HeroConveyorIntroStage } from './heroTimeline'
-import { createRoundedBeltEndCollider } from './heroConveyorPhysics'
 import './hero-conveyor.css'
-
-interface PartSpec {
-  shape: ConveyorPartShape
-  color: string
-}
-
-interface ConveyorPart extends PartSpec {
-  id: number
-  body: MatterBody
-  released: boolean
-}
 
 interface PartPosition {
   x: number
@@ -40,7 +31,15 @@ interface PartPosition {
   angle: number
 }
 
+interface ConveyorPart {
+  id: string
+  sequence: number
+  shape: ConveyorPartShape
+  released: boolean
+}
+
 const MAX_PARTS = 30
+const ACTIVE_PART_LIMIT = 42
 const MINIMUM_PAYLOAD = 4
 const BELT_LEFT_X = 112
 const BELT_TOP_Y = 83
@@ -51,17 +50,15 @@ const BELT_RELEASE_X = getRoundedEndReleaseX(BELT_LEFT_X, BELT_HEIGHT)
 const BELT_END_CENTER_Y = BELT_TOP_Y + (BELT_HEIGHT / 2)
 const GRAVITY_PER_STEP = 0.00145 * (1000 / 60)
 const SPAWN_INTERVAL = 1500
+const VIEWBOX_WIDTH = 420
+const VIEWBOX_HEIGHT = 350
 const BELT_MOTION = getConveyorMotion({
   surfaceSpeed: 55,
   treadCycleLength: 28,
   rollerRadius: 17,
 })
 const PART_SHAPES = ['square', 'circle', 'bar', 'diamond'] as const
-const PART_COLORS = ['#F21868', '#355CFF', '#FFFFFF'] as const
-const PART_SPECS: PartSpec[] = Array.from({ length: MAX_PARTS }, (_, index) => ({
-  shape: PART_SHAPES[index % PART_SHAPES.length] ?? 'square',
-  color: PART_COLORS[index % PART_COLORS.length] ?? '#FFFFFF',
-}))
+const PART_COLORS: FactoryPartColor[] = ['#F21868', '#355CFF', '#FFFFFF']
 
 const STATIC_PARTS = [
   { id: 0, shape: 'square' as const, color: '#F21868', x: 31, y: 319, angle: -4 },
@@ -78,32 +75,67 @@ const STARTER_POSITIONS: PartPosition[] = STATIC_PARTS
   .slice(0, MINIMUM_PAYLOAD)
   .map(({ x, y, angle }) => ({ x, y, angle }))
 
-function createPartBody(spec: PartSpec, index: number, position?: PartPosition) {
-  const x = position?.x ?? 455
-  const y = position?.y ?? getConveyorPartCenterY(BELT_TOP_Y, spec.shape, PART_CLEARANCE)
-  const options = {
-    friction: 0.16,
-    frictionAir: 0.008,
-    restitution: 0.12,
-    density: 0.0018,
-    label: `conveyor-part-${index}`,
+function createHeroPartSpec(sequence: number): FactoryPartSpec {
+  const base = createFactoryPartSpec(sequence, 'raw')
+  return {
+    ...base,
+    shape: PART_SHAPES[sequence % PART_SHAPES.length] ?? 'square',
+    color: PART_COLORS[sequence % PART_COLORS.length] ?? '#FFFFFF',
   }
-
-  const body = spec.shape === 'circle'
-    ? Bodies.circle(x, y, 11, options)
-    : spec.shape === 'bar'
-      ? Bodies.rectangle(x, y, 30, 13, options)
-      : Bodies.rectangle(x, y, 22, 22, options)
-
-  if (position) Body.setAngle(body, position.angle * (Math.PI / 180))
-  else if (spec.shape === 'diamond') Body.setAngle(body, Math.PI / 4)
-  return body
 }
 
-function PartGraphic({ shape, color }: PartSpec) {
-  if (shape === 'circle') return <circle cx="0" cy="0" r="11" fill={color} />
-  if (shape === 'bar') return <rect x="-15" y="-6.5" width="30" height="13" fill={color} />
-  return <rect x="-11" y="-11" width="22" height="22" fill={color} />
+function createHeroColliders({ elementRect, actRect }: FactoryStationMetrics, lineStarted: boolean) {
+  const scaleX = Math.max(elementRect.width, 1) / VIEWBOX_WIDTH
+  const scaleY = Math.max(elementRect.height, 1) / VIEWBOX_HEIGHT
+  const radiusScale = Math.min(scaleX, scaleY)
+  const point = (x: number, y: number) => ({
+    x: elementRect.left - actRect.left + (x * scaleX),
+    y: elementRect.top - actRect.top + (y * scaleY),
+  })
+  const rectangle = (x: number, y: number, width: number, height: number, label: string) => {
+    const center = point(x, y)
+    return Bodies.rectangle(center.x, center.y, width * scaleX, height * scaleY, {
+      isStatic: true,
+      label,
+      friction: 0.12,
+      restitution: 0.08,
+    })
+  }
+  const roundedEnd = point(BELT_RELEASE_X, BELT_END_CENTER_Y)
+  const colliders: MatterBody[] = [
+    Bodies.circle(roundedEnd.x, roundedEnd.y, 26 * radiusScale, {
+      isStatic: true,
+      friction: 0.12,
+      restitution: 0,
+      label: 'conveyor-rounded-end',
+    }),
+    rectangle(10, 267.5, 8, 143, 'box-left'),
+    rectangle(160, 267.5, 8, 143, 'box-right'),
+  ]
+
+  if (!lineStarted) colliders.push(rectangle(85, 337, 158, 9, 'box-bottom'))
+  return colliders
+}
+
+function getStationMapping(station: HTMLElement) {
+  const act = station.closest<HTMLElement>('[data-factory-act]')
+  if (!act) return null
+  const elementRect = station.getBoundingClientRect()
+  const actRect = act.getBoundingClientRect()
+  const scaleX = Math.max(elementRect.width, 1) / VIEWBOX_WIDTH
+  const scaleY = Math.max(elementRect.height, 1) / VIEWBOX_HEIGHT
+  return {
+    scaleX,
+    scaleY,
+    toActPoint: (x: number, y: number) => ({
+      x: elementRect.left - actRect.left + (x * scaleX),
+      y: elementRect.top - actRect.top + (y * scaleY),
+    }),
+    toLocalPoint: (x: number, y: number) => ({
+      x: (x - (elementRect.left - actRect.left)) / scaleX,
+      y: (y - (elementRect.top - actRect.top)) / scaleY,
+    }),
+  }
 }
 
 interface HeroConveyorProps {
@@ -127,242 +159,216 @@ const MACHINE_VISIBLE_STAGES: HeroConveyorIntroStage[] = [
 
 export default function HeroConveyor({ introStage }: HeroConveyorProps) {
   const svgRef = useRef<SVGSVGElement>(null)
-  const partNodes = useRef(new Map<number, SVGGElement>())
+  const stationRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef(false)
-  const [parts, setParts] = useState<ConveyorPart[]>([])
+  const lineStartedRef = useRef(false)
   const reducedMotion = useReducedMotion() ?? false
   const isInView = useInView(svgRef, { amount: 0.15 })
+  const { lineStarted } = useFactoryFlow()
+  const { getPartBody, removePart, spawnPart } = useFactoryAct()
   const shouldAnimate = isInView && !reducedMotion && introStage === 'running'
   const isBoxVisible = BOX_VISIBLE_STAGES.includes(introStage)
   const isMachineVisible = MACHINE_VISIBLE_STAGES.includes(introStage)
+  const heroGate = getHeroGateState(lineStarted)
 
   useEffect(() => {
-    activeRef.current = shouldAnimate
-  }, [shouldAnimate])
+    activeRef.current = !reducedMotion && introStage === 'running'
+    lineStartedRef.current = lineStarted
+  }, [introStage, lineStarted, reducedMotion])
+
+  const buildColliders = useCallback(
+    (metrics: FactoryStationMetrics) => createHeroColliders(metrics, heroGate.open),
+    [heroGate.open],
+  )
+  useFactoryStation({ id: 'hero', elementRef: stationRef, buildColliders })
 
   useEffect(() => {
-    if (reducedMotion) return
-
-    const nodeMap = partNodes.current
-    const engine = Engine.create({
-      gravity: { x: 0, y: 1, scale: 0.00145 },
-    })
-    const world = engine.world
-    const roundedBeltEnd = createRoundedBeltEndCollider({
-      left: BELT_LEFT_X,
-      top: BELT_TOP_Y,
-      height: BELT_HEIGHT,
-      clearance: PART_CLEARANCE,
-    })
-    const boxLeft = Bodies.rectangle(10, 267.5, 8, 143, { isStatic: true, label: 'box-left' })
-    const boxRight = Bodies.rectangle(160, 267.5, 8, 143, { isStatic: true, label: 'box-right' })
-    const boxBottom = Bodies.rectangle(85, 337, 158, 9, { isStatic: true, label: 'box-bottom' })
-    Composite.add(world, [roundedBeltEnd, boxLeft, boxRight, boxBottom])
-
-    const liveParts: ConveyorPart[] = []
+    if (!isBoxVisible) return
+    const station = stationRef.current
+    if (!station) return
+    const liveParts = new Map<string, ConveyorPart>()
+    let nextSequence = 0
     let frame = 0
     let previousTime = performance.now()
     let simulatedTime = 0
     let lastSpawnAt = -1100
 
-    const addPart = (spec: PartSpec, position?: PartPosition, released = false) => {
-      const id = liveParts.length
-      const body = createPartBody(spec, id, position)
-      const part = { id, ...spec, body, released }
-      liveParts.push(part)
-      Composite.add(world, body)
-      return part
-    }
-
-    const spawnPart = () => {
-      const spec = PART_SPECS[liveParts.length]
-      if (!spec) return
-
-      addPart(spec)
-      setParts([...liveParts])
-    }
-
-    const ensureMinimumPayload = (minimumPayload: number) => {
-      const deficit = getConveyorPayloadDeficit({
-        activeCount: liveParts.length,
-        minimumPayload,
-        maxParts: MAX_PARTS,
+    const addPart = (position?: PartPosition, released = false) => {
+      const spec = createHeroPartSpec(nextSequence)
+      const mapping = getStationMapping(station)
+      if (!mapping) return
+      const localX = position?.x ?? 455
+      const localY = position?.y ?? getConveyorPartCenterY(BELT_TOP_Y, spec.shape as ConveyorPartShape, PART_CLEARANCE)
+      const point = mapping.toActPoint(localX, localY)
+      spawnPart(spec, {
+        x: point.x,
+        y: point.y,
+        velocityX: released ? 0 : -BELT_MOTION.bodyVelocity * mapping.scaleX,
+        velocityY: 0,
+        angle: (position?.angle ?? (spec.shape === 'diamond' ? 45 : 0)) * (Math.PI / 180),
+        angularVelocity: 0,
       })
-
-      for (let index = 0; index < deficit; index += 1) {
-        const spec = PART_SPECS[liveParts.length]
-        const position = STARTER_POSITIONS[liveParts.length]
-        if (!spec || !position) break
-        addPart(spec, position, true)
-      }
-
-      setParts([...liveParts])
+      if (!getPartBody(spec.id)) return
+      liveParts.set(spec.id, {
+        id: spec.id,
+        sequence: nextSequence,
+        shape: spec.shape as ConveyorPartShape,
+        released,
+      })
+      nextSequence += 1
     }
 
-    ensureMinimumPayload(MINIMUM_PAYLOAD)
+    const ensureMinimumPayload = () => {
+      while (liveParts.size < MINIMUM_PAYLOAD) {
+        addPart(STARTER_POSITIONS[liveParts.size], true)
+        if (liveParts.size === 0) break
+      }
+    }
+
+    ensureMinimumPayload()
+    if (reducedMotion) return () => liveParts.forEach(({ id }) => removePart(id))
 
     const tick = (time: number) => {
       frame = window.requestAnimationFrame(tick)
-      const isRunning = activeRef.current && document.visibilityState === 'visible'
-      if (!isRunning) {
+      if (!activeRef.current || document.visibilityState !== 'visible') {
         previousTime = time
         return
       }
 
-      const delta = clampPhysicsDelta(time - previousTime)
+      const delta = Math.min(time - previousTime, 1000 / 60)
       previousTime = time
       simulatedTime += delta
 
-      if (
-        simulatedTime - lastSpawnAt >= SPAWN_INTERVAL
-        && canSpawnConveyorPart({
-          activeCount: liveParts.length,
-          maxParts: MAX_PARTS,
-          isActive: true,
-          reducedMotion: false,
-        })
-      ) {
-        spawnPart()
+      for (const [id] of liveParts) {
+        if (!getPartBody(id)) liveParts.delete(id)
+      }
+
+      const decision = getFactorySpawnDecision({
+        lineStarted: lineStartedRef.current,
+        activeCount: liveParts.size,
+        waitingCount: liveParts.size,
+        waitingLimit: MAX_PARTS,
+        activeLimit: ACTIVE_PART_LIMIT,
+      })
+      if (simulatedTime - lastSpawnAt >= SPAWN_INTERVAL && decision === 'spawn') {
+        addPart()
         lastSpawnAt = simulatedTime
       }
 
-      Engine.update(engine, delta)
+      const mapping = getStationMapping(station)
+      if (!mapping) return
+      for (const part of liveParts.values()) {
+        const body = getPartBody(part.id)
+        if (!body) continue
+        const localPosition = mapping.toLocalPoint(body.position.x, body.position.y)
 
-      for (const part of liveParts) {
         if (!part.released) {
-          if (shouldReleaseConveyorPart(part.body.position.x, BELT_RELEASE_X)) {
+          if (shouldReleaseConveyorPart(localPosition.x, BELT_RELEASE_X)) {
             part.released = true
-            Body.setVelocity(part.body, { x: -BELT_MOTION.bodyVelocity, y: part.body.velocity.y })
+            Body.setVelocity(body, { x: -BELT_MOTION.bodyVelocity * mapping.scaleX, y: body.velocity.y })
           } else {
-            Body.setPosition(part.body, {
-              x: part.body.position.x,
-              y: getConveyorPartCenterY(BELT_TOP_Y, part.shape, PART_CLEARANCE),
-            })
-            Body.setAngle(part.body, part.shape === 'diamond' ? Math.PI / 4 : 0)
-            Body.setAngularVelocity(part.body, 0)
-            Body.setVelocity(part.body, { x: -BELT_MOTION.bodyVelocity, y: 0 })
+            const beltPoint = mapping.toActPoint(
+              localPosition.x,
+              getConveyorPartCenterY(BELT_TOP_Y, part.shape, PART_CLEARANCE),
+            )
+            Body.setPosition(body, beltPoint)
+            Body.setAngle(body, part.shape === 'diamond' ? Math.PI / 4 : 0)
+            Body.setAngularVelocity(body, 0)
+            Body.setVelocity(body, { x: -BELT_MOTION.bodyVelocity * mapping.scaleX, y: 0 })
           }
         }
 
         if (
           part.released
-          && part.body.position.x <= BELT_RELEASE_X + 2
-          && part.body.position.x > BELT_LEFT_X - 45
-          && part.body.position.y < BELT_END_CENTER_Y
+          && localPosition.x <= BELT_RELEASE_X + 2
+          && localPosition.x > BELT_LEFT_X - 45
+          && localPosition.y < BELT_END_CENTER_Y
         ) {
-          Body.setVelocity(part.body, getRoundedEndTangentVelocity({
-            bodyX: part.body.position.x,
-            bodyY: part.body.position.y,
+          const tangent = getRoundedEndTangentVelocity({
+            bodyX: localPosition.x,
+            bodyY: localPosition.y,
             centerX: BELT_RELEASE_X,
             centerY: BELT_END_CENTER_Y,
             releaseY: getConveyorPartCenterY(BELT_TOP_Y, part.shape, PART_CLEARANCE),
             minimumSpeed: BELT_MOTION.bodyVelocity,
             gravityPerStep: GRAVITY_PER_STEP,
-          }))
+          })
+          Body.setVelocity(body, { x: tangent.x * mapping.scaleX, y: tangent.y * mapping.scaleY })
         }
-
-        const node = nodeMap.get(part.id)
-        if (!node) continue
-        const angle = part.body.angle * (180 / Math.PI)
-        node.setAttribute(
-          'transform',
-          `translate(${part.body.position.x.toFixed(2)} ${part.body.position.y.toFixed(2)}) rotate(${angle.toFixed(2)})`,
-        )
       }
     }
 
     frame = window.requestAnimationFrame(tick)
-
     return () => {
       window.cancelAnimationFrame(frame)
-      Composite.clear(world, false, true)
-      Engine.clear(engine)
-      nodeMap.clear()
+      liveParts.forEach(({ id }) => removePart(id))
     }
-  }, [reducedMotion])
+  }, [getPartBody, isBoxVisible, reducedMotion, removePart, spawnPart])
 
   return (
-    <svg
-      ref={svgRef}
-      viewBox="0 0 420 350"
-      className={`hero-conveyor ${shouldAnimate ? '' : 'hero-conveyor--paused'}`.trim()}
-      role="img"
-      aria-label="A conveyor moving right to left drops simple shapes into a collection box"
-      focusable="false"
-    >
-      <defs>
-        <linearGradient id="hero-conveyor-fade" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#000000" stopOpacity="0" />
-          <stop offset="1" stopColor="#000000" />
-        </linearGradient>
-      </defs>
-
-      <g
-        className="hero-conveyor__machine"
-        visibility={isMachineVisible ? 'visible' : 'hidden'}
+    <div ref={stationRef} className="hero-conveyor-station">
+      <svg
+        ref={svgRef}
+        viewBox="0 0 420 350"
+        className={`hero-conveyor ${shouldAnimate ? '' : 'hero-conveyor--paused'}`.trim()}
+        role="img"
+        aria-label="A conveyor moving right to left drops simple shapes into a collection box"
+        focusable="false"
       >
-        <path d={`M222 ${BELT_BOTTOM_Y}V210M368 ${BELT_BOTTOM_Y}V210M208 210H236M354 210H382`} />
-        <rect className="hero-conveyor__belt" x="112" y="83" width="408" height="48" rx="24" />
-        <motion.path
-          className="hero-conveyor__tread"
-          d="M136 107H492"
-          animate={shouldAnimate ? { strokeDashoffset: 28 } : { strokeDashoffset: 0 }}
-          transition={{
-            duration: BELT_MOTION.treadCycleDuration,
-            ease: 'linear',
-            repeat: shouldAnimate ? Infinity : 0,
-          }}
-        />
+        <defs>
+          <linearGradient id="hero-conveyor-fade" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#000000" stopOpacity="0" />
+            <stop offset="1" stopColor="#000000" />
+          </linearGradient>
+        </defs>
 
-        {[136, 496].map((x) => (
-          <motion.g
-            key={x}
-            className="hero-conveyor__roller"
-            animate={shouldAnimate ? { rotate: -360 } : { rotate: 0 }}
+        <g
+          className="hero-conveyor__machine"
+          visibility={isMachineVisible ? 'visible' : 'hidden'}
+        >
+          <path d={`M222 ${BELT_BOTTOM_Y}V210M368 ${BELT_BOTTOM_Y}V210M208 210H236M354 210H382`} />
+          <rect className="hero-conveyor__belt" x="112" y="83" width="408" height="48" rx="24" />
+          <motion.path
+            className="hero-conveyor__tread"
+            d="M136 107H492"
+            animate={shouldAnimate ? { strokeDashoffset: 28 } : { strokeDashoffset: 0 }}
             transition={{
-              duration: BELT_MOTION.rollerRotationDuration,
+              duration: BELT_MOTION.treadCycleDuration,
               ease: 'linear',
               repeat: shouldAnimate ? Infinity : 0,
             }}
-            style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-          >
-            <circle cx={x} cy="107" r="17" />
-            <path d={`M${x - 9} 107H${x + 9}M${x} 98V116`} />
-          </motion.g>
-        ))}
-      </g>
+          />
 
-      <g visibility={isBoxVisible ? 'visible' : 'hidden'}>
-        {reducedMotion
-          ? STATIC_PARTS.map((part) => (
-            <g key={part.id} transform={`translate(${part.x} ${part.y}) rotate(${part.angle})`}>
-              <PartGraphic shape={part.shape} color={part.color} />
-            </g>
-          ))
-          : parts.map((part) => (
-            <g
-              key={part.id}
-              data-conveyor-part={part.id}
-              transform={`translate(${part.body.position.x} ${part.body.position.y}) rotate(${part.body.angle * (180 / Math.PI)})`}
-              ref={(node) => {
-                if (node) partNodes.current.set(part.id, node)
-                else partNodes.current.delete(part.id)
+          {[136, 496].map((x) => (
+            <motion.g
+              key={x}
+              className="hero-conveyor__roller"
+              animate={shouldAnimate ? { rotate: -360 } : { rotate: 0 }}
+              transition={{
+                duration: BELT_MOTION.rollerRotationDuration,
+                ease: 'linear',
+                repeat: shouldAnimate ? Infinity : 0,
               }}
+              style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
             >
-              <PartGraphic shape={part.shape} color={part.color} />
-            </g>
+              <circle cx={x} cy="107" r="17" />
+              <path d={`M${x - 9} 107H${x + 9}M${x} 98V116`} />
+            </motion.g>
           ))}
-      </g>
+        </g>
 
-      <g
-        className="hero-conveyor__machine"
-        visibility={isBoxVisible ? 'visible' : 'hidden'}
-      >
-        <path className="hero-conveyor__box" d="M10 196V337H160V196" />
-        <path className="hero-conveyor__box-bottom" data-conveyor-bottom="true" d="M10 337H160" />
-      </g>
+        <g
+          className="hero-conveyor__machine"
+          visibility={isBoxVisible ? 'visible' : 'hidden'}
+        >
+          <path className="hero-conveyor__box" d="M10 196V337H160V196" />
+          {heroGate.open
+            ? <><path className="hero-conveyor__box-bottom" d="M10 337H18" /><path className="hero-conveyor__box-bottom" d="M152 337H160" /></>
+            : <path className="hero-conveyor__box-bottom" data-conveyor-bottom="true" d="M10 337H160" />}
+        </g>
 
-      <rect className="hero-conveyor__fade" x="315" y="0" width="105" height="350" fill="url(#hero-conveyor-fade)" />
-    </svg>
+        <rect className="hero-conveyor__fade" x="315" y="0" width="105" height="350" fill="url(#hero-conveyor-fade)" />
+      </svg>
+    </div>
   )
 }

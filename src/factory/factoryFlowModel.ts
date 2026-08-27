@@ -36,6 +36,14 @@ export function shouldRecycleFactoryPart(y: number, band: { minY: number; maxY: 
   return y < band.minY || y > band.maxY
 }
 
+export function shouldTeardownAct(input: {
+  intersects: boolean
+  neighborVisible: boolean
+  documentVisible: boolean
+}) {
+  return input.documentVisible && !input.intersects && !input.neighborVisible
+}
+
 export function serializeFactoryPart(body: MatterBody, spec: FactoryPartSpec): FactoryPartSnapshot {
   return {
     ...spec,

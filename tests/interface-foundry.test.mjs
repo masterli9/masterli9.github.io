@@ -235,6 +235,13 @@ test('the statement boundary starts the factory line and the hero reads its gate
   assert.match(hero, /getHeroGateState/)
 })
 
+test('about is the single white reading boundary without physics decoration', async () => {
+  const about = await read('src/components/About.tsx')
+  assert.match(about, /foundry-reading-break/)
+  assert.match(about, /text-ink/)
+  assert.doesNotMatch(about, /SectionLabel|FoundryTrace|motion|whileInView/)
+})
+
 test('the navbar returns the original logo and changes width after scrolling', async () => {
   const header = await read('src/components/Header.tsx')
 

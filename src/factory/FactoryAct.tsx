@@ -16,7 +16,7 @@ import {
   Engine,
   type Body as MatterBody,
 } from 'matter-js'
-import { getActiveBand, serializeFactoryPart, shouldRecycleFactoryPart } from './factoryFlowModel'
+import { getActiveBand, serializeFactoryPart, shouldRecycleFactoryPart, shouldTeardownAct } from './factoryFlowModel'
 import type {
   FactoryActId,
   FactoryPartSnapshot,
@@ -85,6 +85,8 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   const registrationsRef = useRef(new Map<FactoryStationId, FactoryStationRegistration>())
   const collidersRef = useRef(new Map<FactoryStationId, MatterBody[]>())
   const partsRef = useRef(new Map<string, LivePart>())
+  const suspendedPartsRef = useRef<FactoryPartSnapshot[]>([])
+  const engineClearedRef = useRef(false)
   const [parts, setParts] = useState<FactoryPartSnapshot[]>([])
   const [viewport, setViewport] = useState({ width: 1, height: 1 })
   const [isVisible, setIsVisible] = useState(true)
@@ -92,7 +94,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
 
   const measure = useCallback(() => {
     const root = rootRef.current
-    if (!root) return
+    if (!root || engineClearedRef.current) return
     const rootRect = root.getBoundingClientRect()
     setViewport({ width: Math.max(root.clientWidth, 1), height: Math.max(rootRect.height, 1) })
     for (const [id, registration] of registrationsRef.current) {
@@ -137,6 +139,34 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     partsRef.current.delete(id)
     setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
   }, [engine])
+
+  const suspendAct = useCallback(() => {
+    if (engineClearedRef.current) return
+    suspendedPartsRef.current = Array.from(
+      partsRef.current.values(),
+      ({ body, spec }) => serializeFactoryPart(body, spec),
+    )
+    for (const { body } of partsRef.current.values()) Composite.remove(engine.world, body, true)
+    for (const colliders of collidersRef.current.values()) Composite.remove(engine.world, colliders, true)
+    partsRef.current.clear()
+    collidersRef.current.clear()
+    Engine.clear(engine)
+    engineClearedRef.current = true
+    setParts([])
+  }, [engine])
+
+  const restoreAct = useCallback(() => {
+    if (!engineClearedRef.current) return
+    for (const snapshot of suspendedPartsRef.current) {
+      const body = createFactoryBody(snapshot, snapshot)
+      partsRef.current.set(snapshot.id, { body, spec: snapshot })
+      Composite.add(engine.world, body)
+    }
+    suspendedPartsRef.current = []
+    engineClearedRef.current = false
+    measure()
+    setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
+  }, [engine, measure])
 
   useEffect(() => {
     const root = rootRef.current
@@ -195,6 +225,27 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     observer.observe(root)
     return () => observer.disconnect()
   }, [])
+
+  useEffect(() => {
+    let frame = 0
+    const inspectBoundary = () => {
+      frame = window.requestAnimationFrame(inspectBoundary)
+      const root = rootRef.current
+      if (!root || document.visibilityState !== 'visible') return
+      const rootRect = root.getBoundingClientRect()
+      const intersects = rootRect.bottom >= 0 && rootRect.top <= window.innerHeight
+      const neighborVisible = Array.from(document.querySelectorAll<HTMLElement>('[data-factory-act]'))
+        .filter((element) => element !== root)
+        .some((element) => {
+          const rect = element.getBoundingClientRect()
+          return rect.bottom >= 0 && rect.top <= window.innerHeight
+        })
+      if (shouldTeardownAct({ intersects, neighborVisible, documentVisible: true })) suspendAct()
+      else restoreAct()
+    }
+    frame = window.requestAnimationFrame(inspectBoundary)
+    return () => window.cancelAnimationFrame(frame)
+  }, [restoreAct, suspendAct])
 
   useEffect(() => () => {
     for (const { body } of partsRef.current.values()) Composite.remove(engine.world, body, true)

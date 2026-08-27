@@ -85,3 +85,10 @@ test('the statement platform and catcher stay inside their station bounds', asyn
   assert.ok(geometry.catcher.x >= 0)
   assert.ok(geometry.catcher.x + geometry.catcher.width <= 360)
 })
+
+test('an act tears down only after neither it nor its boundary neighbor can be seen', async () => {
+  const model = await import('../src/factory/factoryFlowModel.ts')
+  assert.equal(model.shouldTeardownAct({ intersects: false, neighborVisible: false, documentVisible: true }), true)
+  assert.equal(model.shouldTeardownAct({ intersects: false, neighborVisible: true, documentVisible: true }), false)
+  assert.equal(model.shouldTeardownAct({ intersects: true, neighborVisible: false, documentVisible: true }), false)
+})

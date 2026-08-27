@@ -71,6 +71,11 @@ select {
     color: #ffffff;
   }
 
+  .foundry-reading-break {
+    background: #ffffff;
+    color: #000000;
+  }
+
   .foundry-light {
     background: #000000;
     color: #ffffff;

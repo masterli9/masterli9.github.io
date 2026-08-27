@@ -78,8 +78,10 @@ export const translations = {
 
     // Skills Section
     skills: {
-      sectionTitle: 'Dovednosti &',
-      sectionTitle2: 'Tech Stack',
+      headingParts: [
+        { text: 'Dovednosti &' },
+        { text: 'Tech Stack', color: 'blue' },
+      ],
       subtitle: 'Kombinace technické preciznosti a analytického myšlení mi umožňuje doručovat efektivní řešení.',
       toolsLabel: 'Nástroje a prostředí',
       categories: {
@@ -118,8 +120,10 @@ export const translations = {
 
     // Goals Section
     goals: {
-      sectionTitle: 'Cíle a plány',
-      queueTitle: 'Další moduly ve frontě',
+      headingParts: [
+        { text: 'Cíle a' },
+        { text: 'plány', color: 'blue' },
+      ],
       items: [
         {
           title: 'Krátkodobé cíle',
@@ -141,8 +145,10 @@ export const translations = {
 
     // Contact Section
     contact: {
-      sectionLabel: 'Nový request',
-      title: 'Pojďme tvořit spolu',
+      headingParts: [
+        { text: 'Pojďme' },
+        { text: 'tvořit spolu', color: 'pink' },
+      ],
       subtitle: 'Pokud vás zaujal můj profil, rád se pobavím o možné spolupráci nebo stáži v IT.',
       orEmail: 'nebo přímo na e-mail',
       copied: 'Zkopírováno!',
@@ -294,8 +300,10 @@ export const translations = {
 
     // Skills Section
     skills: {
-      sectionTitle: 'Skills &',
-      sectionTitle2: 'Tech Stack',
+      headingParts: [
+        { text: 'Skills &' },
+        { text: 'Tech Stack', color: 'blue' },
+      ],
       subtitle: 'A combination of technical precision and analytical thinking allows me to deliver effective solutions.',
       toolsLabel: 'Tools and environment',
       categories: {
@@ -334,8 +342,10 @@ export const translations = {
 
     // Goals Section
     goals: {
-      sectionTitle: 'Goals & Plans',
-      queueTitle: 'More modules in the queue',
+      headingParts: [
+        { text: 'Goals &' },
+        { text: 'Plans', color: 'blue' },
+      ],
       items: [
         {
           title: 'Short-term Goals',
@@ -357,8 +367,10 @@ export const translations = {
 
     // Contact Section
     contact: {
-      sectionLabel: 'New request',
-      title: 'Let\'s create together',
+      headingParts: [
+        { text: "Let's" },
+        { text: 'create together', color: 'pink' },
+      ],
       subtitle: 'If you found my profile interesting, I\'d be happy to discuss potential collaboration or an IT internship.',
       orEmail: 'or directly via email',
       copied: 'Copied!',

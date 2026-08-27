@@ -38,10 +38,10 @@ export default function Footer() {
         <div className="grid gap-12 md:grid-cols-[minmax(0,1.4fr)_minmax(10rem,0.6fr)_minmax(14rem,0.8fr)] md:gap-16">
           <div>
             <p className="font-heading text-2xl font-semibold tracking-[-0.04em] text-soft-white">Andrej Zdvořák</p>
-            <p className="mt-5 max-w-sm leading-relaxed text-muted">{t.footer.description}</p>
+            <p className="mt-5 max-w-sm leading-relaxed text-soft-white">{t.footer.description}</p>
             <div className="mt-8 flex gap-4">
               {socialLinks.map(({ icon: Icon, href, label }) => (
-                <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="text-line-gray transition-colors hover:text-signal-pink">
+                <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="text-soft-white transition-colors hover:text-signal-pink">
                   <Icon size={20} aria-hidden="true" />
                 </a>
               ))}
@@ -51,20 +51,20 @@ export default function Footer() {
           <div>
             <h2 className="text-sm font-semibold text-signal-pink">{t.footer.navigation}</h2>
             <nav className="mt-5 flex flex-col items-start gap-3">
-              {navLinks.map((link) => <a key={link.href} href={link.href} className="text-sm text-muted transition-colors hover:text-soft-white">{link.name}</a>)}
+              {navLinks.map((link) => <a key={link.href} href={link.href} className="text-sm text-soft-white transition-colors hover:text-soft-white">{link.name}</a>)}
             </nav>
           </div>
 
           <div>
             <h2 className="text-sm font-semibold text-signal-pink">{t.footer.quickContact}</h2>
-            <button onClick={copyEmail} className="mt-5 inline-flex max-w-full items-center gap-3 text-left text-sm text-muted transition-colors hover:text-soft-white">
+            <button onClick={copyEmail} className="mt-5 inline-flex max-w-full items-center gap-3 text-left text-sm text-soft-white transition-colors hover:text-soft-white">
               {copied ? <Check size={17} className="text-signal-pink" aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
               <span className="break-all">andrej.zdvorak.123@gmail.com</span>
             </button>
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-4 border-t border-white-line pt-6 text-sm text-line-gray md:flex-row md:items-center md:justify-between">
+        <div className="mt-14 flex flex-col gap-4 border-t border-white-line pt-6 text-sm text-soft-white md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} Andrej Zdvořák. {t.footer.rights}</p>
           <div className="flex gap-6">
             <button onClick={() => setIsPrivacyOpen(true)} className="transition-colors hover:text-soft-white">{t.footer.privacy}</button>

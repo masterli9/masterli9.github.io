@@ -1,5 +1,12 @@
 import type { Body as MatterBody } from 'matter-js'
-import type { FactoryPartShape, FactoryPartSnapshot, FactoryPartSpec, FactoryPartStage } from './factoryTypes'
+import type {
+  FactoryPartColor,
+  FactoryPartShape,
+  FactoryPartSnapshot,
+  FactoryPartSpec,
+  FactoryPartStage,
+  FactoryStationId,
+} from './factoryTypes'
 
 const RAW_SHAPES: FactoryPartShape[] = ['square', 'circle', 'bar', 'diamond']
 
@@ -25,6 +32,10 @@ export function getFactorySpawnDecision(input: {
   return 'spawn' as const
 }
 
+export function getFactoryActiveLimit(viewportWidth: number) {
+  return viewportWidth <= 640 ? 20 : 42
+}
+
 export function getActiveBand(viewportTop: number, viewportHeight: number) {
   return {
     minY: viewportTop - (viewportHeight * 2),
@@ -42,6 +53,68 @@ export function shouldTeardownAct(input: {
   documentVisible: boolean
 }) {
   return input.documentVisible && !input.intersects && !input.neighborVisible
+}
+
+export interface ReducedFactoryPartSnapshot extends FactoryPartSpec {
+  xRatio: number
+  yRatio: number
+  angle: number
+}
+
+function createReducedPart(
+  station: FactoryStationId,
+  sequence: number,
+  shape: FactoryPartShape,
+  color: FactoryPartColor,
+  stage: FactoryPartStage,
+  xRatio: number,
+  yRatio: number,
+): ReducedFactoryPartSnapshot {
+  return {
+    id: `reduced-${station}-${sequence}`,
+    sequence,
+    shape,
+    color,
+    stage,
+    xRatio,
+    yRatio,
+    angle: 0,
+  }
+}
+
+export function getReducedFactorySnapshot(station: FactoryStationId): ReducedFactoryPartSnapshot[] {
+  if (station === 'statement') {
+    return [
+      createReducedPart(station, 0, 'button', '#F21868', 'formed', 0.43, 0.68),
+      createReducedPart(station, 1, 'cursor', '#355CFF', 'formed', 0.62, 0.78),
+    ]
+  }
+  if (station === 'skills') {
+    return [createReducedPart(station, 0, 'button', '#FFFFFF', 'formed', 0.5, 0.73)]
+  }
+  if (station === 'experience') {
+    return [
+      createReducedPart(station, 0, 'button', '#FFFFFF', 'painted', 0.42, 0.74),
+      createReducedPart(station, 1, 'cursor', '#F21868', 'painted', 0.58, 0.82),
+    ]
+  }
+  if (station === 'goals') {
+    return [
+      createReducedPart(station, 0, 'radio', '#FFFFFF', 'painted', 0.25, 0.62),
+      createReducedPart(station, 1, 'radio', '#F21868', 'painted', 0.5, 0.62),
+      createReducedPart(station, 2, 'radio', '#355CFF', 'painted', 0.75, 0.62),
+    ]
+  }
+  if (station === 'contact') {
+    return [
+      createReducedPart(station, 0, 'button', '#FFFFFF', 'assembled', 0.2875, 0.5346),
+      createReducedPart(station, 1, 'cursor', '#FFFFFF', 'assembled', 0.4, 0.5346),
+      createReducedPart(station, 2, 'toggle', '#F21868', 'assembled', 0.5125, 0.5346),
+      createReducedPart(station, 3, 'radio', '#355CFF', 'assembled', 0.625, 0.5346),
+      createReducedPart(station, 4, 'square', '#FFFFFF', 'assembled', 0.7375, 0.5346),
+    ]
+  }
+  return []
 }
 
 export function serializeFactoryPart(body: MatterBody, spec: FactoryPartSpec): FactoryPartSnapshot {

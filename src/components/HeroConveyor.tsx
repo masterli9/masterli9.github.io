@@ -3,6 +3,7 @@ import { motion, useInView, useReducedMotion } from 'framer-motion'
 import { Body, Bodies, type Body as MatterBody } from 'matter-js'
 import {
   createFactoryPartSpec,
+  getFactoryActiveLimit,
   getFactorySpawnDecision,
 } from '../factory/factoryFlowModel'
 import {
@@ -39,7 +40,6 @@ interface ConveyorPart {
 }
 
 const MAX_PARTS = 30
-const ACTIVE_PART_LIMIT = 42
 const MINIMUM_PAYLOAD = 4
 const BELT_LEFT_X = 112
 const BELT_TOP_Y = 83
@@ -248,7 +248,7 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
         activeCount: liveParts.size,
         waitingCount: liveParts.size,
         waitingLimit: MAX_PARTS,
-        activeLimit: ACTIVE_PART_LIMIT,
+        activeLimit: getFactoryActiveLimit(window.innerWidth),
       })
       if (simulatedTime - lastSpawnAt >= SPAWN_INTERVAL && decision === 'spawn') {
         addPart()

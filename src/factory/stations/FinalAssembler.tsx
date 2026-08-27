@@ -77,10 +77,14 @@ export default function FinalAssembler() {
   const capturedRef = useRef(new Set<string>())
   const constraintsRef = useRef(new Map<string, Matter.Constraint>())
   const assemblyRef = useRef({ placedIds: [] as string[], assembled: false })
-  const [assemblyState, setAssemblyState] = useState(() => ({ placedIds: [] as string[], assembled: false }))
   const { engine, removePart, updatePartSpec } = useFactoryAct()
-  const { markFinalWebsiteAssembled } = useFactoryFlow()
+  const { markFinalWebsiteAssembled, reducedMotion } = useFactoryFlow()
+  const [assemblyState, setAssemblyState] = useState(() => ({ placedIds: [] as string[], assembled: reducedMotion }))
   const captureEnabled = getPostAssemblyCollisionMode(assemblyState.assembled) === 'capture'
+
+  useEffect(() => {
+    if (reducedMotion) markFinalWebsiteAssembled()
+  }, [markFinalWebsiteAssembled, reducedMotion])
 
   const buildColliders = useCallback((metrics: FactoryStationMetrics): MatterBody[] => {
     const frame = [

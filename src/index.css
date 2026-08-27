@@ -5,8 +5,6 @@
   --color-soft-white: #ffffff;
   --color-signal-pink: #f21868;
   --color-cobalt: #355cff;
-  --color-line-gray: #ffffff;
-  --color-muted: #ffffff;
   --color-ink-soft: #000000;
   --color-white-line: #2a2a2a;
 
@@ -76,29 +74,12 @@ select {
     color: #000000;
   }
 
-  .foundry-light {
-    background: #000000;
-    color: #ffffff;
-  }
-
   .foundry-container {
     width: calc(100% - 3rem);
     max-width: 76rem;
     margin-inline: auto;
   }
 
-  .foundry-label {
-    color: #f21868;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-  }
-
-  .foundry-rule {
-    width: 2.5rem;
-    height: 1px;
-    background: currentColor;
-  }
 }
 
 @media (max-width: 640px) {

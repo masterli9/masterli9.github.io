@@ -242,6 +242,23 @@ test('about is the single white reading boundary without physics decoration', as
   assert.doesNotMatch(about, /SectionLabel|FoundryTrace|motion|whileInView/)
 })
 
+test('active factory sections do not use obsolete visual hierarchy primitives', async () => {
+  const activeSections = [
+    'src/components/Statement.tsx',
+    'src/components/SelectedWork.tsx',
+    'src/components/About.tsx',
+    'src/components/Skills.tsx',
+    'src/components/Experience.tsx',
+    'src/components/Goals.tsx',
+    'src/components/ContactSection.tsx',
+  ]
+
+  for (const path of activeSections) {
+    const source = await read(path)
+    assert.doesNotMatch(source, /SectionLabel|FoundryTrace|foundry-label|text-muted|text-line-gray/, path)
+  }
+})
+
 test('the navbar returns the original logo and changes width after scrolling', async () => {
   const header = await read('src/components/Header.tsx')
 
@@ -309,14 +326,13 @@ test('navbar copy is larger and the language switcher has no underline', async (
 })
 
 test('the interface foundry exposes reusable SVG primitives', async () => {
-  const assembly = await read('src/components/AssemblyCell.tsx')
-  const trace = await read('src/components/FoundryTrace.tsx')
+  const partGraphic = await read('src/factory/FactoryPartGraphic.tsx')
+  const accents = await read('src/components/AccentWords.tsx')
 
-  assert.match(assembly, /export type AssemblyCellMode/)
-  assert.match(assembly, /useReducedMotion/)
-  assert.match(assembly, /aria-label|aria-labelledby/)
-  assert.doesNotMatch(assembly, /filter=|linearGradient|radialGradient/)
-  assert.match(trace, /export interface FoundryTraceProps/)
+  assert.match(partGraphic, /FactoryPartGraphic/)
+  assert.match(partGraphic, /circle|rect|path/)
+  assert.doesNotMatch(partGraphic, /filter=|linearGradient|radialGradient/)
+  assert.match(accents, /export function AccentWords/)
 })
 
 test('project records keep selected work and modal content serializable', async () => {

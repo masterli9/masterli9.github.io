@@ -16,7 +16,15 @@ import {
   Engine,
   type Body as MatterBody,
 } from 'matter-js'
-import { createFactoryPartSpec, getActiveBand, serializeFactoryPart, shouldRecycleFactoryPart, shouldTeardownAct } from './factoryFlowModel'
+import {
+  createFactoryPartSpec,
+  getActiveBand,
+  getFactoryActiveLimit,
+  getReducedFactorySnapshot,
+  serializeFactoryPart,
+  shouldRecycleFactoryPart,
+  shouldTeardownAct,
+} from './factoryFlowModel'
 import type {
   FactoryActId,
   FactoryPartSnapshot,
@@ -231,9 +239,10 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
 
   useEffect(() => {
     if (id !== 'lower') return
+    if (reducedMotion) return
     let sequence = 0
     const spawnAtSkillsEntry = () => {
-      if (partsRef.current.size >= 42) return
+      if (partsRef.current.size >= getFactoryActiveLimit(window.innerWidth)) return
       const root = rootRef.current
       if (!root) return
       const station = root.querySelector<HTMLElement>('[data-factory-station="skills"]')
@@ -263,6 +272,42 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       window.clearInterval(interval)
     }
   }, [id, reducedMotion, spawnPart])
+
+  useEffect(() => {
+    if (!reducedMotion) return
+    let frame = 0
+    const seedReducedSnapshot = () => {
+      const root = rootRef.current
+      if (!root) return
+      const rootRect = root.getBoundingClientRect()
+      for (const registration of registrationsRef.current.values()) {
+        const stationRect = registration.element.getBoundingClientRect()
+        for (const snapshot of getReducedFactorySnapshot(registration.id)) {
+          if (partsRef.current.has(snapshot.id)) continue
+          const spec: FactoryPartSpec = {
+            id: snapshot.id,
+            sequence: snapshot.sequence,
+            shape: snapshot.shape,
+            color: snapshot.color,
+            stage: snapshot.stage,
+          }
+          const body = createFactoryBody(spec, {
+            x: stationRect.left - rootRect.left + (stationRect.width * snapshot.xRatio),
+            y: stationRect.top - rootRect.top + (stationRect.height * snapshot.yRatio),
+            velocityX: 0,
+            velocityY: 0,
+            angle: snapshot.angle,
+            angularVelocity: 0,
+          })
+          partsRef.current.set(spec.id, { body, spec })
+          Composite.add(engine.world, body)
+        }
+      }
+      setParts(Array.from(partsRef.current.values(), ({ body, spec }) => serializeFactoryPart(body, spec)))
+    }
+    frame = window.requestAnimationFrame(seedReducedSnapshot)
+    return () => window.cancelAnimationFrame(frame)
+  }, [engine, reducedMotion])
 
   useEffect(() => {
     const root = rootRef.current

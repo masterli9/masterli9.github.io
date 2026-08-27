@@ -74,7 +74,7 @@ export default function ContactForm() {
               type={field.type}
               placeholder={field.label}
               required
-              className="mt-2 block w-full bg-transparent py-2 text-lg text-soft-white placeholder:text-line-gray focus:border-signal-pink focus:outline-none"
+              className="mt-2 block w-full bg-transparent py-2 text-lg text-soft-white placeholder:text-soft-white focus:border-signal-pink focus:outline-none"
             />
           </div>
         ))}
@@ -87,7 +87,7 @@ export default function ContactForm() {
             placeholder={t.contact.form.message}
             required
             rows={5}
-            className="mt-2 block w-full resize-y bg-transparent py-2 text-lg leading-relaxed text-soft-white placeholder:text-line-gray focus:border-signal-pink focus:outline-none"
+            className="mt-2 block w-full resize-y bg-transparent py-2 text-lg leading-relaxed text-soft-white placeholder:text-soft-white focus:border-signal-pink focus:outline-none"
           />
         </div>
       </div>

@@ -46,7 +46,7 @@ export default function Statement() {
               </Fragment>
             ))}
           </h2>
-          <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted">
+          <p className="mt-8 max-w-xl text-lg leading-relaxed text-soft-white">
             {t.statement.description}
           </p>
         </div>

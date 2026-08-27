@@ -132,3 +132,18 @@ test('five unique parts assemble the browser once and later parts remain overflo
   assert.equal(model.advanceAssembly(state, 'f'), state)
   assert.equal(model.getPostAssemblyCollisionMode(true), 'frame-only')
 })
+
+test('every factory station has a meaningful reduced-motion snapshot', async () => {
+  const { getReducedFactorySnapshot } = await import('../src/factory/factoryFlowModel.ts')
+
+  for (const station of ['statement', 'skills', 'experience', 'goals', 'contact']) {
+    assert.ok(getReducedFactorySnapshot(station).length > 0, station)
+  }
+})
+
+test('the factory narrows its active body pool on small viewports', async () => {
+  const { getFactoryActiveLimit } = await import('../src/factory/factoryFlowModel.ts')
+
+  assert.equal(getFactoryActiveLimit(1440), 42)
+  assert.equal(getFactoryActiveLimit(390), 20)
+})

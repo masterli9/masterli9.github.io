@@ -57,7 +57,7 @@ export default function Header() {
               <a
                 key={id}
                 href={`#${id}`}
-                className="inline-flex items-center whitespace-nowrap text-muted transition-colors hover:text-signal-pink"
+                className="inline-flex items-center whitespace-nowrap text-soft-white transition-colors hover:text-signal-pink"
               >
                 {t.nav[id]}
               </a>

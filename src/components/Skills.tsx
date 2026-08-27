@@ -1,5 +1,6 @@
 import { Terminal, Users } from '@phosphor-icons/react'
 import FormingPress from '../factory/stations/FormingPress'
+import { AccentWords } from './AccentWords'
 import { useLanguage } from '../i18n/useLanguage'
 
 const tools = ['React', 'Next.js', 'React Native', 'TypeScript', 'Node.js', 'Firebase', 'TailwindCSS', 'PostgreSQL', 'Git', 'Figma']
@@ -17,7 +18,7 @@ export default function Skills() {
         <div>
           <div className="max-w-2xl">
             <h2 className="font-heading text-[clamp(2.7rem,5vw,5rem)] font-medium leading-[0.94] tracking-[-0.06em] text-soft-white">
-              {t.skills.sectionTitle} {t.skills.sectionTitle2}
+              <AccentWords parts={t.skills.headingParts} />
             </h2>
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-soft-white">{t.skills.subtitle}</p>
           </div>

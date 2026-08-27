@@ -92,3 +92,16 @@ test('an act tears down only after neither it nor its boundary neighbor can be s
   assert.equal(model.shouldTeardownAct({ intersects: false, neighborVisible: true, documentVisible: true }), false)
   assert.equal(model.shouldTeardownAct({ intersects: true, neighborVisible: false, documentVisible: true }), false)
 })
+
+test('the forming press senses, covers, transforms, reveals, and releases one part', async () => {
+  const model = await import('../src/factory/stations/formingPressModel.ts').catch(() => ({}))
+  let state = { phase: 'falling', sequence: 2, shape: 'bar' }
+  state = model.advanceFormingPress(state, 'sensor-enter')
+  assert.equal(state.phase, 'sensed')
+  state = model.advanceFormingPress(state, 'jaws-closed')
+  assert.deepEqual(state, { phase: 'clamped', sequence: 2, shape: 'toggle' })
+  state = model.advanceFormingPress(state, 'jaws-open')
+  assert.equal(state.phase, 'revealed')
+  state = model.advanceFormingPress(state, 'gate-open')
+  assert.equal(state.phase, 'released')
+})

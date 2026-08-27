@@ -48,6 +48,7 @@ export interface FactoryActApi {
   registerStation: (registration: FactoryStationRegistration) => () => void
   getPartBody: (id: string) => MatterBody | undefined
   removePart: (id: string) => void
+  updatePartSpec: (id: string, patch: Partial<Pick<FactoryPartSpec, 'shape' | 'color' | 'stage'>>) => void
 }
 
 const FactoryActContext = createContext<FactoryActApi | null>(null)
@@ -137,6 +138,18 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     if (!livePart) return
     Composite.remove(engine.world, livePart.body, true)
     partsRef.current.delete(id)
+    setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
+  }, [engine])
+
+  const updatePartSpec = useCallback((id: string, patch: Partial<Pick<FactoryPartSpec, 'shape' | 'color' | 'stage'>>) => {
+    const livePart = partsRef.current.get(id)
+    if (!livePart) return
+    const snapshot = serializeFactoryPart(livePart.body, livePart.spec)
+    const spec = { ...livePart.spec, ...patch }
+    const body = createFactoryBody(spec, snapshot)
+    Composite.remove(engine.world, livePart.body, true)
+    partsRef.current.set(id, { body, spec })
+    Composite.add(engine.world, body)
     setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
   }, [engine])
 
@@ -256,7 +269,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     Engine.clear(engine)
   }, [engine])
 
-  const api = useMemo(() => ({ actId: id, engine, spawnPart, registerStation, getPartBody, removePart }), [engine, getPartBody, id, registerStation, removePart, spawnPart])
+  const api = useMemo(() => ({ actId: id, engine, spawnPart, registerStation, getPartBody, removePart, updatePartSpec }), [engine, getPartBody, id, registerStation, removePart, spawnPart, updatePartSpec])
 
   return (
     <FactoryActContext.Provider value={api}>

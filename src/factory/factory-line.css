@@ -53,6 +53,16 @@
   stroke: var(--color-cobalt);
 }
 
+.factory-line__sensor {
+  fill: none;
+  stroke: var(--color-cobalt);
+  stroke-width: 3.5;
+}
+
+.factory-line__jaw {
+  fill: var(--color-soft-white);
+}
+
 .statement-rebound,
 .selected-work-passage {
   min-height: 30rem;

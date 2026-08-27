@@ -2,12 +2,13 @@ import { Fragment, useEffect, useMemo, useRef } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import StatementRebound from '../factory/stations/StatementRebound'
 import { createStatementReveal } from '../factory/stations/statementReboundModel'
+import { shouldStartFactoryLine } from '../factory/factoryFlowModel'
 import { useFactoryFlow } from '../factory/FactoryFlowProvider'
 import { useLanguage } from '../i18n/useLanguage'
 
 export default function Statement() {
   const { t } = useLanguage()
-  const { startLine } = useFactoryFlow()
+  const { lineStarted, startLine } = useFactoryFlow()
   const reducedMotion = useReducedMotion() ?? false
   const boundaryRef = useRef<HTMLDivElement>(null)
   const reveal = useMemo(() => createStatementReveal(t.statement.headline.split(/\s+/), 1), [t.statement.headline])
@@ -15,15 +16,21 @@ export default function Statement() {
   useEffect(() => {
     const marker = boundaryRef.current
     if (!marker) return
-    const releaseObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) startLine()
-      },
-      { threshold: 0.15 },
-    )
+    const checkBoundary = () => {
+      const markerTop = marker.getBoundingClientRect().top
+      if (shouldStartFactoryLine({ markerTop, viewportHeight: window.innerHeight, lineStarted })) startLine()
+    }
+    const releaseObserver = new IntersectionObserver(() => checkBoundary(), { threshold: 0.15 })
     releaseObserver.observe(marker)
-    return () => releaseObserver.disconnect()
-  }, [startLine])
+    window.addEventListener('scroll', checkBoundary, { passive: true })
+    window.addEventListener('resize', checkBoundary)
+    checkBoundary()
+    return () => {
+      releaseObserver.disconnect()
+      window.removeEventListener('scroll', checkBoundary)
+      window.removeEventListener('resize', checkBoundary)
+    }
+  }, [lineStarted, startLine])
 
   return (
     <section className="foundry-page py-28 md:py-44">

@@ -44,6 +44,14 @@ export function shouldSpawnFactoryPart(input: {
   return input.actVisible && input.documentVisible && !input.reducedMotion
 }
 
+export function shouldStartFactoryLine(input: {
+  markerTop: number
+  viewportHeight: number
+  lineStarted: boolean
+}) {
+  return !input.lineStarted && input.markerTop <= input.viewportHeight
+}
+
 export function getActiveBand(viewportTop: number, viewportHeight: number) {
   return {
     minY: viewportTop - (viewportHeight * 2),

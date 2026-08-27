@@ -69,6 +69,15 @@ test('the hero gate opens once the line starts and removes the waiting cap', asy
   assert.deepEqual(model.getHeroGateState(true), { open: true, waitingLimit: Number.POSITIVE_INFINITY })
 })
 
+test('the factory line starts even when a fast scroll skips past its boundary', async () => {
+  const { shouldStartFactoryLine } = await import('../src/factory/factoryFlowModel.ts')
+
+  assert.equal(shouldStartFactoryLine({ markerTop: 899, viewportHeight: 900, lineStarted: false }), true)
+  assert.equal(shouldStartFactoryLine({ markerTop: -142, viewportHeight: 900, lineStarted: false }), true)
+  assert.equal(shouldStartFactoryLine({ markerTop: 1008, viewportHeight: 900, lineStarted: false }), false)
+  assert.equal(shouldStartFactoryLine({ markerTop: -142, viewportHeight: 900, lineStarted: true }), false)
+})
+
 test('statement words reveal once with stable language-independent slots', async () => {
   const model = await import('../src/factory/stations/statementReboundModel.ts').catch(() => ({}))
   assert.deepEqual(model.createStatementReveal(['One', 'clear', 'idea'], 3), [

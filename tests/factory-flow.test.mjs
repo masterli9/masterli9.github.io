@@ -123,3 +123,12 @@ test('the goals sorter distributes parts across three lanes that share one exit'
     { x: 400, y: 900 }, { x: 400, y: 900 }, { x: 400, y: 900 },
   ])
 })
+
+test('five unique parts assemble the browser once and later parts remain overflow', async () => {
+  const model = await import('../src/factory/stations/finalAssemblerModel.ts').catch(() => ({}))
+  let state = { placedIds: [], assembled: false }
+  for (const id of ['a', 'b', 'c', 'd', 'e']) state = model.advanceAssembly(state, id)
+  assert.equal(state.assembled, true)
+  assert.equal(model.advanceAssembly(state, 'f'), state)
+  assert.equal(model.getPostAssemblyCollisionMode(true), 'frame-only')
+})

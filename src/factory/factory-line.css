@@ -69,9 +69,31 @@
   stroke-width: 3.5;
 }
 
+.factory-line__browser-frame {
+  fill: none;
+  stroke: var(--color-soft-white);
+  stroke-width: 3.5;
+}
+
+.factory-line__capture-zone {
+  fill: none;
+  stroke: var(--color-cobalt);
+  stroke-width: 3.5;
+  stroke-dasharray: 8 8;
+}
+
+.factory-line__assembled-part {
+  fill: var(--color-soft-white);
+}
+
 .statement-rebound,
-.selected-work-passage {
+.selected-work-passage,
+.final-assembler {
   min-height: 30rem;
+}
+
+.contact-form-column {
+  min-width: 0;
 }
 
 @media (max-width: 1023px) {

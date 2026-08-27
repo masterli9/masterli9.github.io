@@ -16,7 +16,7 @@ import {
   Engine,
   type Body as MatterBody,
 } from 'matter-js'
-import { getActiveBand, serializeFactoryPart, shouldRecycleFactoryPart, shouldTeardownAct } from './factoryFlowModel'
+import { createFactoryPartSpec, getActiveBand, serializeFactoryPart, shouldRecycleFactoryPart, shouldTeardownAct } from './factoryFlowModel'
 import type {
   FactoryActId,
   FactoryPartSnapshot,
@@ -228,6 +228,41 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       window.cancelAnimationFrame(frame)
     }
   }, [engine, isVisible, reducedMotion])
+
+  useEffect(() => {
+    if (id !== 'lower') return
+    let sequence = 0
+    const spawnAtSkillsEntry = () => {
+      if (partsRef.current.size >= 42) return
+      const root = rootRef.current
+      if (!root) return
+      const station = root.querySelector<HTMLElement>('[data-factory-station="skills"]')
+      const rootRect = root.getBoundingClientRect()
+      const stationRect = station?.getBoundingClientRect()
+      const x = stationRect
+        ? stationRect.left - rootRect.left + (stationRect.width / 2)
+        : root.clientWidth * 0.82
+      const y = stationRect
+        ? stationRect.top - rootRect.top - 48
+        : 32
+      spawnPart(createFactoryPartSpec(sequence, 'raw'), {
+        x,
+        y,
+        velocityX: 0,
+        velocityY: 0,
+        angle: 0,
+        angularVelocity: 0,
+      })
+      sequence += 1
+    }
+    const initial = window.setTimeout(spawnAtSkillsEntry, 80)
+    if (reducedMotion) return () => window.clearTimeout(initial)
+    const interval = window.setInterval(spawnAtSkillsEntry, 2200)
+    return () => {
+      window.clearTimeout(initial)
+      window.clearInterval(interval)
+    }
+  }, [id, reducedMotion, spawnPart])
 
   useEffect(() => {
     const root = rootRef.current

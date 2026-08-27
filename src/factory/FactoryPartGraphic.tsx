@@ -15,7 +15,13 @@ export function FactoryPartGraphic({ part }: { part: FactoryPartSnapshot | Facto
 
   if ('x' in part) {
     return (
-      <g transform={`translate(${part.x.toFixed(2)} ${part.y.toFixed(2)}) rotate(${(part.angle * 180 / Math.PI).toFixed(2)})`}>
+      <g
+        data-factory-part={part.id}
+        data-factory-stage={part.stage}
+        data-factory-shape={part.shape}
+        data-factory-color={part.color}
+        transform={`translate(${part.x.toFixed(2)} ${part.y.toFixed(2)}) rotate(${(part.angle * 180 / Math.PI).toFixed(2)})`}
+      >
         {graphic}
       </g>
     )

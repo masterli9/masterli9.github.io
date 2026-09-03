@@ -492,6 +492,24 @@ test('the full passive Statement route gives every shape launch speed and crosse
   assert.ok(headingHits.length >= 2, JSON.stringify(trajectories))
 })
 
+test('the Statement watchdog dismisses only a spoon part that has stalled long enough', async () => {
+  const model = await import('../src/factory/stations/statementReboundModel.ts')
+
+  assert.equal(typeof model.shouldDismissStalledStatementPart, 'function')
+  assert.equal(model.shouldDismissStalledStatementPart({ speed: 4.99, stalledForMs: 399 }), false)
+  assert.equal(model.shouldDismissStalledStatementPart({ speed: 4.99, stalledForMs: 400 }), true)
+  assert.equal(model.shouldDismissStalledStatementPart({ speed: 5.01, stalledForMs: 1200 }), false)
+})
+
+test('a factory part is removed before it can cross an act boundary', async () => {
+  const model = await import('../src/factory/factoryFlowModel.ts')
+
+  assert.equal(typeof model.shouldRecycleFactoryPartAtActBoundary, 'function')
+  assert.equal(model.shouldRecycleFactoryPartAtActBoundary(799, 800), false)
+  assert.equal(model.shouldRecycleFactoryPartAtActBoundary(800, 800), true)
+  assert.equal(model.shouldRecycleFactoryPartAtActBoundary(801, 800), true)
+})
+
 test('an act tears down only after neither it nor its boundary neighbor can be seen', async () => {
   const model = await import('../src/factory/factoryFlowModel.ts')
   assert.equal(model.shouldTeardownAct({ intersects: false, neighborVisible: false, documentVisible: true }), true)

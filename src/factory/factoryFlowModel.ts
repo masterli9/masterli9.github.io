@@ -97,6 +97,10 @@ export function shouldRecycleFactoryPart(y: number, band: { minY: number; maxY: 
   return y < band.minY || y > band.maxY
 }
 
+export function shouldRecycleFactoryPartAtActBoundary(bodyMaxY: number, actHeight: number) {
+  return bodyMaxY >= actHeight
+}
+
 export function shouldTeardownAct(input: {
   intersects: boolean
   neighborVisible: boolean

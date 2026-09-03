@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ArrowRight } from '@phosphor-icons/react'
 import ProjectIcon from './ProjectIcon'
-import ProjectMedia from './ProjectMedia'
 import ProjectModal from './ProjectModal'
 import { projects, type ProjectRecord } from '../data/projects'
 import { useLanguage } from '../i18n/useLanguage'
@@ -9,46 +8,53 @@ import { useLanguage } from '../i18n/useLanguage'
 export default function Projects() {
   const { t } = useLanguage()
   const [selectedProject, setSelectedProject] = useState<ProjectRecord | null>(null)
+  const lastTriggerRef = useRef<HTMLButtonElement>(null)
   const supportingProjects = projects.filter((project) => !project.featured)
 
+  if (supportingProjects.length === 0) return null
+
   return (
-    <div className="mx-auto mt-28 max-w-[60rem] md:mt-36">
-      <div className="space-y-28 md:space-y-36">
-        {supportingProjects.map((project) => {
-          const copy = t.projects.items[project.translationKey]
-          return (
-            <article key={project.id} className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.12fr)_minmax(20rem,0.88fr)] lg:gap-16">
-              <div>
-                <h3 className="font-heading text-4xl font-medium tracking-[-0.04em] text-soft-white md:text-5xl">{project.title}</h3>
-                <div className="mt-5 flex items-center gap-3 text-signal-pink">
-                  <ProjectIcon name={project.icon} size={21} />
-                  <span className="text-sm font-semibold">{t.projects.types[project.type]}</span>
-                </div>
+    <div className="project-index mt-24 md:mt-32">
+      <h3 className="mb-6 font-heading text-2xl font-medium tracking-[-0.03em] text-soft-white md:text-3xl">
+        {t.projects.otherProjects}
+      </h3>
 
-                <p className="mt-7 text-lg leading-relaxed text-soft-white">{copy.desc}</p>
-                <div className="mt-7 flex flex-wrap gap-x-4 gap-y-2 text-sm text-soft-white">
-                  {project.technologies.map((technology) => <span key={technology}>{technology}</span>)}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedProject(project)}
-                  className="mt-9 inline-flex cursor-pointer items-center gap-3 text-sm font-semibold text-soft-white transition-colors hover:text-signal-pink"
-                >
-                  {t.projects.openDetails}
-                  <ArrowRight size={17} weight="bold" aria-hidden="true" />
-                </button>
-              </div>
-
-              <ProjectMedia project={project} />
-            </article>
-          )
-        })}
+      <div className="border-y border-white-line">
+        {supportingProjects.map((project) => (
+          <button
+            key={project.id}
+            type="button"
+            data-project-row={project.id}
+            aria-haspopup="dialog"
+            onClick={(event) => {
+              lastTriggerRef.current = event.currentTarget
+              setSelectedProject(project)
+            }}
+            className="group grid w-full cursor-pointer items-center gap-5 border-b border-white-line py-6 text-left text-soft-white transition-colors last:border-b-0 hover:text-signal-pink focus-visible:text-signal-pink md:grid-cols-[minmax(13rem,1fr)_minmax(15rem,0.75fr)_auto] md:py-7"
+          >
+            <span className="min-w-0">
+              <span className="block font-heading text-2xl font-medium tracking-[-0.03em] md:text-3xl">{project.title}</span>
+              <span className="mt-2 flex items-center gap-2 text-sm font-semibold text-signal-pink">
+                <ProjectIcon name={project.icon} size={18} />
+                <span>{t.projects.types[project.type]}</span>
+              </span>
+            </span>
+            <span className="text-sm text-soft-white md:text-base">
+              {project.technologies.slice(0, 3).join(' · ')}
+            </span>
+            <span className="inline-flex items-center gap-3 text-sm font-semibold md:justify-self-end">
+              {t.projects.openDetails}
+              <ArrowRight size={17} weight="bold" aria-hidden="true" />
+            </span>
+          </button>
+        ))}
       </div>
 
       <ProjectModal
         project={selectedProject}
         isOpen={!!selectedProject}
         onClose={() => setSelectedProject(null)}
+        returnFocusRef={lastTriggerRef}
       />
     </div>
   )

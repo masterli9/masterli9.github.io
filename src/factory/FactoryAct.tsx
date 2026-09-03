@@ -22,6 +22,7 @@ import {
   serializeFactoryPart,
   shouldSpawnFactoryPart,
   shouldRecycleFactoryPart,
+  shouldRecycleFactoryPartAtActBoundary,
   shouldTeardownAct,
 } from './factoryFlowModel'
 import type {
@@ -57,6 +58,7 @@ export interface FactoryActApi {
   registerStation: (registration: FactoryStationRegistration) => () => void
   getPartBody: (id: string) => MatterBody | undefined
   removePart: (id: string) => void
+  fadeOutPart: (id: string) => void
   updatePartSpec: (id: string, patch: Partial<Pick<FactoryPartSpec, 'shape' | 'color' | 'stage'>>) => void
 }
 
@@ -67,18 +69,28 @@ interface LivePart {
   spec: FactoryPartSpec
 }
 
+const FACTORY_PART_FADE_OUT_MS = 260
+
 export function FactoryAct({ id, children }: { id: FactoryActId; children: React.ReactNode }) {
   const { reducedMotion } = useFactoryFlow()
   const rootRef = useRef<HTMLDivElement>(null)
   const registrationsRef = useRef(new Map<FactoryStationId, FactoryStationRegistration>())
   const collidersRef = useRef(new Map<FactoryStationId, MatterBody[]>())
   const partsRef = useRef(new Map<string, LivePart>())
+  const fadingPartsRef = useRef(new Map<string, FactoryPartSnapshot>())
   const suspendedPartsRef = useRef<FactoryPartSnapshot[]>([])
   const engineClearedRef = useRef(false)
   const [parts, setParts] = useState<FactoryPartSnapshot[]>([])
   const [viewport, setViewport] = useState({ width: 1, height: 1 })
   const [isVisible, setIsVisible] = useState(false)
   const [engine] = useState(() => Engine.create({ gravity: { x: 0, y: 1, scale: 0.00145 } }))
+
+  const refreshRenderedParts = useCallback(() => {
+    setParts([
+      ...Array.from(partsRef.current.values(), ({ body, spec }) => serializeFactoryPart(body, spec)),
+      ...fadingPartsRef.current.values(),
+    ])
+  }, [])
 
   const measure = useCallback(() => {
     const root = rootRef.current
@@ -115,8 +127,8 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     const body = createFactoryBody(spec, snapshot)
     partsRef.current.set(spec.id, { body, spec })
     Composite.add(engine.world, body)
-    setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
-  }, [engine])
+    refreshRenderedParts()
+  }, [engine, refreshRenderedParts])
 
   const getPartBody = useCallback((id: string) => partsRef.current.get(id)?.body, [])
 
@@ -125,8 +137,23 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     if (!livePart) return
     Composite.remove(engine.world, livePart.body, true)
     partsRef.current.delete(id)
-    setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
-  }, [engine])
+    refreshRenderedParts()
+  }, [engine, refreshRenderedParts])
+
+  const fadeOutPart = useCallback((id: string) => {
+    const livePart = partsRef.current.get(id)
+    if (!livePart || fadingPartsRef.current.has(id)) return
+    const snapshot = { ...serializeFactoryPart(livePart.body, livePart.spec), fading: true }
+    Composite.remove(engine.world, livePart.body, true)
+    partsRef.current.delete(id)
+    fadingPartsRef.current.set(id, snapshot)
+    refreshRenderedParts()
+    window.setTimeout(() => {
+      if (fadingPartsRef.current.get(id) !== snapshot) return
+      fadingPartsRef.current.delete(id)
+      refreshRenderedParts()
+    }, FACTORY_PART_FADE_OUT_MS)
+  }, [engine, refreshRenderedParts])
 
   const updatePartSpec = useCallback((id: string, patch: Partial<Pick<FactoryPartSpec, 'shape' | 'color' | 'stage'>>) => {
     const livePart = partsRef.current.get(id)
@@ -137,8 +164,8 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     Composite.remove(engine.world, livePart.body, true)
     partsRef.current.set(id, { body, spec })
     Composite.add(engine.world, body)
-    setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
-  }, [engine])
+    refreshRenderedParts()
+  }, [engine, refreshRenderedParts])
 
   const suspendAct = useCallback(() => {
     if (engineClearedRef.current) return
@@ -150,6 +177,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     for (const colliders of collidersRef.current.values()) Composite.remove(engine.world, colliders, true)
     partsRef.current.clear()
     collidersRef.current.clear()
+    fadingPartsRef.current.clear()
     Engine.clear(engine)
     engineClearedRef.current = true
     setParts([])
@@ -165,8 +193,8 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     suspendedPartsRef.current = []
     engineClearedRef.current = false
     measure()
-    setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
-  }, [engine, measure])
+    refreshRenderedParts()
+  }, [engine, measure, refreshRenderedParts])
 
   useEffect(() => {
     const root = rootRef.current
@@ -208,17 +236,21 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       })
       for (const [id, livePart] of partsRef.current) {
         const y = livePart.body.position.y + rootRect.top + window.scrollY
-        if (!shouldRecycleFactoryPart(y, band)) continue
+        const reachedActBoundary = shouldRecycleFactoryPartAtActBoundary(
+          livePart.body.bounds.max.y,
+          rootRect.height,
+        )
+        if (!reachedActBoundary && !shouldRecycleFactoryPart(y, band)) continue
         Composite.remove(engine.world, livePart.body, true)
         partsRef.current.delete(id)
       }
-      setParts(Array.from(partsRef.current.values(), ({ body: currentBody, spec: currentSpec }) => serializeFactoryPart(currentBody, currentSpec)))
+      refreshRenderedParts()
     }
     frame = window.requestAnimationFrame(tick)
     return () => {
       window.cancelAnimationFrame(frame)
     }
-  }, [engine, id, isVisible, reducedMotion])
+  }, [engine, id, isVisible, reducedMotion, refreshRenderedParts])
 
   useEffect(() => {
     if (id !== 'lower') return
@@ -297,11 +329,11 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
           Composite.add(engine.world, body)
         }
       }
-      setParts(Array.from(partsRef.current.values(), ({ body, spec }) => serializeFactoryPart(body, spec)))
+      refreshRenderedParts()
     }
     frame = window.requestAnimationFrame(seedReducedSnapshot)
     return () => window.cancelAnimationFrame(frame)
-  }, [engine, reducedMotion])
+  }, [engine, reducedMotion, refreshRenderedParts])
 
   useEffect(() => {
     const root = rootRef.current
@@ -343,7 +375,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     Engine.clear(engine)
   }, [engine])
 
-  const api = useMemo(() => ({ actId: id, engine, spawnPart, registerStation, getPartBody, removePart, updatePartSpec }), [engine, getPartBody, id, registerStation, removePart, spawnPart, updatePartSpec])
+  const api = useMemo(() => ({ actId: id, engine, spawnPart, registerStation, getPartBody, removePart, fadeOutPart, updatePartSpec }), [engine, fadeOutPart, getPartBody, id, registerStation, removePart, spawnPart, updatePartSpec])
 
   return (
     <FactoryActContext.Provider value={api}>

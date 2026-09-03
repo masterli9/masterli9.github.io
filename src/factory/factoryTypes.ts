@@ -40,4 +40,5 @@ export interface FactoryPartSnapshot extends FactoryPartSpec {
   velocityY: number
   angle: number
   angularVelocity: number
+  fading?: boolean
 }

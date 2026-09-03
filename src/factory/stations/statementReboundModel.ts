@@ -5,6 +5,17 @@ export interface StatementReboundBounds {
   height: number
 }
 
+export const STATEMENT_STALL_SPEED_THRESHOLD = 5
+export const STATEMENT_STALL_TIMEOUT_MS = 400
+
+export function shouldDismissStalledStatementPart(input: {
+  speed: number
+  stalledForMs: number
+}) {
+  return input.speed <= STATEMENT_STALL_SPEED_THRESHOLD
+    && input.stalledForMs >= STATEMENT_STALL_TIMEOUT_MS
+}
+
 export function createStatementReveal(
   words: string[],
   minimumSlots: number,

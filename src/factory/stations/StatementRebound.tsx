@@ -4,7 +4,9 @@ import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '..
 import {
   getReboundPlatformGeometry,
   getStatementSpoonGeometry,
+  shouldDismissStalledStatementPart,
   shouldUseReboundCatcher,
+  STATEMENT_STALL_SPEED_THRESHOLD,
 } from './statementReboundModel'
 import {
   applyStatementPlatformMaterial,
@@ -28,7 +30,8 @@ const STATEMENT_EXIT_SPOON = getStatementSpoonGeometry({
 
 export default function StatementRebound() {
   const stationRef = useRef<HTMLDivElement>(null)
-  const { engine } = useFactoryAct()
+  const { engine, fadeOutPart } = useFactoryAct()
+  const stalledSinceRef = useRef(new Map<string, number>())
   const geometry = STATEMENT_GEOMETRY
   const spoon = STATEMENT_EXIT_SPOON
 
@@ -54,7 +57,9 @@ export default function StatementRebound() {
   useFactoryStation({ id: 'statement', elementRef: stationRef, buildColliders })
 
   useEffect(() => {
+    const stalledSince = stalledSinceRef.current
     const handleCollision = ({ pairs }: { pairs: Array<{ bodyA: MatterBody; bodyB: MatterBody }> }) => {
+      const now = performance.now()
       for (const pair of pairs) {
         propagateStatementPlatformMaterial(pair.bodyA, pair.bodyB, STATEMENT_GEOMETRY.platform)
         const part = pair.bodyA.label.startsWith('factory-part-')
@@ -76,6 +81,20 @@ export default function StatementRebound() {
             : null
         if (part && platformSurface) applyStatementPlatformMaterial(part, STATEMENT_GEOMETRY.platform)
         if (part && spoonSurface) applyStatementSpoonMaterial(part, STATEMENT_EXIT_SPOON)
+        if (part && spoonSurface?.label.startsWith('statement-exit-spoon-')) {
+          const partId = part.label.slice('factory-part-'.length)
+          const speed = Math.hypot(part.velocity.x, part.velocity.y)
+          if (speed > STATEMENT_STALL_SPEED_THRESHOLD) {
+            stalledSince.delete(partId)
+            continue
+          }
+          const startedAt = stalledSince.get(partId) ?? now
+          stalledSince.set(partId, startedAt)
+          if (shouldDismissStalledStatementPart({ speed, stalledForMs: now - startedAt })) {
+            stalledSince.delete(partId)
+            fadeOutPart(partId)
+          }
+        }
       }
     }
     Events.on(engine, 'collisionStart', handleCollision)
@@ -83,8 +102,9 @@ export default function StatementRebound() {
     return () => {
       Events.off(engine, 'collisionStart', handleCollision)
       Events.off(engine, 'collisionActive', handleCollision)
+      stalledSince.clear()
     }
-  }, [engine])
+  }, [engine, fadeOutPart])
 
   return (
     <div ref={stationRef} className="factory-station statement-rebound" data-factory-station="statement">

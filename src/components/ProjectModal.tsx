@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowSquareOut, CaretLeft, CaretRight, Globe, Stack, X } from '@phosphor-icons/react'
@@ -9,9 +9,10 @@ interface ProjectModalProps {
   project: ProjectRecord | null
   isOpen: boolean
   onClose: () => void
+  returnFocusRef?: RefObject<HTMLElement | null>
 }
 
-export default function ProjectModal({ project, isOpen, onClose }: ProjectModalProps) {
+export default function ProjectModal({ project, isOpen, onClose, returnFocusRef }: ProjectModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { t } = useLanguage()
 
@@ -22,6 +23,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
 
   useEffect(() => {
     if (!isOpen) return
+    const returnFocusTarget = returnFocusRef?.current
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
@@ -30,8 +32,9 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
+      returnFocusTarget?.focus()
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, returnFocusRef])
 
   if (!project) return null
   const copy = t.projects.items[project.translationKey]
@@ -66,6 +69,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
             <button
               type="button"
               onClick={onClose}
+              aria-label={t.projectModal.close}
               className="absolute right-5 top-5 z-10 cursor-pointer border border-transparent p-2 text-ink transition-colors hover:border-ink hover:text-signal-pink"
             >
               <X size={22} aria-hidden="true" />

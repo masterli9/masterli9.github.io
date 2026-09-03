@@ -27,6 +27,7 @@ export function FactoryPartGraphic({ part }: { part: FactoryPartSnapshot | Facto
   if ('x' in part) {
     return (
       <g
+        className={'fading' in part && part.fading ? 'factory-part--fading' : undefined}
         data-factory-part={part.id}
         data-factory-stage={part.stage}
         data-factory-shape={part.shape}

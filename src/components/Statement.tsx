@@ -41,7 +41,7 @@ export default function Statement() {
     <section className="statement-section foundry-page py-28 md:py-44">
       <div ref={boundaryRef} data-factory-boundary="statement" aria-hidden="true" className="pointer-events-none h-px w-full" />
       <div className="foundry-container grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-center lg:gap-20">
-        <div className="max-w-3xl">
+        <div className="max-w-3xl lg:translate-y-32">
           <h2 className="max-w-2xl font-heading text-[clamp(2.4rem,5vw,4.8rem)] font-medium leading-[0.98] tracking-[-0.055em] text-soft-white">
             {reveal.map((item, index) => (
               <Fragment key={item.key}>

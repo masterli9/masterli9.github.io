@@ -58,6 +58,7 @@ export const translations = {
       featuredLabel: 'Vybraný výstup / 01',
       previewLabel: 'Živý výstup z assembly cell',
       otherOutputs: 'Další výstup',
+      otherProjects: 'Další projekty',
       openPreview: 'Otevřít náhled',
       openDetails: 'Detail projektu',
       types: {
@@ -280,6 +281,7 @@ export const translations = {
       featuredLabel: 'Selected output / 01',
       previewLabel: 'Live output from the assembly cell',
       otherOutputs: 'Another output',
+      otherProjects: 'More projects',
       openPreview: 'Open preview',
       openDetails: 'Project details',
       types: {

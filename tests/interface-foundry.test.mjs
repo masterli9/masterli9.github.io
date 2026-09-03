@@ -271,6 +271,12 @@ test('the Statement description reveals word by word after the headline', async 
   assert.match(statement, /delay: reducedMotion \? 0 : item\.revealAt/)
 })
 
+test('the Statement copy aligns lower with the desktop ramp without changing mobile flow', async () => {
+  const statement = await read('src/components/Statement.tsx')
+
+  assert.match(statement, /<div className="max-w-3xl lg:translate-y-32">/)
+})
+
 test('about is the single white reading boundary without physics decoration', async () => {
   const about = await read('src/components/About.tsx')
   assert.match(about, /foundry-reading-break/)
@@ -317,6 +323,14 @@ test('factory parts render above Statement, below press jaws, and below the Hero
   assert.match(css, /\.factory-act\s*>\s*#skills\s*\{[\s\S]*z-index:\s*8[\s\S]*background:\s*transparent/)
   assert.match(css, /\.factory-act\s*>\s*\.factory-hero-layer\s*\{[\s\S]*z-index:\s*7/)
   assert.ok(press.indexOf('forming-press__gate') < press.indexOf('forming-press__jaw--left'))
+})
+
+test('each factory act clips its own render layer at the white boundary', async () => {
+  const css = await read('src/factory/factory-line.css')
+  const factoryAct = await read('src/factory/FactoryAct.tsx')
+
+  assert.match(css, /\.factory-act\s*\{[\s\S]*overflow:\s*clip/)
+  assert.match(factoryAct, /fadeOutPart/)
 })
 
 test('the oversized statement bowl remains visible over the following projects background', async () => {

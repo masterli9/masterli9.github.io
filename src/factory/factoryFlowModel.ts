@@ -9,13 +9,18 @@ import type {
 } from './factoryTypes'
 
 const RAW_SHAPES: FactoryPartShape[] = ['square', 'circle', 'bar', 'diamond']
+const RAW_COLORS: FactoryPartColor[] = ['#F21868', '#355CFF', '#FFFFFF']
+
+export function getRawFactoryPartColor(sequence: number): FactoryPartColor {
+  return RAW_COLORS[sequence % RAW_COLORS.length] ?? '#FFFFFF'
+}
 
 export function createFactoryPartSpec(sequence: number, stage: FactoryPartStage): FactoryPartSpec {
   return {
     id: `part-${sequence}`,
     sequence,
     shape: RAW_SHAPES[sequence % RAW_SHAPES.length] ?? 'square',
-    color: '#FFFFFF',
+    color: getRawFactoryPartColor(sequence),
     stage,
   }
 }
@@ -78,6 +83,12 @@ export function getFactoryActBand(
       }
     }
     return lowerBand
+  }
+  if (actBounds) {
+    return {
+      minY: Math.min(viewportBand.minY, actBounds.minY),
+      maxY: viewportBand.maxY,
+    }
   }
   return viewportBand
 }

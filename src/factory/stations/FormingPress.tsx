@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Bodies, Events, type Body as MatterBody } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import {
   advanceFormingPress,
+  FORMING_PRESS_MOTION,
+  FORMING_PRESS_TIMING,
+  getFormingPressGeometry,
+  getFormingPressMotion,
   type FormingPressState,
 } from './formingPressModel'
 
@@ -51,29 +55,38 @@ export default function FormingPress() {
   const timersRef = useRef<number[]>([])
   const [states, setStates] = useState(new Map<string, FormingPressState>())
   const [activePartId, setActivePartId] = useState<string | null>(null)
-  const [stopOpen, setStopOpen] = useState(false)
-  const [gateOpen, setGateOpen] = useState(false)
   const { engine, updatePartSpec } = useFactoryAct()
   const activeState = activePartId ? states.get(activePartId) : undefined
-  const jawsClosed = activeState?.phase === 'clamped'
+  const pressGeometry = getFormingPressGeometry()
+  const pressMotion = getFormingPressMotion(activeState?.phase ?? 'falling')
+  const jawsEngaged = pressMotion.leftJawOffset > 0
+  const gateOpen = pressMotion.gateOpen
+  const pressStyle = {
+    '--forming-press-close-duration': `${FORMING_PRESS_MOTION.closeDurationMs}ms`,
+    '--forming-press-open-duration': `${FORMING_PRESS_MOTION.openDurationMs}ms`,
+  } as CSSProperties
 
   const buildColliders = useCallback((metrics: FactoryStationMetrics): MatterBody[] => {
+    const railCenterY = 260
+    const railHeight = 472
     const colliders: MatterBody[] = [
-      createPressRectangle(metrics, 72, 108, 4, 168, 'skills-press-guide-left'),
-      createPressRectangle(metrics, 168, 108, 4, 168, 'skills-press-guide-right'),
-      createPressRectangle(metrics, 120, 184, 82, 34, 'skills-press-sensor', { isSensor: true }),
-      createPressRectangle(metrics, 38, 236, 72, 4, 'skills-press-upstream-shelf'),
+      createPressRectangle(metrics, pressGeometry.leftRailX, railCenterY, 4, railHeight, 'skills-press-guide-left'),
+      createPressRectangle(metrics, pressGeometry.rightRailX, railCenterY, 4, railHeight, 'skills-press-guide-right'),
+      createPressRectangle(metrics, pressGeometry.centerX, 270, 70, 72, 'skills-press-sensor', { isSensor: true }),
     ]
-    if (!stopOpen) colliders.push(createPressRectangle(metrics, 120, 246, 108, 5, 'skills-press-stop'))
-    if (jawsClosed) {
-      colliders.push(
-        createPressRectangle(metrics, 120, 278, 110, 12, 'skills-press-upper-jaw'),
-        createPressRectangle(metrics, 120, 326, 110, 12, 'skills-press-lower-jaw'),
-      )
+    if (!gateOpen) {
+      const gateWidth = pressGeometry.gate.x2 - pressGeometry.gate.x1
+      colliders.push(createPressRectangle(
+        metrics,
+        pressGeometry.centerX,
+        pressGeometry.gate.y,
+        gateWidth,
+        5,
+        'skills-press-exit-gate',
+      ))
     }
-    if (!gateOpen) colliders.push(createPressRectangle(metrics, 120, 390, 110, 5, 'skills-press-exit-gate'))
     return colliders
-  }, [gateOpen, jawsClosed, stopOpen])
+  }, [gateOpen, pressGeometry])
 
   useFactoryStation({ id: 'skills', elementRef: stationRef, buildColliders })
 
@@ -86,10 +99,6 @@ export default function FormingPress() {
       statesRef.current.set(partId, next)
       setStates(new Map(statesRef.current))
       if (event === 'jaws-closed') updatePartSpec(partId, { shape: next.shape, stage: 'formed' })
-      if (event === 'gate-open') {
-        setStopOpen(true)
-        setGateOpen(true)
-      }
     }
 
     const handleCollision = ({ pairs }: { pairs: Array<{ bodyA: MatterBody; bodyB: MatterBody }> }) => {
@@ -108,18 +117,16 @@ export default function FormingPress() {
         statesRef.current.set(partId, { phase: 'falling', sequence: Number(partId.replace('part-', '')), shape: 'square' })
         transition(partId, 'sensor-enter')
         scheduledRef.current.add(part.label)
-        const closeTimer = window.setTimeout(() => transition(partId, 'jaws-closed'), 120)
-        const openTimer = window.setTimeout(() => transition(partId, 'jaws-open'), 360)
-        const releaseTimer = window.setTimeout(() => transition(partId, 'gate-open'), 500)
+        const closeTimer = window.setTimeout(() => transition(partId, 'jaws-closed'), FORMING_PRESS_TIMING.closeAt)
+        const openTimer = window.setTimeout(() => transition(partId, 'jaws-open'), FORMING_PRESS_TIMING.revealAt)
+        const releaseTimer = window.setTimeout(() => transition(partId, 'gate-open'), FORMING_PRESS_TIMING.releaseAt)
         const resetTimer = window.setTimeout(() => {
           activePressIdRef.current = null
           setActivePartId(null)
           scheduledRef.current.delete(part.label)
           statesRef.current.delete(partId)
           setStates(new Map(statesRef.current))
-          setStopOpen(false)
-          setGateOpen(false)
-        }, 1200)
+        }, FORMING_PRESS_TIMING.resetAt)
         timersRef.current.push(closeTimer, openTimer, releaseTimer, resetTimer)
       }
     }
@@ -133,18 +140,24 @@ export default function FormingPress() {
   }, [engine, updatePartSpec])
 
   return (
-    <div ref={stationRef} className="factory-station forming-press" data-factory-station="skills">
+    <div ref={stationRef} className="factory-station forming-press" data-factory-station="skills" style={pressStyle}>
       <svg viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} aria-hidden="true" focusable="false">
-        <path d="M72 24V276M168 24V276" className="factory-line__rail factory-line__rail--white" />
-        <rect x="79" y="167" width="82" height="34" className="factory-line__sensor" />
-        <path d="M38 236H110" className="factory-line__rail factory-line__rail--white" />
-        {!stopOpen && <path d="M66 246H174" className="factory-line__rail factory-line__rail--pink" />}
-        <g aria-hidden="true">
-          <rect x="65" y="272" width="110" height="12" className="factory-line__jaw" />
-          <rect x="65" y="320" width="110" height="12" className="factory-line__jaw" />
+        <path
+          d={`M${pressGeometry.leftRailX} 24V496M${pressGeometry.rightRailX} 24V496`}
+          className="factory-line__rail factory-line__rail--white"
+        />
+        <path d={`M56 177H${pressGeometry.leftRailX}`} className="factory-line__rail factory-line__rail--white" />
+        <path d={`M${pressGeometry.leftRailX - 3} 177H${pressGeometry.leftRailX}`} className="factory-line__rail factory-line__rail--pink" />
+        <path
+          d={`M${pressGeometry.gate.x1} ${pressGeometry.gate.y}H${pressGeometry.gate.x2}`}
+          className={`factory-line__rail factory-line__rail--pink forming-press__gate${gateOpen ? ' is-open' : ''}`}
+        />
+        <g className={`forming-press__jaw forming-press__jaw--left${jawsEngaged ? ' is-engaged' : ''}`}>
+          <rect {...pressGeometry.leftJaw} className="factory-line__jaw" />
         </g>
-        {!gateOpen && <path d="M66 390H174" className="factory-line__rail factory-line__rail--pink" />}
-        <path d="M72 430H168" className="factory-line__rail factory-line__rail--white" />
+        <g className={`forming-press__jaw forming-press__jaw--right${jawsEngaged ? ' is-engaged' : ''}`}>
+          <rect {...pressGeometry.rightJaw} className="factory-line__jaw" />
+        </g>
       </svg>
     </div>
   )

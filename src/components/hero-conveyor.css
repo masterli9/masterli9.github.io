@@ -5,7 +5,7 @@
 .hero-conveyor {
   display: block;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
   color: var(--color-soft-white);
 }
 
@@ -18,7 +18,7 @@
 }
 
 .hero-conveyor__belt {
-  fill: var(--color-ink);
+  fill: transparent;
   stroke-width: 3.5;
 }
 

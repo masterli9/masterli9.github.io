@@ -29,6 +29,8 @@ export interface FactoryPartSpec {
   shape: FactoryPartShape
   color: FactoryPartColor
   stage: FactoryPartStage
+  scaleX?: number
+  scaleY?: number
 }
 
 export interface FactoryPartSnapshot extends FactoryPartSpec {

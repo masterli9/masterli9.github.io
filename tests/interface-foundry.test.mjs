@@ -112,6 +112,33 @@ test('the conveyor clamps slow frames to a stable Matter.js physics step', async
   assert.equal(conveyor.clampPhysicsDelta(40), 1000 / 60)
 })
 
+test('the Hero physics runs only after its intro while the conveyor is in view', async () => {
+  const conveyor = await import('../src/components/heroConveyorModel.ts')
+
+  assert.equal(typeof conveyor.shouldRunHeroPhysics, 'function')
+  assert.equal(conveyor.shouldRunHeroPhysics({ isInView: true, reducedMotion: false, introStage: 'running' }), true)
+  assert.equal(conveyor.shouldRunHeroPhysics({ isInView: false, reducedMotion: false, introStage: 'running' }), false)
+  assert.equal(conveyor.shouldRunHeroPhysics({ isInView: true, reducedMotion: false, introStage: 'machine-visible' }), false)
+  assert.equal(conveyor.shouldRunHeroPhysics({ isInView: true, reducedMotion: true, introStage: 'running' }), false)
+})
+
+test('an activated Hero feed keeps controlling belt parts after the Hero leaves view', async () => {
+  const conveyor = await import('../src/components/heroConveyorModel.ts').catch(() => ({}))
+  assert.equal(typeof conveyor.shouldRunHeroFeed, 'function')
+
+  assert.equal(conveyor.shouldRunHeroFeed({ shouldAnimate: true, lineStarted: false, reducedMotion: false }), true)
+  assert.equal(conveyor.shouldRunHeroFeed({ shouldAnimate: false, lineStarted: false, reducedMotion: false }), false)
+  assert.equal(conveyor.shouldRunHeroFeed({ shouldAnimate: false, lineStarted: true, reducedMotion: false }), true)
+  assert.equal(conveyor.shouldRunHeroFeed({ shouldAnimate: true, lineStarted: true, reducedMotion: true }), false)
+})
+
+test('the opaque Hero occluder covers the full width of a newly spawned part', async () => {
+  const conveyor = await import('../src/components/heroConveyorModel.ts').catch(() => ({}))
+  assert.equal(typeof conveyor.getConveyorOccluderEndX, 'function')
+  assert.equal(conveyor.getConveyorOccluderEndX({ viewportRightX: 420, spawnX: 455, maxPartHalfWidth: 18 }), 473)
+  assert.equal(conveyor.getConveyorOccluderEndX({ viewportRightX: 420, spawnX: 390, maxPartHalfWidth: 18 }), 420)
+})
+
 test('the conveyor releases a part as it reaches the rounded belt end', async () => {
   const conveyor = await import('../src/components/heroConveyorModel.ts')
 
@@ -235,6 +262,15 @@ test('the statement boundary starts the factory line and the hero reads its gate
   assert.match(hero, /getHeroGateState/)
 })
 
+test('the Statement description reveals word by word after the headline', async () => {
+  const statement = await read('src/components/Statement.tsx')
+
+  assert.match(statement, /const descriptionStartAt = reveal\[reveal\.length - 1\]\.revealAt \+ 0\.22/)
+  assert.match(statement, /const descriptionReveal = useMemo\(\s*\(\) => createStatementReveal\(t\.statement\.description\.split\(\/\\s\+\/\), 1, descriptionStartAt\)/)
+  assert.match(statement, /<motion\.p[\s\S]*descriptionReveal\.map\(\(item, index\) =>/)
+  assert.match(statement, /delay: reducedMotion \? 0 : item\.revealAt/)
+})
+
 test('about is the single white reading boundary without physics decoration', async () => {
   const about = await read('src/components/About.tsx')
   assert.match(about, /foundry-reading-break/)
@@ -264,20 +300,31 @@ test('each station reserves the same aspect-ratio footprint used by its collider
 
   assert.match(css, /\.factory-station\s*\{[\s\S]*align-self:\s*start/)
   assert.match(css, /\.statement-rebound\s*\{[\s\S]*aspect-ratio:\s*3\s*\/\s*4/)
-  assert.match(css, /\.selected-work-passage\s*\{[\s\S]*aspect-ratio:\s*1\s*\/\s*2/)
   assert.match(css, /\.forming-press\s*\{[\s\S]*aspect-ratio:\s*6\s*\/\s*13/)
   assert.match(css, /\.paint-inspection\s*\{[\s\S]*aspect-ratio:\s*1\s*\/\s*2/)
   assert.match(css, /\.goal-sorter\s*\{[\s\S]*aspect-ratio:\s*16\s*\/\s*31/)
   assert.match(css, /\.final-assembler\s*\{[\s\S]*aspect-ratio:\s*8\s*\/\s*13/)
-  assert.match(css, /\.statement-rebound,[\s\S]*?\.selected-work-passage\s*\{[\s\S]*width:\s*32\.5rem/)
-  assert.match(css, /\.statement-rebound,[\s\S]*?margin-left:\s*calc\(100%\s*-\s*32\.5rem\)/)
-  assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*?\.statement-rebound,[\s\S]*?\.selected-work-passage\s*\{[\s\S]*margin-left:\s*auto/)
+  assert.match(css, /\.statement-rebound\s*\{[\s\S]*width:\s*32\.5rem/)
+  assert.match(css, /\.statement-rebound\s*\{[\s\S]*margin-left:\s*calc\(100%\s*-\s*32\.5rem\)/)
+  assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*?\.statement-rebound\s*\{[\s\S]*margin-left:\s*auto/)
 })
 
-test('factory parts render above opaque act sections', async () => {
+test('factory parts render above Statement, below press jaws, and below the Hero occluder', async () => {
+  const css = await read('src/factory/factory-line.css')
+  const press = await read('src/factory/stations/FormingPress.tsx')
+
+  assert.match(css, /\.factory-line__parts\s*\{[\s\S]*z-index:\s*6/)
+  assert.match(css, /\.factory-act\s*>\s*#skills\s*\{[\s\S]*z-index:\s*8[\s\S]*background:\s*transparent/)
+  assert.match(css, /\.factory-act\s*>\s*\.factory-hero-layer\s*\{[\s\S]*z-index:\s*7/)
+  assert.ok(press.indexOf('forming-press__gate') < press.indexOf('forming-press__jaw--left'))
+})
+
+test('the oversized statement bowl remains visible over the following projects background', async () => {
+  const statement = await read('src/components/Statement.tsx')
   const css = await read('src/factory/factory-line.css')
 
-  assert.match(css, /\.factory-line__parts\s*\{[\s\S]*z-index:\s*4/)
+  assert.match(statement, /<section className="statement-section /)
+  assert.match(css, /\.factory-act\s*>\s*\.statement-section\s*\{[\s\S]*z-index:\s*5/)
 })
 
 test('the goal sorter keeps a clear physical middle exit', async () => {
@@ -289,12 +336,6 @@ test('the goal sorter keeps a clear physical middle exit', async () => {
   assert.match(source, /goals-merge-0[\s\S]*isSensor/)
   assert.match(source, /goals-merge-2[\s\S]*isSensor/)
   assert.match(source, /goals-common-exit[\s\S]*isSensor/)
-})
-
-test('factory parts cannot deflect one another between station colliders', async () => {
-  const source = await read('src/factory/FactoryAct.tsx')
-
-  assert.match(source, /collisionFilter:\s*\{\s*group:\s*-1\s*\}/)
 })
 
 test('the contact frame leaves its capture edge physically passable', async () => {

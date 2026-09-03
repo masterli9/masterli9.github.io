@@ -50,7 +50,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 cursor-default bg-ink/90"
+            className="absolute inset-0 cursor-pointer bg-ink/90"
           />
 
           <motion.aside
@@ -66,7 +66,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
             <button
               type="button"
               onClick={onClose}
-              className="absolute right-5 top-5 z-10 border border-transparent p-2 text-ink transition-colors hover:border-ink hover:text-signal-pink"
+              className="absolute right-5 top-5 z-10 cursor-pointer border border-transparent p-2 text-ink transition-colors hover:border-ink hover:text-signal-pink"
             >
               <X size={22} aria-hidden="true" />
             </button>
@@ -87,10 +87,10 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
 
               {project.images.length > 1 && (
                 <>
-                  <button type="button" onClick={previousImage} aria-label="Previous image" className="absolute left-4 border border-soft-white/30 p-2 text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink">
+                  <button type="button" onClick={previousImage} aria-label="Previous image" className="absolute left-4 cursor-pointer border border-soft-white/30 p-2 text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink">
                     <CaretLeft size={20} aria-hidden="true" />
                   </button>
-                  <button type="button" onClick={nextImage} aria-label="Next image" className="absolute right-4 border border-soft-white/30 p-2 text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink">
+                  <button type="button" onClick={nextImage} aria-label="Next image" className="absolute right-4 cursor-pointer border border-soft-white/30 p-2 text-soft-white transition-colors hover:border-signal-pink hover:text-signal-pink">
                     <CaretRight size={20} aria-hidden="true" />
                   </button>
                   <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2" aria-label="Image selector">
@@ -100,7 +100,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
                         type="button"
                         aria-label={`Show image ${index + 1}`}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`h-2 w-2 border border-soft-white ${index === currentImageIndex ? 'bg-signal-pink' : 'bg-transparent'}`}
+                        className={`h-2 w-2 cursor-pointer border border-soft-white ${index === currentImageIndex ? 'bg-signal-pink' : 'bg-transparent'}`}
                       />
                     ))}
                   </div>
@@ -124,7 +124,7 @@ export default function ProjectModal({ project, isOpen, onClose }: ProjectModalP
               </div>
 
               {project.href !== '#' && (
-                <a href={project.href} target="_blank" rel="noreferrer" className="mt-auto inline-flex items-center justify-center gap-3 border border-ink bg-ink px-6 py-4 font-semibold text-soft-white transition-colors hover:border-signal-pink hover:bg-signal-pink">
+                <a href={project.href} target="_blank" rel="noreferrer" className="mt-auto inline-flex cursor-pointer items-center justify-center gap-3 border border-ink bg-ink px-6 py-4 font-semibold text-soft-white transition-colors hover:border-signal-pink hover:bg-signal-pink">
                   {t.projectModal.visitProject}
                   <ArrowSquareOut size={18} aria-hidden="true" />
                 </a>

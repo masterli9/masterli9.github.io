@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, useInView, useReducedMotion } from 'framer-motion'
 import { Body, Bodies, type Body as MatterBody } from 'matter-js'
 import {
   createFactoryPartSpec,
   getFactoryActiveLimit,
+  getRawFactoryPartColor,
   getFactorySpawnDecision,
 } from '../factory/factoryFlowModel'
 import {
@@ -12,14 +13,19 @@ import {
   type FactoryStationMetrics,
 } from '../factory/FactoryAct'
 import { useFactoryFlow } from '../factory/FactoryFlowProvider'
-import type { FactoryPartColor, FactoryPartSpec } from '../factory/factoryTypes'
+import type { FactoryPartSpec } from '../factory/factoryTypes'
 import {
   getConveyorBeltBottomY,
   getConveyorMotion,
+  getConveyorOccluderEndX,
   getConveyorPartCenterY,
+  getHeroDoorColliderPose,
+  getHeroGateGeometry,
   getHeroGateState,
   getRoundedEndReleaseX,
   getRoundedEndTangentVelocity,
+  shouldRunHeroFeed,
+  shouldRunHeroPhysics,
   shouldReleaseConveyorPart,
   type ConveyorPartShape,
 } from './heroConveyorModel'
@@ -50,15 +56,22 @@ const BELT_RELEASE_X = getRoundedEndReleaseX(BELT_LEFT_X, BELT_HEIGHT)
 const BELT_END_CENTER_Y = BELT_TOP_Y + (BELT_HEIGHT / 2)
 const GRAVITY_PER_STEP = 0.00145 * (1000 / 60)
 const SPAWN_INTERVAL = 1500
+const SPAWN_X = 455
 const VIEWBOX_WIDTH = 420
 const VIEWBOX_HEIGHT = 350
+const FADE_START_X = 315
+const MAX_PART_HALF_WIDTH = 18
+const FADE_END_X = getConveyorOccluderEndX({
+  viewportRightX: VIEWBOX_WIDTH,
+  spawnX: SPAWN_X,
+  maxPartHalfWidth: MAX_PART_HALF_WIDTH,
+})
 const BELT_MOTION = getConveyorMotion({
   surfaceSpeed: 55,
   treadCycleLength: 28,
   rollerRadius: 17,
 })
 const PART_SHAPES = ['square', 'circle', 'bar', 'diamond'] as const
-const PART_COLORS: FactoryPartColor[] = ['#F21868', '#355CFF', '#FFFFFF']
 
 const STATIC_PARTS = [
   { id: 0, shape: 'square' as const, color: '#F21868', x: 31, y: 319, angle: -4 },
@@ -80,17 +93,19 @@ function createHeroPartSpec(sequence: number): FactoryPartSpec {
   return {
     ...base,
     shape: PART_SHAPES[sequence % PART_SHAPES.length] ?? 'square',
-    color: PART_COLORS[sequence % PART_COLORS.length] ?? '#FFFFFF',
+    color: getRawFactoryPartColor(sequence),
   }
 }
 
-function createHeroColliders({ elementRect, actRect }: FactoryStationMetrics, lineStarted: boolean) {
+function createHeroColliders({ elementRect, actRect }: FactoryStationMetrics, gateProgress: number) {
   const scaleX = Math.max(elementRect.width, 1) / VIEWBOX_WIDTH
   const scaleY = Math.max(elementRect.height, 1) / VIEWBOX_HEIGHT
   const radiusScale = Math.min(scaleX, scaleY)
+  const offsetX = elementRect.left - actRect.left
+  const offsetY = elementRect.top - actRect.top
   const point = (x: number, y: number) => ({
-    x: elementRect.left - actRect.left + (x * scaleX),
-    y: elementRect.top - actRect.top + (y * scaleY),
+    x: offsetX + (x * scaleX),
+    y: offsetY + (y * scaleY),
   })
   const rectangle = (x: number, y: number, width: number, height: number, label: string) => {
     const center = point(x, y)
@@ -101,7 +116,23 @@ function createHeroColliders({ elementRect, actRect }: FactoryStationMetrics, li
       restitution: 0.08,
     })
   }
+  const door = (
+    segment: ReturnType<typeof getHeroGateGeometry>['leftDoor'],
+    label: string,
+  ) => {
+    const pose = getHeroDoorColliderPose(segment, { scaleX, scaleY, offsetX, offsetY })
+    return Bodies.rectangle(pose.x, pose.y, pose.length, 9 * radiusScale, {
+      isStatic: true,
+      angle: pose.angle,
+      label,
+      friction: 0.12,
+      restitution: 0.08,
+    })
+  }
   const roundedEnd = point(BELT_RELEASE_X, BELT_END_CENTER_Y)
+  const gateGeometry = getHeroGateGeometry(gateProgress)
+  const leftDoor = door(gateGeometry.leftDoor, 'box-bottom-left')
+  const rightDoor = door(gateGeometry.rightDoor, 'box-bottom-right')
   const colliders: MatterBody[] = [
     Bodies.circle(roundedEnd.x, roundedEnd.y, 26 * radiusScale, {
       isStatic: true,
@@ -111,10 +142,11 @@ function createHeroColliders({ elementRect, actRect }: FactoryStationMetrics, li
     }),
     rectangle(10, 267.5, 8, 143, 'box-left'),
     rectangle(160, 267.5, 8, 143, 'box-right'),
+    leftDoor,
+    rightDoor,
   ]
 
-  if (!lineStarted) colliders.push(rectangle(85, 337, 158, 9, 'box-bottom'))
-  return colliders
+  return { colliders, doors: { left: leftDoor, right: rightDoor } }
 }
 
 function getStationMapping(station: HTMLElement) {
@@ -124,16 +156,20 @@ function getStationMapping(station: HTMLElement) {
   const actRect = act.getBoundingClientRect()
   const scaleX = Math.max(elementRect.width, 1) / VIEWBOX_WIDTH
   const scaleY = Math.max(elementRect.height, 1) / VIEWBOX_HEIGHT
+  const offsetX = elementRect.left - actRect.left
+  const offsetY = elementRect.top - actRect.top
   return {
     scaleX,
     scaleY,
+    offsetX,
+    offsetY,
     toActPoint: (x: number, y: number) => ({
-      x: elementRect.left - actRect.left + (x * scaleX),
-      y: elementRect.top - actRect.top + (y * scaleY),
+      x: offsetX + (x * scaleX),
+      y: offsetY + (y * scaleY),
     }),
     toLocalPoint: (x: number, y: number) => ({
-      x: (x - (elementRect.left - actRect.left)) / scaleX,
-      y: (y - (elementRect.top - actRect.top)) / scaleY,
+      x: (x - offsetX) / scaleX,
+      y: (y - offsetY) / scaleY,
     }),
   }
 }
@@ -160,32 +196,92 @@ const MACHINE_VISIBLE_STAGES: HeroConveyorIntroStage[] = [
 export default function HeroConveyor({ introStage }: HeroConveyorProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const stationRef = useRef<HTMLDivElement>(null)
+  const heroPartIdsRef = useRef(new Set<string>())
   const activeRef = useRef(false)
   const lineStartedRef = useRef(false)
+  const gateProgressRef = useRef(0)
+  const gateDoorBodiesRef = useRef<{ left: MatterBody; right: MatterBody } | null>(null)
+  const [gateProgress, setGateProgress] = useState(0)
   const reducedMotion = useReducedMotion() ?? false
   const isInView = useInView(svgRef, { amount: 0.15 })
   const { lineStarted } = useFactoryFlow()
   const { getPartBody, removePart, spawnPart } = useFactoryAct()
-  const shouldAnimate = isInView && !reducedMotion && introStage === 'running'
+  const shouldAnimate = shouldRunHeroPhysics({ isInView, reducedMotion, introStage })
+  const shouldFeed = shouldRunHeroFeed({ shouldAnimate, lineStarted, reducedMotion })
   const isBoxVisible = BOX_VISIBLE_STAGES.includes(introStage)
   const isMachineVisible = MACHINE_VISIBLE_STAGES.includes(introStage)
   const heroGate = getHeroGateState(lineStarted)
+  const gateGeometry = getHeroGateGeometry(heroGate.open && reducedMotion ? 1 : gateProgress)
+
+  const updateGateColliders = useCallback((progress: number) => {
+    const station = stationRef.current
+    const doors = gateDoorBodiesRef.current
+    if (!station || !doors) return
+    const mapping = getStationMapping(station)
+    if (!mapping) return
+    const geometry = getHeroGateGeometry(progress)
+    const mapped = {
+      scaleX: mapping.scaleX,
+      scaleY: mapping.scaleY,
+      offsetX: mapping.offsetX,
+      offsetY: mapping.offsetY,
+    }
+    const leftPose = getHeroDoorColliderPose(geometry.leftDoor, mapped)
+    const rightPose = getHeroDoorColliderPose(geometry.rightDoor, mapped)
+
+    Body.setPosition(doors.left, { x: leftPose.x, y: leftPose.y })
+    Body.setAngle(doors.left, leftPose.angle)
+    Body.setPosition(doors.right, { x: rightPose.x, y: rightPose.y })
+    Body.setAngle(doors.right, rightPose.angle)
+  }, [])
+
+  const buildColliders = useCallback((metrics: FactoryStationMetrics) => {
+    const result = createHeroColliders(metrics, gateProgressRef.current)
+    gateDoorBodiesRef.current = result.doors
+    return result.colliders
+  }, [])
+  useFactoryStation({ id: 'hero', elementRef: stationRef, buildColliders })
 
   useEffect(() => {
-    activeRef.current = !reducedMotion && introStage === 'running'
-    lineStartedRef.current = lineStarted
-  }, [introStage, lineStarted, reducedMotion])
+    if (!lineStarted) return
+    if (reducedMotion) {
+      gateProgressRef.current = 1
+      updateGateColliders(1)
+      return
+    }
+    let frame = 0
+    const startedAt = performance.now()
+    const animateGate = (time: number) => {
+      const rawProgress = Math.min(1, (time - startedAt) / 350)
+      const nextProgress = 1 - ((1 - rawProgress) ** 4)
+      gateProgressRef.current = nextProgress
+      updateGateColliders(nextProgress)
+      setGateProgress(nextProgress)
+      if (rawProgress < 1) frame = window.requestAnimationFrame(animateGate)
+    }
+    frame = window.requestAnimationFrame(animateGate)
+    return () => window.cancelAnimationFrame(frame)
+  }, [lineStarted, reducedMotion, updateGateColliders])
 
-  const buildColliders = useCallback(
-    (metrics: FactoryStationMetrics) => createHeroColliders(metrics, heroGate.open),
-    [heroGate.open],
-  )
-  useFactoryStation({ id: 'hero', elementRef: stationRef, buildColliders })
+  useEffect(() => {
+    activeRef.current = shouldFeed
+    lineStartedRef.current = lineStarted
+
+    for (const id of heroPartIdsRef.current) {
+      const body = getPartBody(id)
+      if (!body) {
+        heroPartIdsRef.current.delete(id)
+        continue
+      }
+      Body.setStatic(body, !shouldFeed)
+    }
+  }, [getPartBody, lineStarted, shouldFeed])
 
   useEffect(() => {
     if (!isBoxVisible) return
     const station = stationRef.current
     if (!station) return
+    const heroPartIds = heroPartIdsRef.current
     const liveParts = new Map<string, ConveyorPart>()
     let nextSequence = 0
     let frame = 0
@@ -194,10 +290,14 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
     let lastSpawnAt = -1100
 
     const addPart = (position?: PartPosition, released = false) => {
-      const spec = createHeroPartSpec(nextSequence)
       const mapping = getStationMapping(station)
       if (!mapping) return
-      const localX = position?.x ?? 455
+      const spec = {
+        ...createHeroPartSpec(nextSequence),
+        scaleX: mapping.scaleX,
+        scaleY: mapping.scaleY,
+      }
+      const localX = position?.x ?? SPAWN_X
       const localY = position?.y ?? getConveyorPartCenterY(BELT_TOP_Y, spec.shape as ConveyorPartShape, PART_CLEARANCE)
       const point = mapping.toActPoint(localX, localY)
       spawnPart(spec, {
@@ -208,7 +308,10 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
         angle: (position?.angle ?? (spec.shape === 'diamond' ? 45 : 0)) * (Math.PI / 180),
         angularVelocity: 0,
       })
-      if (!getPartBody(spec.id)) return
+      const body = getPartBody(spec.id)
+      if (!body) return
+      heroPartIds.add(spec.id)
+      Body.setStatic(body, !activeRef.current)
       liveParts.set(spec.id, {
         id: spec.id,
         sequence: nextSequence,
@@ -240,7 +343,10 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
       simulatedTime += delta
 
       for (const [id] of liveParts) {
-        if (!getPartBody(id)) liveParts.delete(id)
+        if (!getPartBody(id)) {
+          liveParts.delete(id)
+          heroPartIds.delete(id)
+        }
       }
 
       const decision = getFactorySpawnDecision({
@@ -301,7 +407,10 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
     frame = window.requestAnimationFrame(tick)
     return () => {
       window.cancelAnimationFrame(frame)
-      liveParts.forEach(({ id }) => removePart(id))
+      liveParts.forEach(({ id }) => {
+        heroPartIds.delete(id)
+        removePart(id)
+      })
     }
   }, [getPartBody, isBoxVisible, reducedMotion, removePart, spawnPart])
 
@@ -316,15 +425,26 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
         focusable="false"
       >
         <defs>
-          <linearGradient id="hero-conveyor-fade" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient
+            id="hero-conveyor-fade"
+            gradientUnits="userSpaceOnUse"
+            x1={FADE_START_X}
+            y1="0"
+            x2={VIEWBOX_WIDTH}
+            y2="0"
+          >
             <stop offset="0" stopColor="#000000" stopOpacity="0" />
             <stop offset="1" stopColor="#000000" />
           </linearGradient>
+          <clipPath id="hero-conveyor-machine-clip">
+            <rect x="0" y="0" width={VIEWBOX_WIDTH} height={VIEWBOX_HEIGHT} />
+          </clipPath>
         </defs>
 
         <g
           className="hero-conveyor__machine"
           visibility={isMachineVisible ? 'visible' : 'hidden'}
+          clipPath="url(#hero-conveyor-machine-clip)"
         >
           <path d={`M222 ${BELT_BOTTOM_Y}V210M368 ${BELT_BOTTOM_Y}V210M208 210H236M354 210H382`} />
           <rect className="hero-conveyor__belt" x="112" y="83" width="408" height="48" rx="24" />
@@ -361,13 +481,33 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
           className="hero-conveyor__machine"
           visibility={isBoxVisible ? 'visible' : 'hidden'}
         >
-          <path className="hero-conveyor__box" d="M10 196V337H160V196" />
-          {heroGate.open
-            ? <><path className="hero-conveyor__box-bottom" d="M10 337H18" /><path className="hero-conveyor__box-bottom" d="M152 337H160" /></>
-            : <path className="hero-conveyor__box-bottom" data-conveyor-bottom="true" d="M10 337H160" />}
+          <path className="hero-conveyor__box" d={gateGeometry.wallsPath} />
+          <line
+            className="hero-conveyor__box-bottom"
+            data-conveyor-door="left"
+            x1={gateGeometry.leftDoor.x1}
+            y1={gateGeometry.leftDoor.y1}
+            x2={gateGeometry.leftDoor.x2}
+            y2={gateGeometry.leftDoor.y2}
+          />
+          <line
+            className="hero-conveyor__box-bottom"
+            data-conveyor-door="right"
+            x1={gateGeometry.rightDoor.x1}
+            y1={gateGeometry.rightDoor.y1}
+            x2={gateGeometry.rightDoor.x2}
+            y2={gateGeometry.rightDoor.y2}
+          />
         </g>
 
-        <rect className="hero-conveyor__fade" x="315" y="0" width="105" height="350" fill="url(#hero-conveyor-fade)" />
+        <rect
+          className="hero-conveyor__fade"
+          x={FADE_START_X}
+          y="0"
+          width={FADE_END_X - FADE_START_X}
+          height={VIEWBOX_HEIGHT}
+          fill="url(#hero-conveyor-fade)"
+        />
       </svg>
     </div>
   )

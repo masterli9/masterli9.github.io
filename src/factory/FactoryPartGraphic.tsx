@@ -2,9 +2,16 @@ import type { FactoryPartSnapshot, FactoryPartSpec } from './factoryTypes'
 
 export function FactoryPartGraphic({ part }: { part: FactoryPartSnapshot | FactoryPartSpec }) {
   const graphic = part.shape === 'circle' || part.shape === 'radio'
-    ? <circle r={part.shape === 'radio' ? 9 : 12} fill={part.color} />
+    ? <circle r={part.shape === 'radio' ? 9 : 11} fill={part.color} />
     : part.shape === 'bar' || part.shape === 'button'
-      ? <rect x={-18} y={-8} width={36} height={16} rx={part.shape === 'button' ? 8 : 0} fill={part.color} />
+      ? <rect
+          x={part.shape === 'button' ? -18 : -15}
+          y={part.shape === 'button' ? -8 : -6.5}
+          width={part.shape === 'button' ? 36 : 30}
+          height={part.shape === 'button' ? 16 : 13}
+          rx={part.shape === 'button' ? 8 : 0}
+          fill={part.color}
+        />
       : part.shape === 'toggle'
         ? <rect x={-20} y={-10} width={40} height={20} rx={10} fill={part.color} />
         : part.shape === 'cursor'
@@ -12,6 +19,10 @@ export function FactoryPartGraphic({ part }: { part: FactoryPartSnapshot | Facto
           : part.shape === 'diamond'
             ? <rect x={-11} y={-11} width={22} height={22} fill={part.color} />
             : <rect x={-11} y={-11} width={22} height={22} fill={part.color} />
+
+  const scaledGraphic = (part.scaleX ?? 1) === 1 && (part.scaleY ?? 1) === 1
+    ? graphic
+    : <g transform={`scale(${part.scaleX ?? 1} ${part.scaleY ?? 1})`}>{graphic}</g>
 
   if ('x' in part) {
     return (
@@ -22,10 +33,10 @@ export function FactoryPartGraphic({ part }: { part: FactoryPartSnapshot | Facto
         data-factory-color={part.color}
         transform={`translate(${part.x.toFixed(2)} ${part.y.toFixed(2)}) rotate(${(part.angle * 180 / Math.PI).toFixed(2)})`}
       >
-        {graphic}
+        {scaledGraphic}
       </g>
     )
   }
 
-  return <g>{graphic}</g>
+  return <g>{scaledGraphic}</g>
 }

@@ -10,8 +10,6 @@ import {
   type RefObject,
 } from 'react'
 import {
-  Body,
-  Bodies,
   Composite,
   Engine,
   type Body as MatterBody,
@@ -33,7 +31,9 @@ import type {
   FactoryStationId,
 } from './factoryTypes'
 import { FactoryPartGraphic } from './FactoryPartGraphic'
+import { createFactoryBody } from './factoryPartPhysics'
 import { FactoryFlowProvider, useFactoryFlow } from './FactoryFlowProvider'
+import { FACTORY_STREAM_CADENCE_MS, FORMING_PRESS_ENTRY_VELOCITY_Y } from './stations/formingPressModel'
 import './factory-line.css'
 
 export interface FactoryStationMetrics {
@@ -61,29 +61,6 @@ export interface FactoryActApi {
 }
 
 const FactoryActContext = createContext<FactoryActApi | null>(null)
-
-function createFactoryBody(spec: FactoryPartSpec, snapshot: Omit<FactoryPartSnapshot, keyof FactoryPartSpec>) {
-  const options = {
-    friction: 0.16,
-    frictionAir: 0.008,
-    restitution: 0.12,
-    density: 0.0018,
-    collisionFilter: { group: -1 },
-    label: `factory-part-${spec.id}`,
-  }
-  const body = spec.shape === 'circle' || spec.shape === 'radio'
-    ? Bodies.circle(snapshot.x, snapshot.y, spec.shape === 'radio' ? 9 : 12, options)
-    : spec.shape === 'bar' || spec.shape === 'button'
-      ? Bodies.rectangle(snapshot.x, snapshot.y, spec.shape === 'button' ? 36 : 30, spec.shape === 'button' ? 16 : 13, options)
-      : spec.shape === 'toggle'
-        ? Bodies.rectangle(snapshot.x, snapshot.y, 40, 20, options)
-        : Bodies.rectangle(snapshot.x, snapshot.y, 22, 22, options)
-
-  Body.setAngle(body, snapshot.angle)
-  Body.setVelocity(body, { x: snapshot.velocityX, y: snapshot.velocityY })
-  Body.setAngularVelocity(body, snapshot.angularVelocity)
-  return body
-}
 
 interface LivePart {
   body: MatterBody
@@ -266,14 +243,16 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       const x = stationRect
         ? stationRect.left - rootRect.left + (stationRect.width / 2)
         : root.clientWidth * 0.82
-      const y = stationRect
-        ? stationRect.top - rootRect.top - 48
-        : 32
-      spawnPart(createFactoryPartSpec(sequence, 'raw'), {
+      const y = 0
+      spawnPart({
+        ...createFactoryPartSpec(sequence, 'raw'),
+        scaleX: 1.25,
+        scaleY: 1.5,
+      }, {
         x,
         y,
         velocityX: 0,
-        velocityY: 0,
+        velocityY: FORMING_PRESS_ENTRY_VELOCITY_Y,
         angle: 0,
         angularVelocity: 0,
       })
@@ -281,7 +260,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     }
     const initial = window.setTimeout(spawnAtSkillsEntry, 80)
     if (reducedMotion) return () => window.clearTimeout(initial)
-    const interval = window.setInterval(spawnAtSkillsEntry, 2200)
+    const interval = window.setInterval(spawnAtSkillsEntry, FACTORY_STREAM_CADENCE_MS)
     return () => {
       window.clearTimeout(initial)
       window.clearInterval(interval)

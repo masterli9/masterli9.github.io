@@ -750,3 +750,25 @@ test('legacy assembler slots use semantic assembly slots without changing the pa
   assert.equal(getBrowserSlot(makePart({ sequence: 99, role: 'cta', assemblySlot: 'cta' })), 'contact-action')
   assert.equal(getBrowserSlot(makePart({ role: 'visual', assemblySlot: 'visual' })), 'hero-visual')
 })
+
+test('reduced finished parts avoid the inspection arch and closed gate', async () => {
+  const { getReducedFactorySnapshot } = await import('../src/factory/factoryFlowModel.ts')
+  const { getFactoryPartDimensions } = await import('../src/factory/factoryPartPhysics.ts')
+  for (const part of getReducedFactorySnapshot('experience')) {
+    const { height } = getFactoryPartDimensions(part.shape)
+    const y = part.yRatio * 520
+    assert.ok(Math.abs(y - 244) > height / 2 + 3, `${part.role} overlaps closed gate`)
+    assert.ok(y + height / 2 < 312 || y - height / 2 > 346, `${part.role} overlaps inspection arch`)
+  }
+})
+
+test('forming press rails clear every rotated semantic body at the narrow station width', async () => {
+  const { getFormingPressGeometry } = await import('../src/factory/stations/formingPressModel.ts')
+  const { getFactoryPartDimensions } = await import('../src/factory/factoryPartPhysics.ts')
+  const geometry = getFormingPressGeometry()
+  const clearance = (geometry.rightRailX - geometry.leftRailX - 4) * 208 / 240
+  for (const shape of ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card']) {
+    const { width, height } = getFactoryPartDimensions(shape, 1.25, 1.5)
+    assert.ok(Math.hypot(width, height) < clearance, `${shape} can wedge across both rails`)
+  }
+})

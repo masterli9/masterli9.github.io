@@ -141,12 +141,12 @@
 }
 
 .forming-press__jaw--left.is-engaged {
-  transform: translateX(70.37037%);
+  transform: translateX(111.11111%);
   transition-duration: var(--forming-press-close-duration);
 }
 
 .forming-press__jaw--right.is-engaged {
-  transform: translateX(-70.37037%);
+  transform: translateX(-111.11111%);
   transition-duration: var(--forming-press-close-duration);
 }
 

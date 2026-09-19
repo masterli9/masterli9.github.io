@@ -44,11 +44,11 @@ export interface FormingPressGeometry {
 
 const FORMING_PRESS_GEOMETRY: FormingPressGeometry = {
   centerX: 120,
-  leftRailX: 82,
-  rightRailX: 158,
-  leftJaw: { x: 28, y: 229, width: 54, height: 76 },
-  rightJaw: { x: 158, y: 229, width: 54, height: 76 },
-  gate: { x1: 82, x2: 158, y: 291 },
+  leftRailX: 60,
+  rightRailX: 180,
+  leftJaw: { x: 6, y: 229, width: 54, height: 76 },
+  rightJaw: { x: 180, y: 229, width: 54, height: 76 },
+  gate: { x1: 60, x2: 180, y: 291 },
 }
 
 export function getFormingPressGeometry(): FormingPressGeometry {

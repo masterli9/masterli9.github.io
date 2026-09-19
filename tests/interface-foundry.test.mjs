@@ -483,3 +483,10 @@ test('experience renders its localized primary heading above content and station
   assert.match(translations, /sectionTitle:\s*'Zkušenosti & certifikace'/)
   assert.match(translations, /sectionTitle:\s*'Experience & Certifications'/)
 })
+
+test('forming press holds queued raw parts above its sensor throughout the active cycle', async () => {
+  const source = await read('src/factory/stations/FormingPress.tsx')
+  assert.match(source, /skills-press-intake-gate/)
+  assert.match(source, /Events.on\(engine, 'collisionActive', handleCollision\)/)
+  assert.match(source, /factoryPartSpec.stage !== 'raw'/)
+})

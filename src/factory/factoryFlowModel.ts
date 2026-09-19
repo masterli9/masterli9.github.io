@@ -133,7 +133,7 @@ export function getReducedFactorySnapshot(station: FactoryStationId): ReducedFac
   ]
   if (station === 'skills') return [createReducedPart(station, 3, 'formed', 0.5, 0.73)]
   if (station === 'experience') return [0, 1, 2, 3, 4].map((sequence) =>
-    createReducedPart(station, sequence, 'inspected', 0.5, 0.36 + sequence * 0.115))
+    createReducedPart(station, sequence, 'inspected', 0.5, [0.34, 0.43, 0.54, 0.73, 0.83][sequence]))
   if (station === 'goals') return [0, 1, 2].map((sequence) =>
     createReducedPart(station, sequence, 'inspected', 0.25 + sequence * 0.25, 0.62))
   if (station === 'contact') return [0, 1, 2, 3, 4].map((sequence) =>

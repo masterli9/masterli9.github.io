@@ -74,6 +74,9 @@ export default function FormingPress() {
       createPressRectangle(metrics, pressGeometry.rightRailX, railCenterY, 4, railHeight, 'skills-press-guide-right'),
       createPressRectangle(metrics, pressGeometry.centerX, 270, 70, 72, 'skills-press-sensor', { isSensor: true }),
     ]
+    if (activePartId) {
+      colliders.push(createPressRectangle(metrics, pressGeometry.centerX, 185, pressGeometry.rightRailX - pressGeometry.leftRailX, 5, 'skills-press-intake-gate'))
+    }
     if (!gateOpen) {
       const gateWidth = pressGeometry.gate.x2 - pressGeometry.gate.x1
       colliders.push(createPressRectangle(
@@ -86,7 +89,7 @@ export default function FormingPress() {
       ))
     }
     return colliders
-  }, [gateOpen, pressGeometry])
+  }, [activePartId, gateOpen, pressGeometry])
 
   useFactoryStation({ id: 'skills', elementRef: stationRef, buildColliders })
 
@@ -110,6 +113,7 @@ export default function FormingPress() {
             : null
         const sensor = pair.bodyA.label === 'skills-press-sensor' || pair.bodyB.label === 'skills-press-sensor'
         if (!part || !sensor || scheduledRef.current.has(part.label)) continue
+        if (part.plugin.factoryPartSpec.stage !== 'raw') continue
         const partId = getPartId(part)
         if (activePressIdRef.current && activePressIdRef.current !== partId) continue
         activePressIdRef.current = partId
@@ -132,8 +136,10 @@ export default function FormingPress() {
     }
 
     Events.on(engine, 'collisionStart', handleCollision)
+    Events.on(engine, 'collisionActive', handleCollision)
     return () => {
       Events.off(engine, 'collisionStart', handleCollision)
+      Events.off(engine, 'collisionActive', handleCollision)
       timersRef.current.forEach((timer) => window.clearTimeout(timer))
       timersRef.current = []
     }
@@ -152,6 +158,7 @@ export default function FormingPress() {
           d={`M${pressGeometry.gate.x1} ${pressGeometry.gate.y}H${pressGeometry.gate.x2}`}
           className={`factory-line__rail factory-line__rail--pink forming-press__gate${gateOpen ? ' is-open' : ''}`}
         />
+        {activePartId && <path d={`M${pressGeometry.leftRailX} 185H${pressGeometry.rightRailX}`} className="factory-line__rail factory-line__rail--white" />}
         <g className={`forming-press__jaw forming-press__jaw--left${jawsEngaged ? ' is-engaged' : ''}`}>
           <rect {...pressGeometry.leftJaw} className="factory-line__jaw" />
         </g>

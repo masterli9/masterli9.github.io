@@ -1,6 +1,6 @@
+import { getLandingPartBlueprint } from './landingPartBlueprints.ts'
 import type { Body as MatterBody } from 'matter-js'
 import type {
-  FactoryPartColor,
   FactoryPartShape,
   FactoryPartSnapshot,
   FactoryPartSpec,
@@ -9,18 +9,14 @@ import type {
 } from './factoryTypes'
 
 const RAW_SHAPES: FactoryPartShape[] = ['square', 'circle', 'bar', 'diamond']
-const RAW_COLORS: FactoryPartColor[] = ['#F21868', '#355CFF', '#FFFFFF']
-
-export function getRawFactoryPartColor(sequence: number): FactoryPartColor {
-  return RAW_COLORS[sequence % RAW_COLORS.length] ?? '#FFFFFF'
-}
-
 export function createFactoryPartSpec(sequence: number, stage: FactoryPartStage): FactoryPartSpec {
   return {
     id: `part-${sequence}`,
     sequence,
     shape: RAW_SHAPES[sequence % RAW_SHAPES.length] ?? 'square',
-    color: getRawFactoryPartColor(sequence),
+    role: getLandingPartBlueprint(sequence).role,
+    assemblySlot: getLandingPartBlueprint(sequence).assemblySlot,
+    finish: { ...getLandingPartBlueprint(sequence).finish },
     stage,
   }
 }
@@ -119,7 +115,7 @@ function createReducedPart(
   station: FactoryStationId,
   sequence: number,
   shape: FactoryPartShape,
-  color: FactoryPartColor,
+  color: string,
   stage: FactoryPartStage,
   xRatio: number,
   yRatio: number,
@@ -128,7 +124,8 @@ function createReducedPart(
     id: `reduced-${station}-${sequence}`,
     sequence,
     shape,
-    color,
+    ...getLandingPartBlueprint(sequence),
+    finish: { ...getLandingPartBlueprint(sequence).finish, fill: color },
     stage,
     xRatio,
     yRatio,

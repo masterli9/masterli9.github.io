@@ -14,20 +14,32 @@ export type FactoryPartShape =
   | 'circle'
   | 'bar'
   | 'diamond'
-  | 'button'
-  | 'cursor'
-  | 'toggle'
-  | 'radio'
+  | 'brand-mark'
+  | 'headline'
+  | 'copy-line'
+  | 'cta-button'
+  | 'visual-card'
 
-export type FactoryPartColor = '#FFFFFF' | '#F21868' | '#355CFF'
+export type FactoryPartRole = 'brand' | 'heading' | 'copy' | 'cta' | 'visual'
+export type FactoryAssemblySlot = FactoryPartRole
 
-export type FactoryPartStage = 'raw' | 'formed' | 'painted' | 'assembled'
+export interface FactoryPartFinish {
+  fill: string
+  stroke?: string
+  textColor?: string
+  text?: string
+  detailColor?: string
+}
+
+export type FactoryPartStage = 'raw' | 'formed' | 'printed' | 'inspected' | 'assembled'
 
 export interface FactoryPartSpec {
   id: string
   sequence: number
   shape: FactoryPartShape
-  color: FactoryPartColor
+  role: FactoryPartRole
+  finish: FactoryPartFinish
+  assemblySlot: FactoryAssemblySlot
   stage: FactoryPartStage
   scaleX?: number
   scaleY?: number

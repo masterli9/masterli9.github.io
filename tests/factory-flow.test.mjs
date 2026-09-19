@@ -4,19 +4,30 @@ import Matter from 'matter-js'
 
 const { Body, Bodies, Composite, Engine, Events } = Matter
 
-test('the factory stream repeats a deterministic raw part sequence', async () => {
-  const model = await import('../src/factory/factoryFlowModel.ts').catch(() => ({}))
-  assert.equal(typeof model.createFactoryPartSpec, 'function')
-  assert.deepEqual(
-    [0, 1, 2, 3, 4].map((sequence) => model.createFactoryPartSpec(sequence, 'raw')),
-    [
-      { id: 'part-0', sequence: 0, shape: 'square', color: '#F21868', stage: 'raw' },
-      { id: 'part-1', sequence: 1, shape: 'circle', color: '#355CFF', stage: 'raw' },
-      { id: 'part-2', sequence: 2, shape: 'bar', color: '#FFFFFF', stage: 'raw' },
-      { id: 'part-3', sequence: 3, shape: 'diamond', color: '#F21868', stage: 'raw' },
-      { id: 'part-4', sequence: 4, shape: 'square', color: '#355CFF', stage: 'raw' },
-    ],
-  )
+const makePart = (overrides = {}) => ({
+  id: 'test-part', sequence: 0, role: 'brand', shape: 'square', stage: 'raw',
+  assemblySlot: 'brand', finish: { fill: '#FFFFFF', stroke: '#FFFFFF', detailColor: '#355CFF' },
+  ...overrides,
+})
+
+test('the factory repeats five stable landing-page blueprints', async () => {
+  const { createFactoryPartSpec } = await import('../src/factory/factoryFlowModel.ts')
+  const parts = [0, 1, 2, 3, 4, 5].map((n) => createFactoryPartSpec(n, 'raw'))
+  assert.deepEqual(parts.map(({ role }) => role), ['brand', 'heading', 'copy', 'cta', 'visual', 'brand'])
+  assert.equal(parts[0].assemblySlot, 'brand')
+  assert.equal(parts[1].finish.text, 'NOVA')
+  assert.equal(parts[2].finish.text, 'Ideas in motion.')
+  assert.equal(parts[3].finish.text, 'Explore')
+  assert.equal(parts[4].finish.text, undefined)
+  assert.deepEqual(parts.slice(0, 4).map(({ shape }) => shape), ['square', 'circle', 'bar', 'diamond'])
+})
+
+test('a finish recipe preserves arbitrary valid colors', async () => {
+  const { getLandingPartBlueprint } = await import('../src/factory/landingPartBlueprints.ts')
+  assert.deepEqual(getLandingPartBlueprint(3).finish, {
+    fill: '#C7FF43', stroke: '#C7FF43', textColor: '#090909', text: 'Explore',
+  })
+  assert.equal(getLandingPartBlueprint(-1).role, 'visual')
 })
 
 test('the waiting box caps at thirty but a started line obeys only the active pool limit', async () => {
@@ -229,7 +240,7 @@ test('the statement spoon changes material without injecting velocity', async ()
       id: 'passive-spoon-part',
       sequence: 0,
       shape: 'square',
-      color: '#FFFFFF',
+      role: 'brand', assemblySlot: 'brand', finish: { fill: '#FFFFFF' },
       stage: 'raw',
     },
     {
@@ -314,11 +325,11 @@ test('the Statement platform material releases stacked parts without injecting v
 
   const platform = model.getReboundPlatformGeometry({ left: 0, top: 0, width: 360, height: 480 }).platform
   const lower = partPhysics.createFactoryBody(
-    { id: 'stack-lower', sequence: 0, shape: 'square', color: '#FFFFFF', stage: 'raw' },
+    makePart({ id: 'stack-lower', sequence: 0 }),
     { x: 0, y: 0, velocityX: 2, velocityY: 3, angle: 0, angularVelocity: 0 },
   )
   const upper = partPhysics.createFactoryBody(
-    { id: 'stack-upper', sequence: 1, shape: 'square', color: '#FFFFFF', stage: 'raw' },
+    makePart({ id: 'stack-upper', sequence: 1 }),
     { x: 0, y: -22, velocityX: 1, velocityY: 2, angle: 0, angularVelocity: 0 },
   )
 
@@ -351,7 +362,7 @@ test('the Statement route resets platform material before the visible spoon coll
   assert.ok(sensor.position.x < firstSpoonCollider.position.x)
 
   const part = partPhysics.createFactoryBody(
-    { id: 'material-transition', sequence: 0, shape: 'square', color: '#FFFFFF', stage: 'raw' },
+    makePart({ id: 'material-transition', sequence: 0 }),
     { x: 0, y: 0, velocityX: 3, velocityY: 4, angle: 0, angularVelocity: 0 },
   )
   physics.applyStatementPlatformMaterial(part, station.platform)
@@ -399,7 +410,7 @@ test('the full passive Statement route gives every shape launch speed and crosse
         id: `spoon-part-${shape}`,
         sequence: index,
         shape,
-        color: '#FFFFFF',
+        role: 'brand', assemblySlot: 'brand', finish: { fill: '#FFFFFF' },
         stage: 'raw',
         scaleX: 1.25,
         scaleY: 1.5,
@@ -650,11 +661,11 @@ test('factory parts collide with one another while sharing the same act', async 
 
   const engine = Engine.create({ gravity: { x: 0, y: 0 } })
   const left = physics.createFactoryBody(
-    { id: 'left', sequence: 0, shape: 'square', color: '#FFFFFF', stage: 'raw' },
+    makePart({ id: 'left', sequence: 0 }),
     { x: 100, y: 100, velocityX: 1, velocityY: 0, angle: 0, angularVelocity: 0 },
   )
   const right = physics.createFactoryBody(
-    { id: 'right', sequence: 1, shape: 'square', color: '#FFFFFF', stage: 'raw' },
+    makePart({ id: 'right', sequence: 1 }),
     { x: 120, y: 100, velocityX: -1, velocityY: 0, angle: 0, angularVelocity: 0 },
   )
   let partCollision = false

@@ -735,3 +735,18 @@ test('semantic body rebuild preserves the complete part and motion snapshot', as
   assert.deepEqual(physics.getFactoryPartDimensions('cta-button'), { width: 54, height: 22 })
   assert.deepEqual(physics.getFactoryPartDimensions('copy-line'), { width: 68, height: 16 })
 })
+
+test('reduced motion shows the same five finished semantic roles', async () => {
+  const { getReducedFactorySnapshot, createFactoryPartSpec } = await import('../src/factory/factoryFlowModel.ts')
+  const snapshots = getReducedFactorySnapshot('experience')
+  assert.deepEqual(snapshots.map(({ role }) => role), ['brand', 'heading', 'copy', 'cta', 'visual'])
+  assert.ok(snapshots.every(({ stage }) => stage === 'inspected'))
+  assert.deepEqual(snapshots.map(({ shape }) => shape), ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card'])
+  for (const part of snapshots) assert.deepEqual(part.finish, createFactoryPartSpec(part.sequence, 'raw').finish)
+})
+
+test('legacy assembler slots use semantic assembly slots without changing the part', async () => {
+  const { getBrowserSlot } = await import('../src/factory/stations/finalAssemblerModel.ts')
+  assert.equal(getBrowserSlot(makePart({ sequence: 99, role: 'cta', assemblySlot: 'cta' })), 'contact-action')
+  assert.equal(getBrowserSlot(makePart({ role: 'visual', assemblySlot: 'visual' })), 'hero-visual')
+})

@@ -69,11 +69,8 @@ function getPartId(body: MatterBody) {
   return body.label.replace(/^factory-part-/, '')
 }
 
-function getSequence(partId: string) {
-  return Number(partId.replace('part-', ''))
-}
-
 export default function FinalAssembler() {
+  const [placedSlots, setPlacedSlots] = useState<Record<string, BrowserSlot>>({})
   const stationRef = useRef<HTMLDivElement>(null)
   const capturedRef = useRef(new Set<string>())
   const constraintsRef = useRef(new Map<string, Matter.Constraint>())
@@ -116,8 +113,7 @@ export default function FinalAssembler() {
       const partId = getPartId(part)
       if (!captureEnabled || capturedRef.current.has(partId)) return
       capturedRef.current.add(partId)
-      const sequence = getSequence(partId)
-      const slot = getBrowserSlot(sequence)
+      const slot = getBrowserSlot(part.plugin.factoryPartSpec)
       const station = stationRef.current
       if (!station) return
       const act = station.closest<HTMLElement>('[data-factory-act]')
@@ -145,6 +141,7 @@ export default function FinalAssembler() {
         constraintsRef.current.delete(partId)
         const nextState = advanceAssembly(assemblyRef.current, partId)
         assemblyRef.current = nextState
+        setPlacedSlots((current) => ({ ...current, [partId]: slot }))
         setAssemblyState(nextState)
         updatePartSpec(partId, { stage: 'assembled' })
         if (nextState.assembled) markFinalWebsiteAssembled()
@@ -190,8 +187,7 @@ export default function FinalAssembler() {
         <rect x="40" y="180" width="240" height="220" className="factory-line__browser-frame" />
         <path d="M58 236H262" className="factory-line__rail factory-line__rail--blue" />
         {assemblyState.placedIds.map((id) => {
-          const sequence = getSequence(id)
-          const slot = getBrowserSlot(sequence)
+          const slot = placedSlots[id]
           const point = SLOT_POINTS[slot]
           return <circle key={id} cx={point.x} cy={point.y} r="10" className="factory-line__assembled-part" />
         })}

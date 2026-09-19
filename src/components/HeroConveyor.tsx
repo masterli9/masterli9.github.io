@@ -4,7 +4,6 @@ import { Body, Bodies, type Body as MatterBody } from 'matter-js'
 import {
   createFactoryPartSpec,
   getFactoryActiveLimit,
-  getRawFactoryPartColor,
   getFactorySpawnDecision,
 } from '../factory/factoryFlowModel'
 import {
@@ -93,7 +92,6 @@ function createHeroPartSpec(sequence: number): FactoryPartSpec {
   return {
     ...base,
     shape: PART_SHAPES[sequence % PART_SHAPES.length] ?? 'square',
-    color: getRawFactoryPartColor(sequence),
   }
 }
 

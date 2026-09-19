@@ -114,57 +114,30 @@ export interface ReducedFactoryPartSnapshot extends FactoryPartSpec {
 function createReducedPart(
   station: FactoryStationId,
   sequence: number,
-  shape: FactoryPartShape,
-  color: string,
   stage: FactoryPartStage,
   xRatio: number,
   yRatio: number,
 ): ReducedFactoryPartSnapshot {
   return {
+    ...createFactoryPartSpec(sequence, stage),
+    shape: stage === 'raw' ? RAW_SHAPES[sequence % RAW_SHAPES.length] : getLandingPartBlueprint(sequence).shape,
     id: `reduced-${station}-${sequence}`,
-    sequence,
-    shape,
-    ...getLandingPartBlueprint(sequence),
-    finish: { ...getLandingPartBlueprint(sequence).finish, fill: color },
-    stage,
-    xRatio,
-    yRatio,
-    angle: 0,
+    xRatio, yRatio, angle: 0,
   }
 }
 
 export function getReducedFactorySnapshot(station: FactoryStationId): ReducedFactoryPartSnapshot[] {
-  if (station === 'statement') {
-    return [
-      createReducedPart(station, 0, 'button', '#F21868', 'formed', 0.43, 0.68),
-      createReducedPart(station, 1, 'cursor', '#355CFF', 'formed', 0.62, 0.78),
-    ]
-  }
-  if (station === 'skills') {
-    return [createReducedPart(station, 0, 'button', '#FFFFFF', 'formed', 0.5, 0.73)]
-  }
-  if (station === 'experience') {
-    return [
-      createReducedPart(station, 0, 'button', '#FFFFFF', 'painted', 0.42, 0.74),
-      createReducedPart(station, 1, 'cursor', '#F21868', 'painted', 0.58, 0.82),
-    ]
-  }
-  if (station === 'goals') {
-    return [
-      createReducedPart(station, 0, 'radio', '#FFFFFF', 'painted', 0.25, 0.62),
-      createReducedPart(station, 1, 'radio', '#F21868', 'painted', 0.5, 0.62),
-      createReducedPart(station, 2, 'radio', '#355CFF', 'painted', 0.75, 0.62),
-    ]
-  }
-  if (station === 'contact') {
-    return [
-      createReducedPart(station, 0, 'button', '#FFFFFF', 'assembled', 0.2875, 0.5346),
-      createReducedPart(station, 1, 'cursor', '#FFFFFF', 'assembled', 0.4, 0.5346),
-      createReducedPart(station, 2, 'toggle', '#F21868', 'assembled', 0.5125, 0.5346),
-      createReducedPart(station, 3, 'radio', '#355CFF', 'assembled', 0.625, 0.5346),
-      createReducedPart(station, 4, 'square', '#FFFFFF', 'assembled', 0.7375, 0.5346),
-    ]
-  }
+  if (station === 'statement') return [
+    createReducedPart(station, 0, 'raw', 0.43, 0.68),
+    createReducedPart(station, 1, 'raw', 0.62, 0.78),
+  ]
+  if (station === 'skills') return [createReducedPart(station, 3, 'formed', 0.5, 0.73)]
+  if (station === 'experience') return [0, 1, 2, 3, 4].map((sequence) =>
+    createReducedPart(station, sequence, 'inspected', 0.5, 0.36 + sequence * 0.115))
+  if (station === 'goals') return [0, 1, 2].map((sequence) =>
+    createReducedPart(station, sequence, 'inspected', 0.25 + sequence * 0.25, 0.62))
+  if (station === 'contact') return [0, 1, 2, 3, 4].map((sequence) =>
+    createReducedPart(station, sequence, 'assembled', 0.5, 0.51 + sequence * 0.058))
   return []
 }
 

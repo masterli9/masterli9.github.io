@@ -101,7 +101,7 @@ export const translations = {
 
     // Experience Section
     experience: {
-      sectionTitle: 'Zkušenosti',
+      sectionTitle: 'Zkušenosti & certifikace',
       certTitle: 'Certifikace & Úspěchy',
       items: [
         {
@@ -324,7 +324,7 @@ export const translations = {
 
     // Experience Section
     experience: {
-      sectionTitle: 'Experience',
+      sectionTitle: 'Experience & Certifications',
       certTitle: 'Certifications & Achievements',
       items: [
         {

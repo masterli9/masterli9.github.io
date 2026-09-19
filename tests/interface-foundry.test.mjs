@@ -474,3 +474,12 @@ test('paint inspection uses two recipe-driven heads and a separate inspection ar
   assert.doesNotMatch(station, /PAINT_COLORS|experience-paint-zone/)
   assert.match(css, /prefers-reduced-motion: reduce[\s\S]*\.paint-spray[\s\S]*animation: none/)
 })
+
+test('experience renders its localized primary heading above content and station', async () => {
+  const experience = await read('src/components/Experience.tsx')
+  const translations = await read('src/i18n/translations.ts')
+  assert.match(experience, /t\.experience\.sectionTitle/)
+  assert.ok(experience.indexOf('t.experience.sectionTitle') < experience.indexOf('<PaintInspectionStation'))
+  assert.match(translations, /sectionTitle:\s*'Zkušenosti & certifikace'/)
+  assert.match(translations, /sectionTitle:\s*'Experience & Certifications'/)
+})

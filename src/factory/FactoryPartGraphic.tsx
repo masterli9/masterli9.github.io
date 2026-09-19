@@ -4,8 +4,8 @@ import { getFactoryPartDimensions } from './factoryPartPhysics'
 export function FactoryPartGraphic({ part }: { part: FactoryPartSnapshot | FactoryPartSpec }) {
   const finished = part.stage === 'printed' || part.stage === 'inspected' || part.stage === 'assembled'
   const dimensions = getFactoryPartDimensions(part.shape)
-  const fill = finished ? part.finish.fill : 'none'
-  const stroke = finished ? part.finish.stroke ?? 'none' : '#FFFFFF'
+  const fill = finished || part.coated ? part.finish.fill : 'none'
+  const stroke = finished || part.coated ? part.finish.stroke ?? 'none' : '#FFFFFF'
   const radius = part.shape === 'cta-button' ? 11
     : part.shape === 'brand-mark' ? 4
       : part.shape === 'visual-card' ? 3

@@ -589,13 +589,40 @@ test('the forming press finishes one shaping cycle before the next Hero-paced pa
   assert.ok(model.FORMING_PRESS_TIMING.resetAt < model.FACTORY_STREAM_CADENCE_MS)
 })
 
-test('paint colors repeat white, pink, and blue without changing part identity', async () => {
-  const model = await import('../src/factory/stations/paintInspectionModel.ts').catch(() => ({}))
-  assert.deepEqual([0, 1, 2, 3].map(model.getPaintColor), ['#FFFFFF', '#F21868', '#355CFF', '#FFFFFF'])
-  assert.deepEqual(
-    model.advanceInspection({ id: 'part-4', sequence: 4, shape: 'button', color: '#F21868', stage: 'formed' }, true),
-    { id: 'part-4', sequence: 4, shape: 'button', color: '#F21868', stage: 'painted' },
-  )
+test('the finishing station applies fill then print then inspection without changing identity', async () => {
+  const m = await import('../src/factory/stations/paintInspectionModel.ts')
+  const part = makePart({ id: 'cta-7', sequence: 7, role: 'cta', shape: 'cta-button', stage: 'formed', assemblySlot: 'cta', finish: { fill: 'hsl(80 100% 63%)', text: 'Explore', textColor: '#090909' } })
+  let state = m.createPaintInspectionState(part)
+  assert.equal(m.advancePaintInspection(state, 'inspection-complete'), state)
+  state = m.advancePaintInspection(state, 'capture')
+  assert.equal(state.phase, 'captured')
+  state = m.advancePaintInspection(state, 'coat-start')
+  assert.equal(state.phase, 'coating')
+  state = m.advancePaintInspection(state, 'coat-complete')
+  assert.equal(state.phase, 'printing')
+  assert.equal(state.part.stage, 'formed')
+  assert.equal(state.part.coated, true)
+  state = m.advancePaintInspection(state, 'print-complete')
+  assert.equal(state.part.stage, 'printed')
+  state = m.advancePaintInspection(state, 'inspection-complete')
+  assert.equal(state.phase, 'released')
+  assert.deepEqual(state.part, { ...part, coated: true, stage: 'inspected' })
+  assert.equal(part.stage, 'formed')
+})
+
+test('a part without text skips the print-head phase unless it has graphic detail', async () => {
+  const m = await import('../src/factory/stations/paintInspectionModel.ts')
+  for (const [finish, expected] of [[{ fill: '#355CFF' }, 'inspecting'], [{ fill: '#355CFF', detailColor: 'rebeccapurple' }, 'printing']]) {
+    let state = m.advancePaintInspection(m.createPaintInspectionState(makePart({ stage: 'formed', finish })), 'capture')
+    state = m.advancePaintInspection(state, 'coat-complete')
+    assert.equal(state.phase, expected)
+  }
+})
+
+test('the paint station refuses a second active part until release', async () => {
+  const m = await import('../src/factory/stations/paintInspectionModel.ts')
+  assert.equal(m.canCapturePaintPart(null), true)
+  assert.equal(m.canCapturePaintPart('part-1'), false)
 })
 
 test('the goals sorter distributes parts across three lanes that share one exit', async () => {

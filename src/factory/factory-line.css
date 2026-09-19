@@ -104,11 +104,7 @@
   fill: var(--color-soft-white);
 }
 
-.factory-line__paint-zone {
-  fill: none;
-  stroke: var(--color-signal-pink);
-  stroke-width: 3.5;
-}
+
 
 .factory-line__browser-frame {
   fill: none;
@@ -211,4 +207,28 @@
   .forming-press__gate {
     transition-duration: 0.01ms;
   }
+}
+
+.paint-head > rect { fill: #090909; stroke: #FFFFFF; stroke-width: 2; }
+.paint-head__indicator { stroke-width: 4; stroke-linecap: round; }
+.paint-head--coat { --head-color: var(--coat-color); }
+.paint-head--print { --head-color: var(--print-color); }
+.paint-head__indicator, .paint-spray, .print-spray { stroke: var(--head-color); }
+.paint-spray, .print-spray { fill: none; stroke-width: 3; stroke-linecap: round; opacity: 0; transform-origin: 130px 120px; }
+.paint-head.is-active .paint-spray, .paint-head.is-active .print-spray { animation: factory-spray 300ms ease-out both; }
+@keyframes factory-spray {
+  0% { opacity: 0; transform: scaleY(0.05); }
+  30%, 85% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1); }
+}
+.paint-inspection__gate, .paint-inspection__intake { transform-box: fill-box; transform-origin: right center; transition: transform 140ms ease-out; }
+.paint-inspection__gate.is-open, .paint-inspection__intake { transform: scaleX(0); }
+.paint-inspection__intake.is-closed { transform: scaleX(1); }
+.paint-inspection__arch { fill: none; stroke: #355CFF; stroke-width: 3; }
+.paint-inspection__scan { opacity: 0; }
+.paint-inspection__arch.is-active .paint-inspection__scan { animation: factory-inspection 180ms ease-out both; }
+@keyframes factory-inspection { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .paint-spray, .print-spray, .paint-inspection__scan { animation: none !important; opacity: 0; }
+  .paint-inspection__gate, .paint-inspection__intake { transition: none; }
 }

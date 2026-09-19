@@ -41,6 +41,8 @@ export interface FactoryPartSpec {
   finish: FactoryPartFinish
   assemblySlot: FactoryAssemblySlot
   stage: FactoryPartStage
+  /** Fill is applied before optional text/detail printing. */
+  coated?: boolean
   scaleX?: number
   scaleY?: number
 }

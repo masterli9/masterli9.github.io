@@ -466,3 +466,11 @@ test('factory part graphic reveals semantic finishes only after printing', async
   assert.match(graphic, /finished && part.finish.text/)
   assert.match(graphic, /textAnchor="middle" dominantBaseline="central"/)
 })
+
+test('paint inspection uses two recipe-driven heads and a separate inspection arch', async () => {
+  const station = await read('src/factory/stations/PaintInspectionStation.tsx')
+  const css = await read('src/factory/factory-line.css')
+  for (const token of ['paint-head--coat', 'paint-head--print', 'part.finish', 'paint-inspection__arch', 'activePartIdRef']) assert.ok(station.includes(token), token)
+  assert.doesNotMatch(station, /PAINT_COLORS|experience-paint-zone/)
+  assert.match(css, /prefers-reduced-motion: reduce[\s\S]*\.paint-spray[\s\S]*animation: none/)
+})

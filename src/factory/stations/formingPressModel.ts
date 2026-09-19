@@ -1,3 +1,4 @@
+import { getLandingPartBlueprint } from '../landingPartBlueprints.ts'
 import type { FactoryPartShape } from '../factoryTypes'
 
 export type FormingPressPhase = 'falling' | 'sensed' | 'clamped' | 'revealed' | 'released'
@@ -64,10 +65,8 @@ export function getFormingPressMotion(phase: FormingPressPhase) {
   }
 }
 
-const FORMED_SHAPES = ['button', 'cursor', 'toggle', 'radio'] as const
-
 export function getFormedShape(sequence: number) {
-  return FORMED_SHAPES[sequence % FORMED_SHAPES.length] ?? 'button'
+  return getLandingPartBlueprint(sequence).shape
 }
 
 export function advanceFormingPress(state: FormingPressState, event: FormingPressEvent): FormingPressState {

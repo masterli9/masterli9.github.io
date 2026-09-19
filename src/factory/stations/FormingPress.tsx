@@ -114,7 +114,7 @@ export default function FormingPress() {
         if (activePressIdRef.current && activePressIdRef.current !== partId) continue
         activePressIdRef.current = partId
         setActivePartId(partId)
-        statesRef.current.set(partId, { phase: 'falling', sequence: Number(partId.replace('part-', '')), shape: 'square' })
+        statesRef.current.set(partId, { phase: 'falling', sequence: part.plugin.factoryPartSpec.sequence, shape: part.plugin.factoryPartSpec.shape })
         transition(partId, 'sensor-enter')
         scheduledRef.current.add(part.label)
         const closeTimer = window.setTimeout(() => transition(partId, 'jaws-closed'), FORMING_PRESS_TIMING.closeAt)

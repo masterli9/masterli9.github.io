@@ -458,3 +458,11 @@ test('the visual system uses the approved tokens and local Instrument Sans font'
   assert.doesNotMatch(css, /noise-overlay|linear-gradient|box-shadow|drop-shadow/)
   assert.doesNotMatch(css, /#050505|#F7F7F5|#777777/i)
 })
+
+test('factory part graphic reveals semantic finishes only after printing', async () => {
+  const graphic = await read('src/factory/FactoryPartGraphic.tsx')
+  assert.match(graphic, /part.stage === 'printed'.*part.stage === 'inspected'.*part.stage === 'assembled'/)
+  for (const shape of ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card']) assert.ok(graphic.includes(shape))
+  assert.match(graphic, /finished && part.finish.text/)
+  assert.match(graphic, /textAnchor="middle" dominantBaseline="central"/)
+})

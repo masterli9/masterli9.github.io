@@ -59,7 +59,7 @@ export interface FactoryActApi {
   getPartBody: (id: string) => MatterBody | undefined
   removePart: (id: string) => void
   fadeOutPart: (id: string) => void
-  updatePartSpec: (id: string, patch: Partial<Pick<FactoryPartSpec, 'shape' | 'color' | 'stage'>>) => void
+  updatePartSpec: (id: string, patch: Partial<Pick<FactoryPartSpec, 'shape' | 'stage' | 'role' | 'finish' | 'assemblySlot'>>) => void
 }
 
 const FactoryActContext = createContext<FactoryActApi | null>(null)
@@ -155,7 +155,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     }, FACTORY_PART_FADE_OUT_MS)
   }, [engine, refreshRenderedParts])
 
-  const updatePartSpec = useCallback((id: string, patch: Partial<Pick<FactoryPartSpec, 'shape' | 'color' | 'stage'>>) => {
+  const updatePartSpec = useCallback((id: string, patch: Partial<Pick<FactoryPartSpec, 'shape' | 'stage' | 'role' | 'finish' | 'assemblySlot'>>) => {
     const livePart = partsRef.current.get(id)
     if (!livePart) return
     const snapshot = serializeFactoryPart(livePart.body, livePart.spec)
@@ -314,7 +314,9 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
             id: snapshot.id,
             sequence: snapshot.sequence,
             shape: snapshot.shape,
-            color: snapshot.color,
+            role: snapshot.role,
+            finish: snapshot.finish,
+            assemblySlot: snapshot.assemblySlot,
             stage: snapshot.stage,
           }
           const body = createFactoryBody(spec, {

@@ -534,7 +534,7 @@ test('the forming press senses, covers, transforms, reveals, and releases one pa
   state = model.advanceFormingPress(state, 'sensor-enter')
   assert.equal(state.phase, 'sensed')
   state = model.advanceFormingPress(state, 'jaws-closed')
-  assert.deepEqual(state, { phase: 'clamped', sequence: 2, shape: 'toggle' })
+  assert.deepEqual(state, { phase: 'clamped', sequence: 2, shape: 'copy-line' })
   state = model.advanceFormingPress(state, 'jaws-open')
   assert.equal(state.phase, 'revealed')
   state = model.advanceFormingPress(state, 'gate-open')
@@ -689,4 +689,22 @@ test('raw factory parts preserve the original Hero conveyor dimensions at its re
   assert.deepEqual(physics.getFactoryPartDimensions('square', 1.25, 1.5), { width: 27.5, height: 33 })
   assert.deepEqual(physics.getFactoryPartDimensions('circle', 1.25, 1.5), { radius: 13.75 })
   assert.deepEqual(physics.getFactoryPartDimensions('bar', 1.25, 1.5), { width: 37.5, height: 19.5 })
+})
+
+test('the forming press reveals the five landing-page element shapes', async () => {
+  const { getFormedShape } = await import('../src/factory/stations/formingPressModel.ts')
+  assert.deepEqual([0, 1, 2, 3, 4, 5].map(getFormedShape), ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card', 'brand-mark'])
+})
+
+test('semantic body rebuild preserves the complete part and motion snapshot', async () => {
+  const physics = await import('../src/factory/factoryPartPhysics.ts')
+  const { serializeFactoryPart } = await import('../src/factory/factoryFlowModel.ts')
+  const part = makePart({ role: 'cta', shape: 'cta-button', stage: 'formed', assemblySlot: 'cta', finish: { fill: 'hsl(80 100% 63%)', text: 'Explore', textColor: '#090909' } })
+  const motion = { x: 40, y: 50, velocityX: 2, velocityY: 3, angle: 0.2, angularVelocity: 0.1 }
+  const body = physics.createFactoryBody(part, motion)
+  const rebuilt = physics.createFactoryBody(part, serializeFactoryPart(body, part))
+  assert.deepEqual(rebuilt.plugin.factoryPartSpec, part)
+  assert.deepEqual(serializeFactoryPart(rebuilt, part), { ...part, ...motion })
+  assert.deepEqual(physics.getFactoryPartDimensions('cta-button'), { width: 54, height: 22 })
+  assert.deepEqual(physics.getFactoryPartDimensions('copy-line'), { width: 68, height: 16 })
 })

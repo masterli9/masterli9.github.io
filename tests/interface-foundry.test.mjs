@@ -12,23 +12,23 @@ test('the hero timeline restores the measured cadence around its focal beats', a
   })
 
   assert.deepEqual(timeline.name.map(({ word, revealAt }) => [word, revealAt]), [
-    ['Andrej', 0.45],
-    ['Zdvořák', 0.68],
+    ['Andrej', 0.18],
+    ['Zdvořák', 0.32],
   ])
   assert.deepEqual(timeline.subtitle, [
-    { word: 'Student', revealAt: 0.91, accent: '#355CFF', fadeAt: 1.34 },
-    { word: '&', revealAt: 1.38, accent: '#FFFFFF' },
-    { word: 'developer', revealAt: 1.61, accent: '#F21868', fadeAt: 2.04 },
+    { word: 'Student', revealAt: 0.48, accent: '#355CFF', fadeAt: 0.78 },
+    { word: '&', revealAt: 0.68, accent: '#FFFFFF' },
+    { word: 'developer', revealAt: 0.84, accent: '#F21868', fadeAt: 1.14 },
   ])
   assert.deepEqual(timeline.buildPrefix.map(({ word, revealAt }) => [word, revealAt]), [
-    ['I', 2.11],
-    ['build', 2.27],
+    ['I', 1.3],
+    ['build', 1.4],
   ])
-  assert.equal(timeline.buildItemRevealAt, 2.43)
-  assert.equal(timeline.rotationStartAt, 5.65)
+  assert.equal(timeline.buildItemRevealAt, 1.48)
+  assert.equal(timeline.rotationStartAt, 3.6)
 })
 
-test('the conveyor appears as box, stopped machine, then running machine after fixed pauses', async () => {
+test('the conveyor reveals its box before the machine and starts the payload with the belt', async () => {
   const { createHeroConveyorIntroSchedule, createHeroTimeline } = await import('../src/components/heroTimeline.ts')
   const timeline = createHeroTimeline({
     name: 'Andrej Zdvořák',
@@ -37,14 +37,22 @@ test('the conveyor appears as box, stopped machine, then running machine after f
   })
 
   assert.deepEqual(createHeroConveyorIntroSchedule(timeline), [
-    { at: 2.85, stage: 'box-flash-on' },
-    { at: 2.9, stage: 'box-flash-off' },
-    { at: 2.97, stage: 'box-visible' },
-    { at: 3.42, stage: 'machine-flash-on' },
-    { at: 3.47, stage: 'machine-flash-off' },
-    { at: 3.54, stage: 'machine-visible' },
-    { at: 3.99, stage: 'running' },
+    { at: 0.28, stage: 'box-flash-on' },
+    { at: 0.33, stage: 'box-flash-off' },
+    { at: 0.4, stage: 'box-visible' },
+    { at: 0.85, stage: 'machine-flash-on' },
+    { at: 0.9, stage: 'machine-flash-off' },
+    { at: 0.97, stage: 'machine-visible' },
+    { at: 1.42, stage: 'running' },
   ])
+})
+
+test('the hero seeds starter parts only once the conveyor itself is visible', async () => {
+  const heroConveyor = await read('src/components/HeroConveyor.tsx')
+
+  assert.match(heroConveyor, /const isConveyorVisible = introStage === 'machine-visible' \|\| introStage === 'running'/)
+  assert.match(heroConveyor, /if \(!isConveyorVisible\) return/)
+  assert.match(heroConveyor, /\[getPartBody, isConveyorVisible, reducedMotion, removePart, spawnPart\]/)
 })
 
 test('translated hero words keep stable identities and skip the intro after mount', async () => {
@@ -122,14 +130,15 @@ test('the Hero physics runs only after its intro while the conveyor is in view',
   assert.equal(conveyor.shouldRunHeroPhysics({ isInView: true, reducedMotion: true, introStage: 'running' }), false)
 })
 
-test('an activated Hero feed keeps controlling belt parts after the Hero leaves view', async () => {
+test('an activated Hero feed keeps controlling belt parts only while its physics act is active', async () => {
   const conveyor = await import('../src/components/heroConveyorModel.ts').catch(() => ({}))
   assert.equal(typeof conveyor.shouldRunHeroFeed, 'function')
 
-  assert.equal(conveyor.shouldRunHeroFeed({ shouldAnimate: true, lineStarted: false, reducedMotion: false }), true)
-  assert.equal(conveyor.shouldRunHeroFeed({ shouldAnimate: false, lineStarted: false, reducedMotion: false }), false)
-  assert.equal(conveyor.shouldRunHeroFeed({ shouldAnimate: false, lineStarted: true, reducedMotion: false }), true)
-  assert.equal(conveyor.shouldRunHeroFeed({ shouldAnimate: true, lineStarted: true, reducedMotion: true }), false)
+  assert.equal(conveyor.shouldRunHeroFeed({ actActive: true, shouldAnimate: true, lineStarted: false, reducedMotion: false }), true)
+  assert.equal(conveyor.shouldRunHeroFeed({ actActive: true, shouldAnimate: false, lineStarted: false, reducedMotion: false }), false)
+  assert.equal(conveyor.shouldRunHeroFeed({ actActive: true, shouldAnimate: false, lineStarted: true, reducedMotion: false }), true)
+  assert.equal(conveyor.shouldRunHeroFeed({ actActive: false, shouldAnimate: false, lineStarted: true, reducedMotion: false }), false)
+  assert.equal(conveyor.shouldRunHeroFeed({ actActive: true, shouldAnimate: true, lineStarted: true, reducedMotion: true }), false)
 })
 
 test('the opaque Hero occluder covers the full width of a newly spawned part', async () => {
@@ -146,6 +155,19 @@ test('the conveyor releases a part as it reaches the rounded belt end', async ()
   assert.equal(conveyor.shouldReleaseConveyorPart(147, 146), false)
   assert.equal(conveyor.shouldReleaseConveyorPart(146, 146), true)
   assert.equal(conveyor.shouldReleaseConveyorPart(132, 146), true)
+})
+
+test('hero starter parts are placed on the visible belt before the feed begins', async () => {
+  const conveyor = await import('../src/components/heroConveyorModel.ts')
+
+  const starterParts = ['square', 'circle', 'bar', 'diamond'].map((shape, index) => (
+    conveyor.getHeroStarterPosition(index, shape)
+  ))
+
+  assert.deepEqual(starterParts.map(({ x }) => x), [176, 232, 288, 344])
+  assert.deepEqual(starterParts.map(({ y }) => y), [70, 70, 74.5, 65.44365081389595])
+  assert.deepEqual(starterParts.map(({ angle }) => angle), [0, 0, 0, 45])
+  assert.ok(starterParts.every(({ x }) => x > 112 && x < 420))
 })
 
 test('the release point sits above the rounded end center instead of its right-hand slope', async () => {
@@ -249,7 +271,8 @@ test('the page separates two physics acts with the white about section', async (
   assert.match(source, /<FactoryFlowProvider>/)
   assert.match(source, /<FactoryAct id="upper">[\s\S]*<Hero \/>[\s\S]*<Statement \/>[\s\S]*<SelectedWork \/>[\s\S]*<\/FactoryAct>/)
   assert.match(source, /<About \/>[\s\S]*<FactoryAct id="lower">/)
-  assert.match(source, /<Skills \/>[\s\S]*<Experience \/>[\s\S]*<Goals \/>[\s\S]*<ContactSection \/>/)
+  assert.match(source, /<Skills \/>[\s\S]*<Experience \/>[\s\S]*<ContactSection \/>/)
+  assert.doesNotMatch(source, /Goals|goals/)
 })
 
 test('the statement boundary starts the factory line and the hero reads its gate state', async () => {
@@ -279,9 +302,41 @@ test('the Statement copy aligns lower with the desktop ramp without changing mob
 
 test('about is the single white reading boundary without physics decoration', async () => {
   const about = await read('src/components/About.tsx')
+  const translations = await read('src/i18n/translations.ts')
   assert.match(about, /foundry-reading-break/)
   assert.match(about, /text-ink/)
+  assert.match(translations, /englishLevel: 'C1 Certified'/)
   assert.doesNotMatch(about, /SectionLabel|FoundryTrace|motion|whileInView/)
+  assert.match(about, /gap-x-4 gap-y-8[^\n]*sm:grid-cols-2/)
+  assert.match(about, /whitespace-nowrap font-heading text-4xl font-medium text-ink[^\n]*t\.about\.czechLevel/)
+  assert.match(about, /whitespace-nowrap font-heading text-4xl font-medium text-ink[^\n]*t\.about\.englishLevel/)
+  assert.doesNotMatch(about, /md:text-5xl/)
+})
+
+test('projects expose equal-width actions with a clear primary action and trailing icons', async () => {
+  const selectedWork = await read('src/components/SelectedWork.tsx')
+  const projects = await read('src/components/Projects.tsx')
+
+  assert.match(selectedWork, /grid w-full max-w-\[24rem\] grid-cols-1 gap-3[^\n]*sm:grid-cols-2/)
+  assert.match(selectedWork, /min-h-12 w-full cursor-pointer[^\n]*whitespace-nowrap[^\n]*border border-soft-white/)
+  assert.match(selectedWork, /bg-soft-white text-ink/)
+  assert.doesNotMatch(selectedWork, /const featuredActionClass = '[^']*text-soft-white/)
+  assert.match(selectedWork, /const featuredSecondaryActionClass = .*text-soft-white/)
+  assert.match(selectedWork, /visitProject[\s\S]*ArrowUpRight/)
+  assert.match(selectedWork, /openPreview[\s\S]*Plus/)
+  assert.match(projects, /openDetails[\s\S]*ArrowRight/)
+})
+
+test('skills keep technologies balanced across rows and experience copy explains employment clearly', async () => {
+  const skills = await read('src/components/Skills.tsx')
+  const translations = await read('src/i18n/translations.ts')
+
+  assert.match(skills, /grid-cols-2[^\n]*md:grid-cols-5/)
+  assert.match(skills, /xl:flex[^\n]*xl:flex-nowrap/)
+  assert.match(translations, /title: 'Zaměstnání u podnikatele'/)
+  assert.match(translations, /title: 'Employed by an entrepreneur'/)
+  assert.equal([...translations.matchAll(/role: 'Junior Web Developer \(part-time\)'/g)].length, 2)
+  assert.doesNotMatch(translations, /DPP u podnikatele|DPP position with an entrepreneur|Junior Web Developer \(DPP\)/)
 })
 
 test('active factory sections do not use obsolete visual hierarchy primitives', async () => {
@@ -291,7 +346,6 @@ test('active factory sections do not use obsolete visual hierarchy primitives', 
     'src/components/About.tsx',
     'src/components/Skills.tsx',
     'src/components/Experience.tsx',
-    'src/components/Goals.tsx',
     'src/components/ContactSection.tsx',
   ]
 
@@ -308,7 +362,6 @@ test('each station reserves the same aspect-ratio footprint used by its collider
   assert.match(css, /\.statement-rebound\s*\{[\s\S]*aspect-ratio:\s*3\s*\/\s*4/)
   assert.match(css, /\.forming-press\s*\{[\s\S]*aspect-ratio:\s*6\s*\/\s*13/)
   assert.match(css, /\.paint-inspection\s*\{[\s\S]*aspect-ratio:\s*1\s*\/\s*2/)
-  assert.match(css, /\.goal-sorter\s*\{[\s\S]*aspect-ratio:\s*16\s*\/\s*31/)
   assert.match(css, /\.final-assembler\s*\{[\s\S]*aspect-ratio:\s*8\s*\/\s*13/)
   assert.match(css, /\.statement-rebound\s*\{[\s\S]*width:\s*32\.5rem/)
   assert.match(css, /\.statement-rebound\s*\{[\s\S]*margin-left:\s*calc\(100%\s*-\s*32\.5rem\)/)
@@ -339,17 +392,6 @@ test('the oversized statement bowl remains visible over the following projects b
 
   assert.match(statement, /<section className="statement-section /)
   assert.match(css, /\.factory-act\s*>\s*\.statement-section\s*\{[\s\S]*z-index:\s*5/)
-})
-
-test('the goal sorter keeps a clear physical middle exit', async () => {
-  const source = await read('src/factory/stations/GoalSorter.tsx')
-
-  assert.doesNotMatch(source, /goals-merge-1/)
-  assert.doesNotMatch(source, /M160 416V570/)
-  assert.match(source, /isSensor:\s*true/)
-  assert.match(source, /goals-merge-0[\s\S]*isSensor/)
-  assert.match(source, /goals-merge-2[\s\S]*isSensor/)
-  assert.match(source, /goals-common-exit[\s\S]*isSensor/)
 })
 
 test('the contact frame leaves its capture edge physically passable', async () => {
@@ -492,6 +534,21 @@ test('experience renders its localized primary heading above content and station
   assert.ok(experience.indexOf('t.experience.sectionTitle') < experience.indexOf('<PaintInspectionStation'))
   assert.match(translations, /sectionTitle:\s*'Zkušenosti & certifikace'/)
   assert.match(translations, /sectionTitle:\s*'Experience & Certifications'/)
+})
+
+test('experience copy uses the current employment date ranges and clear employment wording', async () => {
+  const translations = await read('src/i18n/translations.ts')
+
+  assert.match(translations, /date:\s*'Srpen 2025 – Srpen 2026'/)
+  assert.match(translations, /title:\s*'Zaměstnání u podnikatele'/)
+  assert.match(translations, /date:\s*'Květen 2025 – Srpen 2026'/)
+  assert.match(translations, /date:\s*'August 2025 – August 2026'/)
+  assert.match(translations, /title:\s*'Employed by an entrepreneur'/)
+  assert.match(translations, /date:\s*'May 2025 – August 2026'/)
+  assert.equal([...translations.matchAll(/role:\s*'Junior Web Developer \(part-time\)'/g)].length, 2)
+  assert.doesNotMatch(translations, /DPP/)
+  assert.doesNotMatch(translations, /title:\s*'Individuální podnikatel'/)
+  assert.doesNotMatch(translations, /title:\s*'Individual Entrepreneur'/)
 })
 
 test('forming press holds queued raw parts above its sensor throughout the active cycle', async () => {

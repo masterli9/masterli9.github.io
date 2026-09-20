@@ -24,15 +24,14 @@ export default function Hero() {
   const [buildWordPhase, setBuildWordPhase] = useState<BuildWordPhase>('visible')
   const [conveyorIntroStage, setConveyorIntroStage] = useState<HeroConveyorIntroStage>('hidden')
   const buildItems = t.hero.buildItems
-  const timeline = createHeroTimeline({
+  const timeline = useMemo(() => createHeroTimeline({
     name: 'Andrej Zdvořák',
     subtitle: t.hero.subtitle,
     buildPrefix: t.hero.buildPrefix,
-  })
-  const { buildItemRevealAt, revealDuration } = timeline
+  }), [t.hero.buildPrefix, t.hero.subtitle])
   const conveyorIntroSchedule = useMemo(
-    () => createHeroConveyorIntroSchedule({ buildItemRevealAt, revealDuration }),
-    [buildItemRevealAt, revealDuration],
+    () => createHeroConveyorIntroSchedule(timeline),
+    [timeline],
   )
 
   useEffect(() => {
@@ -59,13 +58,13 @@ export default function Hero() {
         setBuildWordPhase('entering')
         const frame = window.requestAnimationFrame(() => setBuildWordPhase('visible'))
         transitionFrames.push(frame)
-      }, 240)
+      }, 180)
       transitionTimers.push(swapTimer)
     }
 
     const rotationTimer = window.setTimeout(() => {
       rotateBuildWord()
-      interval = window.setInterval(rotateBuildWord, 1900)
+      interval = window.setInterval(rotateBuildWord, 1500)
     }, timeline.rotationStartAt * 1000)
 
     return () => {
@@ -138,7 +137,7 @@ export default function Hero() {
             >
               <motion.span
                 animate={getBuildWordMotionState(buildWordPhase)}
-                transition={{ duration: reducedMotion ? 0 : 0.28, ease: revealEase }}
+                transition={{ duration: reducedMotion ? 0 : 0.22, ease: revealEase }}
                 className="absolute inset-x-0 bottom-0 whitespace-nowrap"
               >
                 {activeBuildItem}

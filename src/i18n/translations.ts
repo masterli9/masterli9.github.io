@@ -41,7 +41,7 @@ export const translations = {
       czech: 'Čeština',
       czechLevel: 'Rodilý mluvčí',
       english: 'Angličtina',
-      englishLevel: 'C1',
+      englishLevel: 'C1 Certified',
       outsideCode: 'Mimo svět kódu',
       interests: {
         music: { name: 'Hudba', desc: 'Klavír, kytara, produkce' },
@@ -107,39 +107,14 @@ export const translations = {
         {
           title: 'Webforte Technologies s.r.o.',
           role: 'AI Web Application Developer (Brigáda)',
-          date: 'Současnost',
+          date: 'Srpen 2025 – Srpen 2026',
           desc: 'Vývoj webových aplikací s využitím moderních AI nástrojů a technologií.',
         },
         {
-          title: 'Individuální podnikatel',
-          role: 'Junior Web Developer (Odborná praxe)',
-          date: 'V minulosti',
-          desc: 'Praxe zaměřená na vývoj webových stránek a implementaci AI pro zefektivnění práce.',
-        },
-      ],
-    },
-
-    // Goals Section
-    goals: {
-      headingParts: [
-        { text: 'Cíle a' },
-        { text: 'plány', color: 'blue' },
-      ],
-      items: [
-        {
-          title: 'Krátkodobé cíle',
-          period: 'Následující rok',
-          desc: 'Pokračovat v rozvoji stávajících dovedností ve vývoji a AI. Získávat další praktické zkušenosti skrze projekty a brigády.',
-        },
-        {
-          title: 'Studium na VŠ',
-          period: 'V horizontu 3 let',
-          desc: 'Studium software engineeringu na UHK nebo ZČU. Rozvoj v oblastech kyberbezpečnosti a etického hackování.',
-        },
-        {
-          title: 'Dlouhodobá vize',
-          period: 'Budoucnost',
-          desc: 'Stát se uznávaným profesionálem v IT. Pracovat na smysluplných projektech, které pomáhají lidem a zefektivňují práci.',
+          title: 'Zaměstnání u podnikatele',
+          role: 'Junior Web Developer (part-time)',
+          date: 'Květen 2025 – Srpen 2026',
+          desc: 'Vývoj webových stránek a využití AI nástrojů pro zefektivnění práce.',
         },
       ],
     },
@@ -264,7 +239,7 @@ export const translations = {
       czech: 'Czech',
       czechLevel: 'Native speaker',
       english: 'English',
-      englishLevel: 'C1',
+      englishLevel: 'C1 Certified',
       outsideCode: 'Outside the code world',
       interests: {
         music: { name: 'Music', desc: 'Piano, guitar, production' },
@@ -330,39 +305,14 @@ export const translations = {
         {
           title: 'Webforte Technologies s.r.o.',
           role: 'AI Web Application Developer (Part-time)',
-          date: 'Present',
+          date: 'August 2025 – August 2026',
           desc: 'Development of web applications using modern AI tools and technologies.',
         },
         {
-          title: 'Individual Entrepreneur',
-          role: 'Junior Web Developer (Professional Practice)',
-          date: 'Previously',
-          desc: 'Practice focused on web development and AI implementation for work efficiency.',
-        },
-      ],
-    },
-
-    // Goals Section
-    goals: {
-      headingParts: [
-        { text: 'Goals &' },
-        { text: 'Plans', color: 'blue' },
-      ],
-      items: [
-        {
-          title: 'Short-term Goals',
-          period: 'Next year',
-          desc: 'Continue developing existing skills in development and AI. Gain more practical experience through projects and part-time jobs.',
-        },
-        {
-          title: 'University Studies',
-          period: 'Within 3 years',
-          desc: 'Study software engineering at UHK or ZČU. Development in the areas of cybersecurity and ethical hacking.',
-        },
-        {
-          title: 'Long-term Vision',
-          period: 'Future',
-          desc: 'Become a recognized professional in IT. Work on meaningful projects that help people and streamline their work.',
+          title: 'Employed by an entrepreneur',
+          role: 'Junior Web Developer (part-time)',
+          date: 'May 2025 – August 2026',
+          desc: 'Web development and the use of AI tools to improve work efficiency.',
         },
       ],
     },

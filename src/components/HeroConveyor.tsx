@@ -18,6 +18,7 @@ import {
   getConveyorMotion,
   getConveyorOccluderEndX,
   getConveyorPartCenterY,
+  getHeroStarterPosition,
   getHeroDoorColliderPose,
   getHeroGateGeometry,
   getHeroGateState,
@@ -71,21 +72,9 @@ const BELT_MOTION = getConveyorMotion({
   rollerRadius: 17,
 })
 const PART_SHAPES = ['square', 'circle', 'bar', 'diamond'] as const
-
-const STATIC_PARTS = [
-  { id: 0, shape: 'square' as const, color: '#F21868', x: 31, y: 319, angle: -4 },
-  { id: 1, shape: 'circle' as const, color: '#355CFF', x: 58, y: 320, angle: 0 },
-  { id: 2, shape: 'bar' as const, color: '#FFFFFF', x: 88, y: 321, angle: 5 },
-  { id: 3, shape: 'diamond' as const, color: '#F21868', x: 121, y: 319, angle: 45 },
-  { id: 4, shape: 'circle' as const, color: '#FFFFFF', x: 145, y: 320, angle: 0 },
-  { id: 5, shape: 'bar' as const, color: '#355CFF', x: 43, y: 294, angle: -7 },
-  { id: 6, shape: 'square' as const, color: '#FFFFFF', x: 75, y: 293, angle: 6 },
-  { id: 7, shape: 'circle' as const, color: '#F21868', x: 105, y: 294, angle: 0 },
-  { id: 8, shape: 'diamond' as const, color: '#355CFF', x: 135, y: 292, angle: 45 },
-]
-const STARTER_POSITIONS: PartPosition[] = STATIC_PARTS
+const STARTER_POSITIONS: PartPosition[] = PART_SHAPES
   .slice(0, MINIMUM_PAYLOAD)
-  .map(({ x, y, angle }) => ({ x, y, angle }))
+  .map((shape, index) => getHeroStarterPosition(index, shape))
 
 function createHeroPartSpec(sequence: number): FactoryPartSpec {
   const base = createFactoryPartSpec(sequence, 'raw')
@@ -203,11 +192,12 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
   const reducedMotion = useReducedMotion() ?? false
   const isInView = useInView(svgRef, { amount: 0.15 })
   const { lineStarted } = useFactoryFlow()
-  const { getPartBody, removePart, spawnPart } = useFactoryAct()
+  const { simulationActive, getPartBody, removePart, spawnPart } = useFactoryAct()
   const shouldAnimate = shouldRunHeroPhysics({ isInView, reducedMotion, introStage })
-  const shouldFeed = shouldRunHeroFeed({ shouldAnimate, lineStarted, reducedMotion })
+  const shouldFeed = shouldRunHeroFeed({ actActive: simulationActive, shouldAnimate, lineStarted, reducedMotion })
   const isBoxVisible = BOX_VISIBLE_STAGES.includes(introStage)
   const isMachineVisible = MACHINE_VISIBLE_STAGES.includes(introStage)
+  const isConveyorVisible = introStage === 'machine-visible' || introStage === 'running'
   const heroGate = getHeroGateState(lineStarted)
   const gateGeometry = getHeroGateGeometry(heroGate.open && reducedMotion ? 1 : gateProgress)
 
@@ -276,7 +266,7 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
   }, [getPartBody, lineStarted, shouldFeed])
 
   useEffect(() => {
-    if (!isBoxVisible) return
+    if (!isConveyorVisible) return
     const station = stationRef.current
     if (!station) return
     const heroPartIds = heroPartIdsRef.current
@@ -321,7 +311,7 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
 
     const ensureMinimumPayload = () => {
       while (liveParts.size < MINIMUM_PAYLOAD) {
-        addPart(STARTER_POSITIONS[liveParts.size], true)
+        addPart(STARTER_POSITIONS[liveParts.size], false)
         if (liveParts.size === 0) break
       }
     }
@@ -410,7 +400,7 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
         removePart(id)
       })
     }
-  }, [getPartBody, isBoxVisible, reducedMotion, removePart, spawnPart])
+  }, [getPartBody, isConveyorVisible, reducedMotion, removePart, spawnPart])
 
   return (
     <div ref={stationRef} className="hero-conveyor-station">

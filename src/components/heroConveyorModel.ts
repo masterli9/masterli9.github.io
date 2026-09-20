@@ -108,11 +108,12 @@ export function shouldRunHeroPhysics(input: {
 }
 
 export function shouldRunHeroFeed(input: {
+  actActive: boolean
   shouldAnimate: boolean
   lineStarted: boolean
   reducedMotion: boolean
 }) {
-  return !input.reducedMotion && (input.shouldAnimate || input.lineStarted)
+  return input.actActive && !input.reducedMotion && (input.shouldAnimate || input.lineStarted)
 }
 
 export function clampPhysicsDelta(elapsedMilliseconds: number) {
@@ -139,6 +140,14 @@ export function getConveyorPartCenterY(
       : 11
 
   return beltTopY - halfHeight - clearance
+}
+
+export function getHeroStarterPosition(index: number, shape: ConveyorPartShape) {
+  return {
+    x: 176 + (index * 56),
+    y: getConveyorPartCenterY(83, shape, 2),
+    angle: shape === 'diamond' ? 45 : 0,
+  }
 }
 
 export function getConveyorBeltBottomY(beltTopY: number, beltHeight: number) {

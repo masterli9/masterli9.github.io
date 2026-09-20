@@ -171,6 +171,19 @@ test('the statement platform and catcher stay inside their station bounds', asyn
   assert.ok(geometry.catcher.x + geometry.catcher.width <= 360)
 })
 
+test('the Statement visual platform line sits on the upper edge of the existing collider', async () => {
+  const model = await import('../src/factory/stations/statementReboundModel.ts')
+  const geometry = model.getReboundPlatformGeometry({ left: 0, top: 0, width: 360, height: 480 })
+  const line = model.getReboundPlatformVisualLine(geometry.platform)
+
+  assert.ok(line.y1 < geometry.platform.y1)
+  assert.ok(line.y2 < geometry.platform.y2)
+  assert.ok(Math.abs(
+    Math.hypot(line.x2 - geometry.platform.x2, line.y2 - geometry.platform.y2)
+      - (geometry.platform.thickness / 2),
+  ) < 0.001)
+})
+
 test('the statement platform catches the hero box span and exits on the selected-work spine', async () => {
   const { getReboundPlatformGeometry } = await import('../src/factory/stations/statementReboundModel.ts')
   const geometry = getReboundPlatformGeometry({ left: 0, top: 0, width: 360, height: 480 })
@@ -709,30 +722,6 @@ test('the factory cycles through at least eight visibly distinct forming and fin
   assert.ok(fills.size >= 5)
 })
 
-test('the goals sorter distributes parts across three lanes that share one exit', async () => {
-  const model = await import('../src/factory/stations/goalSorterModel.ts').catch(() => ({}))
-  assert.deepEqual([0, 1, 2, 3, 4, 5].map(model.getGoalLane), [0, 1, 2, 0, 1, 2])
-  const bounds = { left: 100, width: 600, bottom: 900 }
-  assert.deepEqual([0, 1, 2].map((lane) => model.getGoalLaneExit(lane, bounds)), [
-    { x: 400, y: 900 }, { x: 400, y: 900 }, { x: 400, y: 900 },
-  ])
-  const routeVectors = [0, 1, 2].map((sequence) => model.getGoalRoutingVelocity(sequence, { x: 0, y: 4 }))
-  assert.ok(routeVectors[0].x < 0)
-  assert.equal(routeVectors[1].x, 0)
-  assert.ok(routeVectors[2].x > 0)
-  assert.ok(routeVectors.every(({ y }) => y > 0))
-})
-
-test('goal merge sensors steer outer lanes back to the common exit', async () => {
-  const model = await import('../src/factory/stations/goalSorterModel.ts')
-  const mergeVectors = [0, 1, 2].map((lane) => model.getGoalMergeVelocity(lane, { x: 0, y: 4 }))
-
-  assert.ok(mergeVectors[0].x > 0)
-  assert.equal(mergeVectors[1].x, 0)
-  assert.ok(mergeVectors[2].x < 0)
-  assert.ok(mergeVectors.every(({ y }) => y > 0))
-})
-
 test('five unique parts assemble the browser once and later parts remain overflow', async () => {
   const model = await import('../src/factory/stations/finalAssemblerModel.ts').catch(() => ({}))
   let state = { placedIds: [], assembled: false }
@@ -745,7 +734,7 @@ test('five unique parts assemble the browser once and later parts remain overflo
 test('every factory station has a meaningful reduced-motion snapshot', async () => {
   const { getReducedFactorySnapshot } = await import('../src/factory/factoryFlowModel.ts')
 
-  for (const station of ['statement', 'skills', 'experience', 'goals', 'contact']) {
+  for (const station of ['statement', 'skills', 'experience', 'contact']) {
     assert.ok(getReducedFactorySnapshot(station).length > 0, station)
   }
 })

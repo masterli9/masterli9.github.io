@@ -6,7 +6,6 @@ export type FactoryStationId =
   | 'projects'
   | 'skills'
   | 'experience'
-  | 'goals'
   | 'contact'
 
 export type FactoryPartShape =

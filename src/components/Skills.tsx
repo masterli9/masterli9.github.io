@@ -13,33 +13,38 @@ export default function Skills() {
   ]
 
   return (
-    <section id="skills" className="foundry-page py-20 md:py-28">
-      <div className="foundry-container grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,18rem)] lg:items-start lg:gap-20">
+    <section id="skills" className="foundry-page py-28 md:py-40">
+      <div className="foundry-container grid gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,18rem)] lg:items-start lg:gap-24">
         <div>
-          <div className="max-w-2xl">
-            <h2 className="font-heading text-[clamp(2.7rem,5vw,5rem)] font-medium leading-[0.94] tracking-[-0.06em] text-soft-white">
+          <div className="max-w-[40rem]">
+            <h2 className="font-heading text-[clamp(2.9rem,5vw,5.25rem)] font-medium leading-[0.92] tracking-[-0.065em] text-soft-white">
               <AccentWords parts={t.skills.headingParts} />
             </h2>
-            <p className="mt-7 max-w-xl text-lg leading-relaxed text-soft-white">{t.skills.subtitle}</p>
+            <p className="mt-8 max-w-lg text-base leading-[1.75] text-soft-white md:text-lg">{t.skills.subtitle}</p>
           </div>
 
-          <div className="mt-14 grid gap-12 md:grid-cols-2 md:gap-16">
+          <div className="mt-20 grid gap-14 md:grid-cols-2 md:gap-20">
             {categories.map(({ title, icon: Icon, skills }) => (
-              <div key={title}>
+              <div key={title} className="border-t border-white-line pt-6">
                 <div className="flex items-center gap-3 text-cobalt">
                   <Icon size={19} aria-hidden="true" />
-                  <h3 className="text-lg font-semibold text-soft-white">{title}</h3>
+                  <h3 className="text-xl font-medium tracking-[-0.02em] text-soft-white">{title}</h3>
                 </div>
-                <ul className="mt-5 space-y-3 text-base text-soft-white">
-                  {skills.map((skill) => <li key={skill}>{skill}</li>)}
+                <ul className="mt-7 grid gap-x-6 gap-y-4 text-base leading-snug text-soft-white">
+                  {skills.map((skill) => (
+                    <li key={skill} className="flex items-baseline gap-3">
+                      <span className="h-1.5 w-1.5 shrink-0 bg-signal-pink" aria-hidden="true" />
+                      <span>{skill}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             ))}
           </div>
 
-          <div className="mt-16">
-            <h3 className="text-lg font-semibold text-signal-pink">{t.skills.toolsLabel}</h3>
-            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-lg text-soft-white">
+          <div className="mt-20 border-t border-white-line pt-6">
+            <h3 className="text-base font-semibold text-signal-pink">{t.skills.toolsLabel}</h3>
+            <div className="mt-6 grid grid-cols-2 gap-x-5 gap-y-3 text-base text-soft-white md:grid-cols-5 xl:flex xl:flex-nowrap xl:gap-x-4 xl:text-base">
               {tools.map((tool) => <span key={tool}>{tool}</span>)}
             </div>
           </div>

@@ -57,6 +57,27 @@ export function getReboundPlatformGeometry(bounds: StatementReboundBounds) {
   }
 }
 
+export function getReboundPlatformVisualLine(platform: {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+  thickness: number
+}) {
+  const dx = platform.x2 - platform.x1
+  const dy = platform.y2 - platform.y1
+  const length = Math.hypot(dx, dy)
+  const upperNormal = { x: dy / length, y: -dx / length }
+  const offset = platform.thickness / 2
+
+  return {
+    x1: platform.x1 + (upperNormal.x * offset),
+    y1: platform.y1 + (upperNormal.y * offset),
+    x2: platform.x2 + (upperNormal.x * offset),
+    y2: platform.y2 + (upperNormal.y * offset),
+  }
+}
+
 export function getCatcherVisualLine(catcher: {
   x: number
   y: number

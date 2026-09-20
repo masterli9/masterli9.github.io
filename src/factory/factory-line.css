@@ -160,10 +160,6 @@
   transform: scaleX(0);
 }
 
-.goal-sorter {
-  aspect-ratio: 16 / 31;
-}
-
 .final-assembler {
   aspect-ratio: 8 / 13;
 }

@@ -72,22 +72,22 @@ const splitWords = (text: string) => text.trim().split(/\s+/).filter(Boolean)
 const roundTime = (time: number) => Number(time.toFixed(2))
 
 export function createHeroConveyorIntroSchedule(
-  timeline: Pick<HeroTimeline, 'buildItemRevealAt' | 'revealDuration'>,
+  timeline: Pick<HeroTimeline, 'name'>,
 ): HeroConveyorIntroEvent[] {
-  const textCompleteAt = timeline.buildItemRevealAt + timeline.revealDuration
+  const firstWordRevealAt = timeline.name[0]?.revealAt ?? 0
   const event = (offset: number, stage: HeroConveyorIntroStage) => ({
-    at: roundTime(textCompleteAt + offset),
+    at: roundTime(firstWordRevealAt + offset),
     stage,
   })
 
   return [
-    event(0, 'box-flash-on'),
-    event(0.05, 'box-flash-off'),
-    event(0.12, 'box-visible'),
-    event(0.57, 'machine-flash-on'),
-    event(0.62, 'machine-flash-off'),
-    event(0.69, 'machine-visible'),
-    event(1.14, 'running'),
+    event(0.1, 'box-flash-on'),
+    event(0.15, 'box-flash-off'),
+    event(0.22, 'box-visible'),
+    event(0.67, 'machine-flash-on'),
+    event(0.72, 'machine-flash-off'),
+    event(0.79, 'machine-visible'),
+    event(1.24, 'running'),
   ]
 }
 
@@ -99,28 +99,28 @@ export function createHeroTimeline({ name, subtitle, buildPrefix }: HeroTimeline
   return {
     name: nameWords.map((word, index) => ({
       word,
-      revealAt: roundTime(0.45 + index * 0.23),
+      revealAt: roundTime(0.18 + index * 0.14),
       accent: '#FFFFFF',
     })),
     subtitle: subtitleWords.map((word, index) => {
-      if (index === 0) return { word, revealAt: 0.91, accent: '#355CFF', fadeAt: 1.34 }
-      if (index === 1) return { word, revealAt: 1.38, accent: '#FFFFFF' }
-      if (index === 2) return { word, revealAt: 1.61, accent: '#F21868', fadeAt: 2.04 }
+      if (index === 0) return { word, revealAt: 0.48, accent: '#355CFF', fadeAt: 0.78 }
+      if (index === 1) return { word, revealAt: 0.68, accent: '#FFFFFF' }
+      if (index === 2) return { word, revealAt: 0.84, accent: '#F21868', fadeAt: 1.14 }
 
       return {
         word,
-        revealAt: roundTime(1.81 + (index - 2) * 0.18),
+        revealAt: roundTime(1.02 + (index - 2) * 0.12),
         accent: '#FFFFFF',
       }
     }),
     buildPrefix: buildPrefixWords.map((word, index) => ({
       word,
-      revealAt: roundTime(2.11 + index * 0.16),
+      revealAt: roundTime(1.3 + index * 0.1),
       accent: '#FFFFFF',
     })),
-    buildItemRevealAt: 2.43,
-    rotationStartAt: 5.65,
-    revealDuration: 0.42,
-    colorFadeDuration: 0.2,
+    buildItemRevealAt: 1.48,
+    rotationStartAt: 3.6,
+    revealDuration: 0.3,
+    colorFadeDuration: 0.16,
   }
 }

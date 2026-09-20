@@ -5,7 +5,6 @@ import SelectedWork from '../components/SelectedWork'
 import About from '../components/About'
 import Skills from '../components/Skills'
 import Experience from '../components/Experience'
-import Goals from '../components/Goals'
 import ContactSection from '../components/ContactSection'
 import { FactoryAct } from '../factory/FactoryAct'
 import { FactoryFlowProvider } from '../factory/FactoryFlowProvider'
@@ -23,7 +22,6 @@ export default function HomeImpl() {
         <FactoryAct id="lower">
           <Skills />
           <Experience />
-          <Goals />
           <ContactSection />
         </FactoryAct>
       </FactoryFlowProvider>

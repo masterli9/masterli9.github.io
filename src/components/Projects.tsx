@@ -42,7 +42,7 @@ export default function Projects() {
             <span className="text-sm text-soft-white md:text-base">
               {project.technologies.slice(0, 3).join(' · ')}
             </span>
-            <span className="inline-flex items-center gap-3 text-sm font-semibold md:justify-self-end">
+            <span className="inline-flex items-center gap-3 border border-soft-white px-3 py-2 text-sm font-medium transition-colors group-hover:border-signal-pink group-hover:bg-signal-pink group-hover:text-ink group-focus-visible:border-signal-pink group-focus-visible:bg-signal-pink group-focus-visible:text-ink md:justify-self-end">
               {t.projects.openDetails}
               <ArrowRight size={17} weight="bold" aria-hidden="true" />
             </span>

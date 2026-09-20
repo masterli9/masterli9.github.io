@@ -45,12 +45,12 @@ test('featured preview stays bounded inside the wide stage', async () => {
 test('featured copy, metadata, and actions sit to the left of the featured preview', async () => {
   const featured = await readFile(new URL('../src/components/SelectedWork.tsx', import.meta.url), 'utf8')
 
-  assert.match(featured, /mt-6 grid items-start gap-8 md:grid-cols-\[minmax\(18rem,0\.32fr\)_minmax\(0,1fr\)\] md:gap-8/)
+  assert.match(featured, /mt-2 grid items-start gap-10 md:grid-cols-\[minmax\(20rem,0\.6fr\)_minmax\(0,1fr\)\] md:gap-10/)
   assert.match(featured, /<div className="md:order-2 md:justify-self-end">[\s\S]*?<ProjectMedia project=\{featuredProject\} variant="featured" \/>/)
   assert.match(featured, /<div className="md:order-1 md:flex md:self-stretch md:flex-col md:text-left">[\s\S]*?copy\.desc[\s\S]*?featuredProject\.technologies/)
-  assert.match(featured, /flex flex-wrap gap-x-4 gap-y-2 text-sm text-soft-white md:justify-start/)
-  assert.match(featured, /<div className="flex flex-wrap items-center justify-between gap-5 pb-6">/)
+  assert.match(featured, /flex flex-wrap gap-x-4 gap-y-2 border-t border-white-line pt-4 text-sm text-soft-white md:justify-start/)
+  assert.match(featured, /<div className="flex flex-wrap items-center justify-between gap-4 pb-8">/)
   assert.match(featured, /<div className="md:order-1 md:flex md:self-stretch md:flex-col md:text-left">/)
-  assert.match(featured, /mt-8 flex flex-wrap items-center gap-5 md:mt-auto md:gap-4 md:justify-start/)
+  assert.match(featured, /mt-10 grid w-full max-w-\[24rem\] grid-cols-1 gap-3 sm:grid-cols-2 md:mt-auto md:justify-start/)
   assert.doesNotMatch(featured, /md:text-right|md:justify-end/)
 })

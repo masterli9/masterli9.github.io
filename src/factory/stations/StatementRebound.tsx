@@ -3,6 +3,7 @@ import { Events, type Body as MatterBody } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import {
   getReboundPlatformGeometry,
+  getReboundPlatformVisualLine,
   getStatementSpoonGeometry,
   shouldDismissStalledStatementPart,
   shouldUseReboundCatcher,
@@ -34,6 +35,7 @@ export default function StatementRebound() {
   const stalledSinceRef = useRef(new Map<string, number>())
   const geometry = STATEMENT_GEOMETRY
   const spoon = STATEMENT_EXIT_SPOON
+  const platformLine = getReboundPlatformVisualLine(geometry.platform)
 
   const buildColliders = useCallback(({ elementRect, actRect }: FactoryStationMetrics): MatterBody[] => {
     const scaleX = Math.max(elementRect.width, 1) / VIEWBOX_WIDTH
@@ -109,11 +111,11 @@ export default function StatementRebound() {
   return (
     <div ref={stationRef} className="factory-station statement-rebound" data-factory-station="statement">
       <svg viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} aria-hidden="true" focusable="false">
-        <line
-          x1={geometry.platform.x1}
-          y1={geometry.platform.y1}
-          x2={geometry.platform.x2}
-          y2={geometry.platform.y2}
+          <line
+            x1={platformLine.x1}
+            y1={platformLine.y1}
+            x2={platformLine.x2}
+            y2={platformLine.y2}
           className="factory-line__rail factory-line__rail--white"
         />
         <g className="statement-rebound__wide-guide">

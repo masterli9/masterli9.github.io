@@ -51,6 +51,7 @@ export interface FactoryStationRegistration {
 
 export interface FactoryActApi {
   actId: FactoryActId
+  simulationActive: boolean
   engine: Engine
   spawnPart: (
     spec: FactoryPartSpec,
@@ -84,6 +85,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   const [parts, setParts] = useState<FactoryPartSnapshot[]>([])
   const [viewport, setViewport] = useState({ width: 1, height: 1 })
   const [isVisible, setIsVisible] = useState(false)
+  const [isSuspended, setIsSuspended] = useState(false)
   const [documentVisible, setDocumentVisible] = useState(() => document.visibilityState === 'visible')
   const [engine] = useState(() => Engine.create({ gravity: { x: 0, y: 1, scale: 0.00145 } }))
   const physicsRunning = shouldRunFactoryPhysics({
@@ -91,6 +93,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     documentVisible,
     reducedMotion,
   })
+  const simulationActive = physicsRunning && !isSuspended
 
   const refreshRenderedParts = useCallback(() => {
     setParts([
@@ -193,6 +196,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     fadingPartsRef.current.clear()
     Engine.clear(engine)
     engineClearedRef.current = true
+    setIsSuspended(true)
     setParts([])
   }, [engine])
 
@@ -205,6 +209,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     }
     suspendedPartsRef.current = []
     engineClearedRef.current = false
+    setIsSuspended(false)
     measure()
     refreshRenderedParts()
   }, [engine, measure, refreshRenderedParts])
@@ -228,7 +233,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   }, [measure])
 
   useEffect(() => {
-    if (!physicsRunning) return
+    if (!simulationActive) return
     let frame = 0
     let previousTime = performance.now()
     const tick = (time: number) => {
@@ -263,19 +268,19 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     return () => {
       window.cancelAnimationFrame(frame)
     }
-  }, [engine, id, physicsRunning, refreshRenderedParts])
+  }, [engine, id, refreshRenderedParts, simulationActive])
 
   useEffect(() => {
     if (id !== 'lower') return
     if (!shouldSpawnFactoryPart({
-      actVisible: isVisible,
+      actVisible: simulationActive,
       documentVisible: document.visibilityState === 'visible',
       reducedMotion,
     })) return
     let sequence = 0
     const spawnAtSkillsEntry = () => {
       if (!shouldSpawnFactoryPart({
-        actVisible: isVisible,
+        actVisible: simulationActive,
         documentVisible: document.visibilityState === 'visible',
         reducedMotion,
       })) return
@@ -310,7 +315,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       window.clearTimeout(initial)
       window.clearInterval(interval)
     }
-  }, [id, isVisible, reducedMotion, spawnPart])
+  }, [id, reducedMotion, simulationActive, spawnPart])
 
   useEffect(() => {
     if (!reducedMotion) return
@@ -402,7 +407,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     Engine.clear(engine)
   }, [engine])
 
-  const api = useMemo(() => ({ actId: id, engine, spawnPart, registerStation, getPartBody, removePart, fadeOutPart, updatePartSpec }), [engine, fadeOutPart, getPartBody, id, registerStation, removePart, spawnPart, updatePartSpec])
+  const api = useMemo(() => ({ actId: id, simulationActive, engine, spawnPart, registerStation, getPartBody, removePart, fadeOutPart, updatePartSpec }), [engine, fadeOutPart, getPartBody, id, registerStation, removePart, simulationActive, spawnPart, updatePartSpec])
 
   return (
     <FactoryActContext.Provider value={api}>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { Bodies, Body, type Body as MatterBody, Events } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import type { FactoryPartSpec } from '../factoryTypes'
-import { advancePaintInspection, canCapturePaintPart, createPaintInspectionState, PAINT_INSPECTION_TIMING, type PaintInspectionState, type PaintInspectionEvent } from './paintInspectionModel'
+import { advancePaintInspection, canCapturePaintPart, createPaintInspectionState, getPaintInspectionGeometry, PAINT_INSPECTION_TIMING, shouldShowPaintMist, type PaintInspectionState, type PaintInspectionEvent } from './paintInspectionModel'
 
 const VIEWBOX_WIDTH = 260
 const VIEWBOX_HEIGHT = 520
@@ -42,9 +42,14 @@ export default function PaintInspectionStation() {
   const phase = state?.phase ?? 'falling'
   const busy = state !== null
   const gateOpen = phase === 'inspecting' || phase === 'released'
+  const geometry = getPaintInspectionGeometry()
+  const coatColor = state?.part.finish.fill ?? '#FFFFFF'
+  const printColor = state?.part.finish.textColor ?? state?.part.finish.detailColor ?? '#FFFFFF'
+  const coatNeedsMist = shouldShowPaintMist(coatColor)
+  const printNeedsMist = shouldShowPaintMist(printColor)
   const style = {
-    '--coat-color': state?.part.finish.fill ?? '#FFFFFF',
-    '--print-color': state?.part.finish.textColor ?? state?.part.finish.detailColor ?? '#FFFFFF',
+    '--coat-color': coatColor,
+    '--print-color': printColor,
   } as CSSProperties
 
   const buildColliders = useCallback((metrics: FactoryStationMetrics): MatterBody[] => {
@@ -58,9 +63,9 @@ export default function PaintInspectionStation() {
     ]
     if (!gateOpen) colliders.push(createPaintCollider(metrics, 130, 244, 156, 5, 'experience-exit-gate'))
     // Hold arriving parts upstream while the active recipe finishes and is inspected.
-    if (busy) colliders.push(createPaintCollider(metrics, 130, 154, 156, 5, 'experience-intake-gate'))
+    if (busy) colliders.push(createPaintCollider(metrics, 130, geometry.intakeY, 156, 5, 'experience-intake-gate'))
     return colliders
-  }, [busy, gateOpen])
+  }, [busy, gateOpen, geometry.intakeY])
   useFactoryStation({ id: 'experience', elementRef: stationRef, buildColliders })
 
   useEffect(() => {
@@ -150,20 +155,28 @@ export default function PaintInspectionStation() {
   return (
     <div ref={stationRef} className="factory-station paint-inspection" data-factory-station="experience" data-paint-phase={phase} style={style}>
       <svg viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} aria-hidden="true" focusable="false">
-        <path d="M52 60V320M208 60V320M66 90H194" className="factory-line__rail factory-line__rail--white" />
+        <path d="M52 60V320M208 60V320" className="factory-line__rail factory-line__rail--white" />
         <g className={`paint-head paint-head--coat${phase === 'coating' ? ' is-active' : ''}`}>
-          <rect x="72" y="92" width="48" height="28" rx="3" />
-          <path d="M82 112H110" className="paint-head__indicator" />
-          <path d="M90 122 112 218M106 122 146 218" className="paint-spray" />
+          <path d={`M52 ${geometry.coatHead.y + 14}H${geometry.coatHead.x}`} className="paint-head__mount" />
+          <rect x={geometry.coatHead.x} y={geometry.coatHead.y} width={geometry.coatHead.width} height={geometry.coatHead.height} rx="3" />
+          <rect x={geometry.coatHead.x + 6} y={geometry.coatHead.y + 8} width="24" height="12" rx="6" className="paint-head__cartridge" />
+          <path d={`M${geometry.coatHead.x + 10} ${geometry.coatHead.y + 14}H${geometry.coatHead.x + 26}`} className="paint-head__indicator" />
+          <path d={`M${geometry.coatHead.x + geometry.coatHead.width} ${geometry.coatHead.y + 9}L${geometry.coatHead.nozzleX} ${geometry.coatHead.nozzleY} ${geometry.coatHead.x + geometry.coatHead.width} ${geometry.coatHead.y + 19}Z`} className="paint-head__nozzle" />
+          <path d={`M${geometry.coatHead.nozzleX} ${geometry.coatHead.nozzleY}L${geometry.coatTarget.x} ${geometry.coatTarget.y}`} className="paint-spray" />
+          {coatNeedsMist && <g className="paint-spray__mist"><circle cx="103" cy="188" r="1.5" /><circle cx="110" cy="199" r="1.2" /><circle cx="117" cy="210" r="1" /></g>}
         </g>
         <g className={`paint-head paint-head--print${phase === 'printing' ? ' is-active' : ''}`}>
-          <rect x="142" y="92" width="34" height="28" rx="3" />
-          <path d="M151 112H167" className="paint-head__indicator" />
-          <path d="M159 122 130 218" className="print-spray" />
+          <path d={`M${geometry.printHead.x + geometry.printHead.width} ${geometry.printHead.y + 14}H208`} className="paint-head__mount" />
+          <rect x={geometry.printHead.x} y={geometry.printHead.y} width={geometry.printHead.width} height={geometry.printHead.height} rx="3" />
+          <rect x={geometry.printHead.x + 6} y={geometry.printHead.y + 8} width="24" height="12" rx="6" className="paint-head__cartridge" />
+          <path d={`M${geometry.printHead.x + 10} ${geometry.printHead.y + 14}H${geometry.printHead.x + 26}`} className="paint-head__indicator" />
+          <path d={`M${geometry.printHead.x} ${geometry.printHead.y + 9}L${geometry.printHead.nozzleX} ${geometry.printHead.nozzleY} ${geometry.printHead.x} ${geometry.printHead.y + 19}Z`} className="paint-head__nozzle" />
+          <path d={`M${geometry.printHead.nozzleX} ${geometry.printHead.nozzleY}L${geometry.printTarget.x} ${geometry.printTarget.y}`} className="print-spray" />
+          {printNeedsMist && <g className="paint-spray__mist"><circle cx="157" cy="188" r="1.5" /><circle cx="150" cy="199" r="1.2" /><circle cx="143" cy="210" r="1" /></g>}
         </g>
-        <path d="M52 154H208" className={`factory-line__rail factory-line__rail--white paint-inspection__intake${busy ? ' is-closed' : ''}`} />
+        <path d={`M52 ${geometry.intakeY}H208`} className={`factory-line__rail factory-line__rail--white paint-inspection__intake${busy ? ' is-closed' : ''}`} />
         <path d="M52 244H208" className={`factory-line__rail factory-line__rail--white paint-inspection__gate${gateOpen ? ' is-open' : ''}`} />
-        <g className={`paint-inspection__arch${phase === 'released' ? ' is-active' : ''}`}>
+        <g className={`paint-inspection__arch${phase === 'inspecting' ? ' is-active' : ''}`}>
           <path d="M60 346V312H200V346" />
           <path d="M70 326H190" className="paint-inspection__scan" />
         </g>

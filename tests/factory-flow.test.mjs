@@ -10,10 +10,10 @@ const makePart = (overrides = {}) => ({
   ...overrides,
 })
 
-test('the factory repeats five stable landing-page blueprints', async () => {
+test('the factory repeats eight stable landing-page blueprints', async () => {
   const { createFactoryPartSpec } = await import('../src/factory/factoryFlowModel.ts')
-  const parts = [0, 1, 2, 3, 4, 5].map((n) => createFactoryPartSpec(n, 'raw'))
-  assert.deepEqual(parts.map(({ role }) => role), ['brand', 'heading', 'copy', 'cta', 'visual', 'brand'])
+  const parts = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => createFactoryPartSpec(n, 'raw'))
+  assert.deepEqual(parts.map(({ role }) => role), ['brand', 'heading', 'copy', 'cta', 'visual', 'heading', 'copy', 'visual', 'brand'])
   assert.equal(parts[0].assemblySlot, 'brand')
   assert.equal(parts[1].finish.text, 'NOVA')
   assert.equal(parts[2].finish.text, 'Ideas in motion.')
@@ -528,6 +528,15 @@ test('an act tears down only after neither it nor its boundary neighbor can be s
   assert.equal(model.shouldTeardownAct({ intersects: true, neighborVisible: false, documentVisible: true }), false)
 })
 
+test('factory physics schedules frames only for a visible active act', async () => {
+  const model = await import('../src/factory/factoryFlowModel.ts')
+
+  assert.equal(model.shouldRunFactoryPhysics({ actVisible: true, documentVisible: true, reducedMotion: false }), true)
+  assert.equal(model.shouldRunFactoryPhysics({ actVisible: false, documentVisible: true, reducedMotion: false }), false)
+  assert.equal(model.shouldRunFactoryPhysics({ actVisible: true, documentVisible: false, reducedMotion: false }), false)
+  assert.equal(model.shouldRunFactoryPhysics({ actVisible: true, documentVisible: true, reducedMotion: true }), false)
+})
+
 test('the forming press senses, covers, transforms, reveals, and releases one part', async () => {
   const model = await import('../src/factory/stations/formingPressModel.ts').catch(() => ({}))
   let state = { phase: 'falling', sequence: 2, shape: 'bar' }
@@ -563,12 +572,51 @@ test('the forming press closes two side blocks over the part before opening its 
     geometry.centerX,
   )
   assert.equal(geometry.rightJaw.x + clamped.rightJawOffset, geometry.centerX)
-  assert.deepEqual(idle, { leftJawOffset: 0, rightJawOffset: 0, gateOpen: false })
+  assert.deepEqual(idle, { leftJawOffset: 0, rightJawOffset: 0, gateOpen: false, partLocked: false })
   assert.deepEqual(closing, clamped)
   assert.ok(clamped.leftJawOffset > 0)
   assert.ok(clamped.rightJawOffset < 0)
   assert.equal(clamped.gateOpen, false)
-  assert.deepEqual(released, { leftJawOffset: 0, rightJawOffset: 0, gateOpen: true })
+  assert.deepEqual(released, { leftJawOffset: 0, rightJawOffset: 0, gateOpen: true, partLocked: false })
+})
+
+test('the forming press keeps the part locked until the exit gate opens', async () => {
+  const model = await import('../src/factory/stations/formingPressModel.ts')
+
+  assert.equal(model.getFormingPressMotion('falling').partLocked, false)
+  assert.equal(model.getFormingPressMotion('sensed').partLocked, true)
+  assert.equal(model.getFormingPressMotion('clamped').partLocked, true)
+  assert.equal(model.getFormingPressMotion('revealed').partLocked, true)
+  assert.equal(model.getFormingPressMotion('released').partLocked, false)
+  assert.deepEqual(model.getFormingPressReleaseVelocity(), { x: 0, y: 3 })
+})
+
+test('the forming press seats every formed body just above the stop surface', async () => {
+  const model = await import('../src/factory/stations/formingPressModel.ts')
+
+  assert.equal(model.getFormingPressRestY({
+    gateCenterY: 100,
+    gateThickness: 6,
+    bodyHeight: 20,
+    clearance: 1,
+  }), 86)
+  assert.equal(model.getFormingPressRestY({
+    gateCenterY: 100,
+    gateThickness: 6,
+    bodyHeight: 42,
+    clearance: 1,
+  }), 75)
+})
+
+test('the forming press jaws span the full channel when closed', async () => {
+  const model = await import('../src/factory/stations/formingPressModel.ts')
+  const geometry = model.getFormingPressGeometry()
+  const clamped = model.getFormingPressMotion('clamped')
+
+  assert.equal(geometry.leftJaw.x, 0)
+  assert.equal(geometry.rightJaw.x + geometry.rightJaw.width, 240)
+  assert.equal(geometry.leftJaw.width, clamped.leftJawOffset)
+  assert.equal(geometry.rightJaw.width, -clamped.rightJawOffset)
 })
 
 test('the forming press finishes one shaping cycle before the next Hero-paced part arrives', async () => {
@@ -623,6 +671,42 @@ test('the paint station refuses a second active part until release', async () =>
   const m = await import('../src/factory/stations/paintInspectionModel.ts')
   assert.equal(m.canCapturePaintPart(null), true)
   assert.equal(m.canCapturePaintPart('part-1'), false)
+})
+
+test('the paint station keeps both applicators beside the falling path', async () => {
+  const m = await import('../src/factory/stations/paintInspectionModel.ts')
+  const geometry = m.getPaintInspectionGeometry()
+
+  assert.ok(geometry.coatHead.x + geometry.coatHead.width <= geometry.clearPath.x1)
+  assert.ok(geometry.printHead.x >= geometry.clearPath.x2)
+  assert.ok(geometry.coatHead.nozzleX < geometry.clearPath.x1)
+  assert.ok(geometry.printHead.nozzleX > geometry.clearPath.x2)
+  assert.ok(geometry.paintY - geometry.coatHead.nozzleY >= 56)
+  assert.ok(geometry.paintY - geometry.printHead.nozzleY >= 56)
+  assert.ok(geometry.intakeY + 12 <= geometry.coatHead.y)
+  assert.ok(geometry.intakeY + 12 <= geometry.printHead.y)
+  assert.ok(geometry.coatTarget.x > geometry.coatHead.nozzleX)
+  assert.ok(geometry.printTarget.x < geometry.printHead.nozzleX)
+  assert.equal(geometry.inspectionY > geometry.paintY, true)
+})
+
+test('only near-black paint receives a separate atomized mist cue', async () => {
+  const m = await import('../src/factory/stations/paintInspectionModel.ts')
+
+  assert.equal(m.shouldShowPaintMist('#090909'), true)
+  assert.equal(m.shouldShowPaintMist('#000'), true)
+  assert.equal(m.shouldShowPaintMist('#355CFF'), false)
+  assert.equal(m.shouldShowPaintMist('#FFFFFF'), false)
+})
+
+test('the factory cycles through at least eight visibly distinct forming and finish recipes', async () => {
+  const { LANDING_PART_BLUEPRINTS } = await import('../src/factory/landingPartBlueprints.ts')
+  const shapes = new Set(LANDING_PART_BLUEPRINTS.map(({ shape }) => shape))
+  const fills = new Set(LANDING_PART_BLUEPRINTS.map(({ finish }) => finish.fill))
+
+  assert.ok(LANDING_PART_BLUEPRINTS.length >= 8)
+  assert.ok(shapes.size >= 8)
+  assert.ok(fills.size >= 5)
 })
 
 test('the goals sorter distributes parts across three lanes that share one exit', async () => {
@@ -718,9 +802,9 @@ test('raw factory parts preserve the original Hero conveyor dimensions at its re
   assert.deepEqual(physics.getFactoryPartDimensions('bar', 1.25, 1.5), { width: 37.5, height: 19.5 })
 })
 
-test('the forming press reveals the five landing-page element shapes', async () => {
+test('the forming press reveals the eight landing-page element shapes', async () => {
   const { getFormedShape } = await import('../src/factory/stations/formingPressModel.ts')
-  assert.deepEqual([0, 1, 2, 3, 4, 5].map(getFormedShape), ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card', 'brand-mark'])
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 7, 8].map(getFormedShape), ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card', 'badge', 'divider', 'avatar', 'brand-mark'])
 })
 
 test('semantic body rebuild preserves the complete part and motion snapshot', async () => {
@@ -767,8 +851,11 @@ test('forming press rails clear every rotated semantic body at the narrow statio
   const { getFactoryPartDimensions } = await import('../src/factory/factoryPartPhysics.ts')
   const geometry = getFormingPressGeometry()
   const clearance = (geometry.rightRailX - geometry.leftRailX - 4) * 208 / 240
-  for (const shape of ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card']) {
-    const { width, height } = getFactoryPartDimensions(shape, 1.25, 1.5)
+  for (const shape of ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card', 'badge', 'divider', 'avatar']) {
+    const dimensions = getFactoryPartDimensions(shape, 1.25, 1.5)
+    const { width, height } = 'radius' in dimensions
+      ? { width: dimensions.radius * 2, height: dimensions.radius * 2 }
+      : dimensions
     assert.ok(Math.hypot(width, height) < clearance, `${shape} can wedge across both rails`)
   }
 })

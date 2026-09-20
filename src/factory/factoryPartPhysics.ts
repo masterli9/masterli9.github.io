@@ -13,6 +13,8 @@ const SEMANTIC_DIMENSIONS = {
   'copy-line': { width: 68, height: 16 },
   'cta-button': { width: 54, height: 22 },
   'visual-card': { width: 54, height: 42 },
+  badge: { width: 42, height: 24 },
+  divider: { width: 66, height: 8 },
 } as const
 
 export function getFactoryPartDimensions(
@@ -21,6 +23,7 @@ export function getFactoryPartDimensions(
   scaleY = 1,
 ): FactoryPartDimensions {
   if (shape === 'circle') return { radius: 11 * Math.min(scaleX, scaleY) }
+  if (shape === 'avatar') return { radius: 18 * Math.min(scaleX, scaleY) }
   if (shape === 'bar') return { width: 30 * scaleX, height: 13 * scaleY }
   const semantic = SEMANTIC_DIMENSIONS[shape as keyof typeof SEMANTIC_DIMENSIONS]
   if (semantic) return { width: semantic.width * scaleX, height: semantic.height * scaleY }

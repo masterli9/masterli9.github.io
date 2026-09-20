@@ -462,7 +462,7 @@ test('the visual system uses the approved tokens and local Instrument Sans font'
 test('factory part graphic reveals semantic finishes only after printing', async () => {
   const graphic = await read('src/factory/FactoryPartGraphic.tsx')
   assert.match(graphic, /part.stage === 'printed'.*part.stage === 'inspected'.*part.stage === 'assembled'/)
-  for (const shape of ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card']) assert.ok(graphic.includes(shape))
+  for (const shape of ['brand-mark', 'headline', 'copy-line', 'cta-button', 'visual-card', 'badge', 'avatar']) assert.ok(graphic.includes(shape))
   assert.match(graphic, /finished && part.finish.text/)
   assert.match(graphic, /textAnchor="middle" dominantBaseline="central"/)
 })
@@ -473,6 +473,16 @@ test('paint inspection uses two recipe-driven heads and a separate inspection ar
   for (const token of ['paint-head--coat', 'paint-head--print', 'part.finish', 'paint-inspection__arch', 'activePartIdRef']) assert.ok(station.includes(token), token)
   assert.doesNotMatch(station, /PAINT_COLORS|experience-paint-zone/)
   assert.match(css, /prefers-reduced-motion: reduce[\s\S]*\.paint-spray[\s\S]*animation: none/)
+})
+
+test('black paint uses atomized particles instead of an outlined beam and the blue arch scans during inspection', async () => {
+  const station = await read('src/factory/stations/PaintInspectionStation.tsx')
+  const css = await read('src/factory/factory-line.css')
+
+  assert.match(station, /paint-spray__mist/)
+  assert.doesNotMatch(station, /paint-spray--contrast/)
+  assert.match(station, /phase === 'inspecting'/)
+  assert.doesNotMatch(css, /\.paint-spray--contrast/)
 })
 
 test('experience renders its localized primary heading above content and station', async () => {

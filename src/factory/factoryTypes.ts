@@ -19,6 +19,9 @@ export type FactoryPartShape =
   | 'copy-line'
   | 'cta-button'
   | 'visual-card'
+  | 'badge'
+  | 'divider'
+  | 'avatar'
 
 export type FactoryPartRole = 'brand' | 'heading' | 'copy' | 'cta' | 'visual'
 export type FactoryAssemblySlot = FactoryPartRole

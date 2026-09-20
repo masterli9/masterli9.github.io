@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { Bodies, Events, type Body as MatterBody } from 'matter-js'
+import { Bodies, Body, Events, type Body as MatterBody } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import {
   advanceFormingPress,
@@ -7,6 +7,8 @@ import {
   FORMING_PRESS_TIMING,
   getFormingPressGeometry,
   getFormingPressMotion,
+  getFormingPressReleaseVelocity,
+  getFormingPressRestY,
   type FormingPressState,
 } from './formingPressModel'
 
@@ -55,7 +57,7 @@ export default function FormingPress() {
   const timersRef = useRef<number[]>([])
   const [states, setStates] = useState(new Map<string, FormingPressState>())
   const [activePartId, setActivePartId] = useState<string | null>(null)
-  const { engine, updatePartSpec } = useFactoryAct()
+  const { engine, getPartBody, updatePartSpec } = useFactoryAct()
   const activeState = activePartId ? states.get(activePartId) : undefined
   const pressGeometry = getFormingPressGeometry()
   const pressMotion = getFormingPressMotion(activeState?.phase ?? 'falling')
@@ -101,7 +103,42 @@ export default function FormingPress() {
       if (next === current) return
       statesRef.current.set(partId, next)
       setStates(new Map(statesRef.current))
-      if (event === 'jaws-closed') updatePartSpec(partId, { shape: next.shape, stage: 'formed' })
+      if (event === 'jaws-closed') {
+        const body = getPartBody(partId)
+        if (body) {
+          Body.setAngle(body, 0)
+          Body.setAngularVelocity(body, 0)
+          Body.setVelocity(body, { x: 0, y: 0 })
+          Body.setStatic(body, true)
+        }
+        updatePartSpec(partId, { shape: next.shape, stage: 'formed' })
+        const formedBody = getPartBody(partId)
+        const station = stationRef.current
+        const act = station?.closest<HTMLElement>('[data-factory-act]')
+        if (formedBody && station && act) {
+          Body.setStatic(formedBody, true)
+          const rect = station.getBoundingClientRect()
+          const root = act.getBoundingClientRect()
+          const scaleX = Math.max(rect.width, 1) / VIEWBOX_WIDTH
+          const scaleY = Math.max(rect.height, 1) / VIEWBOX_HEIGHT
+          Body.setPosition(formedBody, {
+            x: rect.left - root.left + (pressGeometry.centerX * scaleX),
+            y: getFormingPressRestY({
+              gateCenterY: rect.top - root.top + (pressGeometry.gate.y * scaleY),
+              gateThickness: 5 * scaleY,
+              bodyHeight: formedBody.bounds.max.y - formedBody.bounds.min.y,
+              clearance: 1,
+            }),
+          })
+        }
+      }
+      if (event === 'gate-open') {
+        const body = getPartBody(partId)
+        if (body) {
+          Body.setStatic(body, false)
+          Body.setVelocity(body, getFormingPressReleaseVelocity())
+        }
+      }
     }
 
     const handleCollision = ({ pairs }: { pairs: Array<{ bodyA: MatterBody; bodyB: MatterBody }> }) => {
@@ -142,8 +179,12 @@ export default function FormingPress() {
       Events.off(engine, 'collisionActive', handleCollision)
       timersRef.current.forEach((timer) => window.clearTimeout(timer))
       timersRef.current = []
+      if (activePressIdRef.current) {
+        const body = getPartBody(activePressIdRef.current)
+        if (body) Body.setStatic(body, false)
+      }
     }
-  }, [engine, updatePartSpec])
+  }, [engine, getPartBody, pressGeometry, updatePartSpec])
 
   return (
     <div ref={stationRef} className="factory-station forming-press" data-factory-station="skills" style={pressStyle}>

@@ -46,8 +46,8 @@ const FORMING_PRESS_GEOMETRY: FormingPressGeometry = {
   centerX: 120,
   leftRailX: 60,
   rightRailX: 180,
-  leftJaw: { x: 6, y: 229, width: 54, height: 76 },
-  rightJaw: { x: 180, y: 229, width: 54, height: 76 },
+  leftJaw: { x: 0, y: 229, width: 60, height: 76 },
+  rightJaw: { x: 180, y: 229, width: 60, height: 76 },
   gate: { x1: 60, x2: 180, y: 291 },
 }
 
@@ -62,7 +62,26 @@ export function getFormingPressMotion(phase: FormingPressPhase) {
     leftJawOffset: jawsClosed ? jawTravel : 0,
     rightJawOffset: jawsClosed ? -jawTravel : 0,
     gateOpen: phase === 'released',
+    partLocked: phase === 'sensed' || phase === 'clamped' || phase === 'revealed',
   }
+}
+
+export function getFormingPressReleaseVelocity() {
+  return { x: 0, y: FORMING_PRESS_ENTRY_VELOCITY_Y }
+}
+
+export function getFormingPressRestY({
+  gateCenterY,
+  gateThickness,
+  bodyHeight,
+  clearance,
+}: {
+  gateCenterY: number
+  gateThickness: number
+  bodyHeight: number
+  clearance: number
+}) {
+  return gateCenterY - (gateThickness / 2) - (bodyHeight / 2) - clearance
 }
 
 export function getFormedShape(sequence: number) {

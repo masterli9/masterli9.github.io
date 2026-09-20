@@ -45,6 +45,14 @@ export function shouldSpawnFactoryPart(input: {
   return input.actVisible && input.documentVisible && !input.reducedMotion
 }
 
+export function shouldRunFactoryPhysics(input: {
+  actVisible: boolean
+  documentVisible: boolean
+  reducedMotion: boolean
+}) {
+  return input.actVisible && input.documentVisible && !input.reducedMotion
+}
+
 export function shouldStartFactoryLine(input: {
   markerTop: number
   viewportHeight: number

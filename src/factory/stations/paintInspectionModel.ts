@@ -9,6 +9,29 @@ export const hasPrintableDetail = (part: FactoryPartSpec) => Boolean(part.finish
 export const canCapturePaintPart = (activePartId: string | null) => activePartId === null
 export const createPaintInspectionState = (part: FactoryPartSpec): PaintInspectionState => ({ phase: 'falling', part })
 
+const PAINT_INSPECTION_GEOMETRY = {
+  paintY: 218,
+  inspectionY: 326,
+  intakeY: 130,
+  clearPath: { x1: 102, x2: 158 },
+  coatHead: { x: 54, y: 144, width: 36, height: 28, nozzleX: 96, nozzleY: 158 },
+  printHead: { x: 170, y: 144, width: 36, height: 28, nozzleX: 164, nozzleY: 158 },
+  coatTarget: { x: 121, y: 218 },
+  printTarget: { x: 139, y: 218 },
+} as const
+
+export function getPaintInspectionGeometry() {
+  return PAINT_INSPECTION_GEOMETRY
+}
+
+export function shouldShowPaintMist(color: string) {
+  const hex = color.trim().match(/^#([\da-f]{3}|[\da-f]{6})$/i)?.[1]
+  if (!hex) return false
+  const normalized = hex.length === 3 ? [...hex].map((value) => value + value).join('') : hex
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(normalized.slice(offset, offset + 2), 16))
+  return channels.reduce((total, value) => total + value, 0) / channels.length < 32
+}
+
 export function advancePaintInspection(state: PaintInspectionState, event: PaintInspectionEvent): PaintInspectionState {
   if (state.phase === 'falling' && event === 'capture') return { ...state, phase: 'captured' }
   if (state.phase === 'captured' && event === 'coat-start') return { ...state, phase: 'coating' }

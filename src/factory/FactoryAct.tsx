@@ -23,6 +23,7 @@ import {
   shouldSpawnFactoryPart,
   shouldRecycleFactoryPart,
   shouldRecycleFactoryPartAtActBoundary,
+  shouldRunFactoryPhysics,
   shouldTeardownAct,
 } from './factoryFlowModel'
 import type {
@@ -83,7 +84,13 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   const [parts, setParts] = useState<FactoryPartSnapshot[]>([])
   const [viewport, setViewport] = useState({ width: 1, height: 1 })
   const [isVisible, setIsVisible] = useState(false)
+  const [documentVisible, setDocumentVisible] = useState(() => document.visibilityState === 'visible')
   const [engine] = useState(() => Engine.create({ gravity: { x: 0, y: 1, scale: 0.00145 } }))
+  const physicsRunning = shouldRunFactoryPhysics({
+    actVisible: isVisible,
+    documentVisible,
+    reducedMotion,
+  })
 
   const refreshRenderedParts = useCallback(() => {
     setParts([
@@ -221,13 +228,13 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   }, [measure])
 
   useEffect(() => {
-    if (reducedMotion) return
+    if (!physicsRunning) return
     let frame = 0
     let previousTime = performance.now()
     const tick = (time: number) => {
       frame = window.requestAnimationFrame(tick)
       const root = rootRef.current
-      if (!root || document.visibilityState !== 'visible' || !isVisible) {
+      if (!root || document.visibilityState !== 'visible') {
         previousTime = time
         return
       }
@@ -256,7 +263,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
     return () => {
       window.cancelAnimationFrame(frame)
     }
-  }, [engine, id, isVisible, reducedMotion, refreshRenderedParts])
+  }, [engine, id, physicsRunning, refreshRenderedParts])
 
   useEffect(() => {
     if (id !== 'lower') return
@@ -344,6 +351,14 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   }, [engine, reducedMotion, refreshRenderedParts])
 
   useEffect(() => {
+    const syncDocumentVisibility = () => {
+      setDocumentVisible(document.visibilityState === 'visible')
+    }
+    document.addEventListener('visibilitychange', syncDocumentVisibility)
+    return () => document.removeEventListener('visibilitychange', syncDocumentVisibility)
+  }, [])
+
+  useEffect(() => {
     const root = rootRef.current
     if (!root) return
     const observer = new IntersectionObserver(([entry]) => {
@@ -354,25 +369,29 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   }, [])
 
   useEffect(() => {
-    let frame = 0
-    const inspectBoundary = () => {
-      frame = window.requestAnimationFrame(inspectBoundary)
-      const root = rootRef.current
-      if (!root || document.visibilityState !== 'visible') return
-      const rootRect = root.getBoundingClientRect()
-      const intersects = rootRect.bottom >= 0 && rootRect.top <= window.innerHeight
-      const neighborVisible = Array.from(document.querySelectorAll<HTMLElement>('[data-factory-act]'))
+    const root = rootRef.current
+    if (!root || !documentVisible) return
+    const acts = Array.from(document.querySelectorAll<HTMLElement>('[data-factory-act]'))
+    const visibleActs = new Map<Element, boolean>(acts.map((element) => {
+      const rect = element.getBoundingClientRect()
+      return [element, rect.bottom >= 0 && rect.top <= window.innerHeight]
+    }))
+    const reconcileBoundary = () => {
+      const intersects = visibleActs.get(root) ?? false
+      const neighborVisible = acts
         .filter((element) => element !== root)
-        .some((element) => {
-          const rect = element.getBoundingClientRect()
-          return rect.bottom >= 0 && rect.top <= window.innerHeight
-        })
+        .some((element) => visibleActs.get(element) ?? false)
       if (shouldTeardownAct({ intersects, neighborVisible, documentVisible: true })) suspendAct()
       else restoreAct()
     }
-    frame = window.requestAnimationFrame(inspectBoundary)
-    return () => window.cancelAnimationFrame(frame)
-  }, [restoreAct, suspendAct])
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) visibleActs.set(entry.target, entry.isIntersecting)
+      reconcileBoundary()
+    })
+    for (const act of acts) observer.observe(act)
+    reconcileBoundary()
+    return () => observer.disconnect()
+  }, [documentVisible, restoreAct, suspendAct])
 
   useEffect(() => () => {
     for (const { body } of partsRef.current.values()) Composite.remove(engine.world, body, true)

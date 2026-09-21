@@ -41,6 +41,8 @@ export interface FinalAssemblerCapturePose {
   x: number
   y: number
   angleDegrees: number
+  scaleX: number
+  scaleY: number
 }
 
 const hasAllSlots = (placements: FinalAssemblyState['placements']) =>
@@ -72,7 +74,7 @@ export function completeFinalAssembly(state: FinalAssemblyState, partId: string)
   if (!state.active || state.active.part.id !== partId) return state
   const placements = {
     ...state.placements,
-    [state.active.slot]: { ...state.active.part, stage: 'assembled' as const },
+    [state.active.slot]: { ...state.active.part, stage: 'assembled' as const, scaleX: 1, scaleY: 1 },
   }
   return { ...state, placements, active: null, assembled: hasAllSlots(placements) }
 }
@@ -82,7 +84,7 @@ export function claimFinalOverflow(state: FinalAssemblyState, partId: string) {
   return { state: { ...state, overflowedIds: [...state.overflowedIds, partId] }, apply: true }
 }
 
-export function getFinalOverflowImpulse(partX: number, centerX = NOVA_FRAME.centerX) {
+export function getFinalOverflowImpulse(partX: number, centerX: number = NOVA_FRAME.centerX) {
   return { x: partX < centerX ? -0.0018 : 0.0018, y: -0.0036 }
 }
 
@@ -94,11 +96,15 @@ export function projectFinalAssemblerPose(input: {
   stationOffsetY: number
   scaleX: number
   scaleY: number
+  partScaleX?: number
+  partScaleY?: number
 }): FinalAssemblerCapturePose {
   return {
     x: (input.bodyX - input.stationOffsetX) / input.scaleX,
     y: (input.bodyY - input.stationOffsetY) / input.scaleY,
     angleDegrees: input.angleRadians * 180 / Math.PI,
+    scaleX: (input.partScaleX ?? 1) / input.scaleX,
+    scaleY: (input.partScaleY ?? 1) / input.scaleY,
   }
 }
 

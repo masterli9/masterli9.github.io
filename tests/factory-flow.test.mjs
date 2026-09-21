@@ -722,15 +722,6 @@ test('the factory cycles through at least eight visibly distinct forming and fin
   assert.ok(fills.size >= 5)
 })
 
-test('five unique parts assemble the browser once and later parts remain overflow', async () => {
-  const model = await import('../src/factory/stations/finalAssemblerModel.ts').catch(() => ({}))
-  let state = { placedIds: [], assembled: false }
-  for (const id of ['a', 'b', 'c', 'd', 'e']) state = model.advanceAssembly(state, id)
-  assert.equal(state.assembled, true)
-  assert.equal(model.advanceAssembly(state, 'f'), state)
-  assert.equal(model.getPostAssemblyCollisionMode(true), 'frame-only')
-})
-
 test('every factory station has a meaningful reduced-motion snapshot', async () => {
   const { getReducedFactorySnapshot } = await import('../src/factory/factoryFlowModel.ts')
 
@@ -818,12 +809,6 @@ test('reduced motion shows the same five finished semantic roles', async () => {
   for (const part of snapshots) assert.deepEqual(part.finish, createFactoryPartSpec(part.sequence, 'raw').finish)
 })
 
-test('legacy assembler slots use semantic assembly slots without changing the part', async () => {
-  const { getBrowserSlot } = await import('../src/factory/stations/finalAssemblerModel.ts')
-  assert.equal(getBrowserSlot(makePart({ sequence: 99, role: 'cta', assemblySlot: 'cta' })), 'contact-action')
-  assert.equal(getBrowserSlot(makePart({ role: 'visual', assemblySlot: 'visual' })), 'hero-visual')
-})
-
 test('reduced finished parts avoid the inspection arch and closed gate', async () => {
   const { getReducedFactorySnapshot } = await import('../src/factory/factoryFlowModel.ts')
   const { getFactoryPartDimensions } = await import('../src/factory/factoryPartPhysics.ts')
@@ -905,7 +890,7 @@ test('assembler pose projection and slot layout remain in viewBox coordinates', 
   assert.deepEqual(model.projectFinalAssemblerPose({
     bodyX: 420, bodyY: 310, angleRadians: Math.PI / 2,
     stationOffsetX: 100, stationOffsetY: 0, scaleX: 0.5, scaleY: 0.5,
-  }), { x: 640, y: 620, angleDegrees: 90 })
+  }), { x: 640, y: 620, angleDegrees: 90, scaleX: 2, scaleY: 2 })
   for (const slot of model.FINAL_ASSEMBLY_SLOTS) {
     const point = model.FINAL_ASSEMBLY_LAYOUT[slot]
     assert.ok(point.x > model.NOVA_FRAME.x && point.x < model.NOVA_FRAME.x + model.NOVA_FRAME.width)
@@ -918,4 +903,15 @@ test('assembler pose projection and slot layout remain in viewBox coordinates', 
   assert.deepEqual(colliders.slice(1).map(({ label }) => label), [
     'contact-overflow-roof-left', 'contact-overflow-roof-right',
   ])
+})
+
+test('capture preserves pixel size and settled parts use normalized scene dimensions', async () => {
+  const m = await import('../src/factory/stations/contactAssemblyModel.ts')
+  const pose = m.projectFinalAssemblerPose({ bodyX: 100, bodyY: 100, angleRadians: 0, stationOffsetX: 0, stationOffsetY: 0, scaleX: 0.5, scaleY: 0.5, partScaleX: 1.25, partScaleY: 1.25 })
+  assert.equal(pose.scaleX * 0.5, 1.25)
+  assert.equal(pose.scaleY * 0.5, 1.25)
+  const part = makePart({ stage: 'inspected', scaleX: 1.25, scaleY: 1.25 })
+  const settled = m.completeFinalAssembly(m.beginFinalAssembly(m.createFinalAssemblyState(), part).state, part.id)
+  assert.equal(settled.placements.brand.scaleX, 1)
+  assert.equal(settled.placements.brand.scaleY, 1)
 })

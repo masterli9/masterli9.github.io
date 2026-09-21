@@ -1,198 +1,144 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Body, Bodies, Composite, Constraint, Events, type Body as MatterBody } from 'matter-js'
+import { Body, Bodies, Events, type Body as MatterBody } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import { useFactoryFlow } from '../FactoryFlowProvider'
+import type { FactoryPartSpec } from '../factoryTypes'
+import { FinalAssemblerScene } from './FinalAssemblerScene'
 import {
-  advanceAssembly,
-  getBrowserSlot,
-  getPostAssemblyCollisionMode,
-  type BrowserSlot,
-} from './finalAssemblerModel'
+  FINAL_ASSEMBLER_VIEWBOX, NOVA_FRAME, createFinalAssemblyState,
+  beginFinalAssembly, completeFinalAssembly, claimFinalOverflow,
+  getFinalOverflowImpulse, projectFinalAssemblerPose, getFinalAssemblerColliderSpecs,
+  type FinalAssemblyState, type FinalAssemblerCapturePose, type FinalAssemblerColliderSpec,
+} from './contactAssemblyModel'
 
-const VIEWBOX_WIDTH = 320
-const VIEWBOX_HEIGHT = 520
-const SLOT_POINTS: Record<BrowserSlot, { x: number; y: number }> = {
-  'hero-copy': { x: 92, y: 278 },
-  'hero-visual': { x: 128, y: 278 },
-  'content-left': { x: 164, y: 278 },
-  'content-right': { x: 200, y: 278 },
-  'contact-action': { x: 236, y: 278 },
-}
-
-function createFrameSegment(
-  metrics: FactoryStationMetrics,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number,
-  label: string,
-  options: { isSensor?: boolean } = {},
-) {
-  const scaleX = Math.max(metrics.elementRect.width, 1) / VIEWBOX_WIDTH
-  const scaleY = Math.max(metrics.elementRect.height, 1) / VIEWBOX_HEIGHT
+function createCollider(metrics: FactoryStationMetrics, spec: FinalAssemblerColliderSpec) {
+  const scaleX = Math.max(metrics.elementRect.width, 1) / FINAL_ASSEMBLER_VIEWBOX.width
+  const scaleY = Math.max(metrics.elementRect.height, 1) / FINAL_ASSEMBLER_VIEWBOX.height
   const offsetX = metrics.elementRect.left - metrics.actRect.left
   const offsetY = metrics.elementRect.top - metrics.actRect.top
-  const start = { x: offsetX + (x1 * scaleX), y: offsetY + (y1 * scaleY) }
-  const end = { x: offsetX + (x2 * scaleX), y: offsetY + (y2 * scaleY) }
+  if (spec.kind === 'rectangle') {
+    return Bodies.rectangle(
+      offsetX + spec.x * scaleX,
+      offsetY + spec.y * scaleY,
+      spec.width * scaleX,
+      spec.height * scaleY,
+      { isStatic: true, isSensor: spec.isSensor, label: spec.label },
+    )
+  }
+  const start = { x: offsetX + spec.x1 * scaleX, y: offsetY + spec.y1 * scaleY }
+  const end = { x: offsetX + spec.x2 * scaleX, y: offsetY + spec.y2 * scaleY }
   const body = Bodies.rectangle(
     (start.x + end.x) / 2,
     (start.y + end.y) / 2,
     Math.hypot(end.x - start.x, end.y - start.y),
-    3.5 * Math.min(scaleX, scaleY),
-    { isStatic: true, isSensor: options.isSensor ?? false, friction: 0.12, restitution: 0.22, label },
+    4 * Math.min(scaleX, scaleY),
+    { isStatic: true, isSensor: spec.isSensor, friction: 0.02, restitution: 0.92, label: spec.label },
   )
   Body.setAngle(body, Math.atan2(end.y - start.y, end.x - start.x))
   return body
 }
 
-function createFrameRectangle(
-  metrics: FactoryStationMetrics,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  label: string,
-  isSensor = false,
-) {
-  const scaleX = Math.max(metrics.elementRect.width, 1) / VIEWBOX_WIDTH
-  const scaleY = Math.max(metrics.elementRect.height, 1) / VIEWBOX_HEIGHT
-  return Bodies.rectangle(
-    metrics.elementRect.left - metrics.actRect.left + (x * scaleX),
-    metrics.elementRect.top - metrics.actRect.top + (y * scaleY),
-    width * scaleX,
-    height * scaleY,
-    { isStatic: true, isSensor, friction: 0.12, restitution: 0.18, label },
-  )
-}
-
-function getPartId(body: MatterBody) {
-  return body.label.replace(/^factory-part-/, '')
-}
+function getPartId(body: MatterBody) { return body.label.replace(/^factory-part-/, '') }
 
 export default function FinalAssembler() {
-  const [placedSlots, setPlacedSlots] = useState<Record<string, BrowserSlot>>({})
-  const stationRef = useRef<HTMLDivElement>(null)
-  const capturedRef = useRef(new Set<string>())
-  const constraintsRef = useRef(new Map<string, Matter.Constraint>())
-  const assemblyRef = useRef({ placedIds: [] as string[], assembled: false })
-  const { engine, removePart, updatePartSpec } = useFactoryAct()
+  const { engine, removePart, simulationActive } = useFactoryAct()
   const { markFinalWebsiteAssembled, reducedMotion } = useFactoryFlow()
-  const [assemblyState, setAssemblyState] = useState(() => ({ placedIds: [] as string[], assembled: reducedMotion }))
-  const captureEnabled = getPostAssemblyCollisionMode(assemblyState.assembled) === 'capture'
+  const stationRef = useRef<HTMLDivElement>(null)
+  const [assemblyState, setAssemblyState] = useState(() => createFinalAssemblyState())
+  const assemblyStateRef = useRef(assemblyState)
+  const [capturePose, setCapturePose] = useState<FinalAssemblerCapturePose | null>(null)
 
-  useEffect(() => {
-    if (reducedMotion) markFinalWebsiteAssembled()
-  }, [markFinalWebsiteAssembled, reducedMotion])
+  const commitAssemblyState = useCallback((next: FinalAssemblyState) => {
+    assemblyStateRef.current = next
+    setAssemblyState(next)
+  }, [])
 
-  const buildColliders = useCallback((metrics: FactoryStationMetrics): MatterBody[] => {
-    const frame = [
-      createFrameSegment(metrics, 40, 180, 280, 180, 'contact-frame-top', { isSensor: true }),
-      createFrameSegment(metrics, 40, 180, 40, 400, 'contact-frame-left'),
-      createFrameSegment(metrics, 280, 180, 280, 400, 'contact-frame-right'),
-      createFrameSegment(metrics, 40, 400, 280, 400, 'contact-frame-bottom'),
-    ]
-    const selectors: MatterBody[] = [
-      createFrameSegment(metrics, 96, 58, 224, 100, 'contact-selector'),
-    ]
-    if (captureEnabled) selectors.push(createFrameRectangle(metrics, 52, 116, 216, 76, 'contact-capture-zone', true))
-    if (!captureEnabled) {
-      selectors.push(
-        createFrameSegment(metrics, 58, 160, 280, 236, 'contact-overflow-slope'),
-        createFrameSegment(metrics, 280, 236, 280, 488, 'contact-overflow-rail'),
-      )
-    }
-    return [...frame, ...selectors]
-  }, [captureEnabled])
+  const stationCenterXRef = useRef(0)
+  const buildColliders = useCallback((metrics: FactoryStationMetrics) => {
+    const scaleX = Math.max(metrics.elementRect.width, 1) / FINAL_ASSEMBLER_VIEWBOX.width
+    stationCenterXRef.current = metrics.elementRect.left - metrics.actRect.left + NOVA_FRAME.centerX * scaleX
+    return getFinalAssemblerColliderSpecs().map((spec) => createCollider(metrics, spec))
+  }, [])
 
   useFactoryStation({ id: 'contact', elementRef: stationRef, buildColliders })
+  const capturePart = useCallback((part: MatterBody) => {
+    if (!simulationActive) return false
+    const spec = part.plugin.factoryPartSpec as FactoryPartSpec
+    const result = beginFinalAssembly(assemblyStateRef.current, spec)
+    if (result.decision.kind !== 'capture') return false
+    const station = stationRef.current
+    const act = station?.closest<HTMLElement>('[data-factory-act]')
+    if (!station || !act) return false
+    const stationRect = station.getBoundingClientRect()
+    const actRect = act.getBoundingClientRect()
+    const scaleX = Math.max(stationRect.width, 1) / FINAL_ASSEMBLER_VIEWBOX.width
+    const scaleY = Math.max(stationRect.height, 1) / FINAL_ASSEMBLER_VIEWBOX.height
+    const partId = getPartId(part)
+    setCapturePose(projectFinalAssemblerPose({
+      bodyX: part.position.x,
+      bodyY: part.position.y,
+      angleRadians: part.angle,
+      stationOffsetX: stationRect.left - actRect.left,
+      stationOffsetY: stationRect.top - actRect.top,
+      scaleX,
+      scaleY,
+      partScaleX: spec.scaleX,
+      partScaleY: spec.scaleY,
+    }))
+    commitAssemblyState(result.state)
+    removePart(partId)
+    return true
+  }, [commitAssemblyState, removePart, simulationActive])
 
   useEffect(() => {
-    const timers: number[] = []
-    const constraints = constraintsRef.current
-    const capturePart = (part: MatterBody) => {
-      const partId = getPartId(part)
-      if (!captureEnabled || capturedRef.current.has(partId)) return
-      capturedRef.current.add(partId)
-      const slot = getBrowserSlot(part.plugin.factoryPartSpec)
-      const station = stationRef.current
-      if (!station) return
-      const act = station.closest<HTMLElement>('[data-factory-act]')
-      if (!act) return
-      const stationRect = station.getBoundingClientRect()
-      const actRect = act.getBoundingClientRect()
-      const scaleX = Math.max(stationRect.width, 1) / VIEWBOX_WIDTH
-      const scaleY = Math.max(stationRect.height, 1) / VIEWBOX_HEIGHT
-      const slotPoint = SLOT_POINTS[slot]
-      const pointB = {
-        x: stationRect.left - actRect.left + (slotPoint.x * scaleX),
-        y: stationRect.top - actRect.top + (slotPoint.y * scaleY),
-      }
-      const constraint = Constraint.create({
-        bodyA: part,
-        pointB,
-        length: 0,
-        stiffness: 0.16,
-        damping: 0.16,
-      })
-      constraintsRef.current.set(partId, constraint)
-      Composite.add(engine.world, constraint)
-      const timer = window.setTimeout(() => {
-        Composite.remove(engine.world, constraint, true)
-        constraintsRef.current.delete(partId)
-        const nextState = advanceAssembly(assemblyRef.current, partId)
-        assemblyRef.current = nextState
-        setPlacedSlots((current) => ({ ...current, [partId]: slot }))
-        setAssemblyState(nextState)
-        updatePartSpec(partId, { stage: 'assembled' })
-        if (nextState.assembled) markFinalWebsiteAssembled()
-        removePart(partId)
-        capturedRef.current.delete(partId)
-      }, 420)
-      timers.push(timer)
-    }
+  const handleCollision = ({ pairs }: { pairs: Array<{ bodyA: MatterBody; bodyB: MatterBody }> }) => {
+    if (!simulationActive) return
+    const contacts = pairs.flatMap((pair) => {
+      const part = pair.bodyA.label.startsWith('factory-part-') ? pair.bodyA
+        : pair.bodyB.label.startsWith('factory-part-') ? pair.bodyB : null
+      const surface = pair.bodyA.label.startsWith('contact-') ? pair.bodyA
+        : pair.bodyB.label.startsWith('contact-') ? pair.bodyB : null
+      return part && surface ? [{ part, surface }] : []
+    })
+    const capturedBodies = new Set<number>()
+    const capturePairs = contacts.filter(({ surface }) => surface.label === 'contact-capture-zone')
+    for (const { part } of capturePairs) if (capturePart(part)) capturedBodies.add(part.id)
 
-    const handleCollision = ({ pairs }: { pairs: Array<{ bodyA: MatterBody; bodyB: MatterBody }> }) => {
-      for (const pair of pairs) {
-        const part = pair.bodyA.label.startsWith('factory-part-')
-          ? pair.bodyA
-          : pair.bodyB.label.startsWith('factory-part-')
-            ? pair.bodyB
-            : null
-        const surface = pair.bodyA.label.startsWith('contact-')
-          ? pair.bodyA
-          : pair.bodyB.label.startsWith('contact-')
-            ? pair.bodyB
-            : null
-        if (!part || !surface) continue
-        if (surface.label === 'contact-capture-zone') capturePart(part)
-        if (!captureEnabled && (surface.label === 'contact-frame-top' || surface.label === 'contact-overflow-slope')) {
-          Body.applyForce(part, part.position, { x: 0.0016, y: 0.0002 })
-        }
-      }
+    const roofPairs = contacts.filter(({ surface }) => surface.label.startsWith('contact-overflow-roof-'))
+    for (const { part } of roofPairs) {
+      if (capturedBodies.has(part.id)) continue
+      const partId = getPartId(part)
+      const claim = claimFinalOverflow(assemblyStateRef.current, partId)
+      if (!claim.apply) continue
+      commitAssemblyState(claim.state)
+      Body.applyForce(
+        part,
+        part.position,
+        getFinalOverflowImpulse(part.position.x, stationCenterXRef.current),
+      )
     }
-    Events.on(engine, 'collisionStart', handleCollision)
-    return () => {
-      Events.off(engine, 'collisionStart', handleCollision)
-      timers.forEach((timer) => window.clearTimeout(timer))
-      for (const constraint of constraints.values()) Composite.remove(engine.world, constraint, true)
-      constraints.clear()
-    }
-  }, [captureEnabled, engine, markFinalWebsiteAssembled, removePart, updatePartSpec])
+  }
+
+  Events.on(engine, 'collisionStart', handleCollision)
+  return () => { Events.off(engine, 'collisionStart', handleCollision) }
+  }, [engine, simulationActive, capturePart, commitAssemblyState])
+  const finishPlacement = useCallback((partId: string) => {
+    const previous = assemblyStateRef.current
+    const next = completeFinalAssembly(previous, partId)
+    if (next === previous) return
+    commitAssemblyState(next)
+    setCapturePose(null)
+    if (next.assembled) markFinalWebsiteAssembled()
+  }, [commitAssemblyState, markFinalWebsiteAssembled])
 
   return (
-    <div ref={stationRef} className="factory-station final-assembler" data-factory-station="contact">
-      <svg viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} aria-hidden="true" focusable="false">
-        <path d="M96 58 224 100" className="factory-line__rail factory-line__rail--pink" />
-        {captureEnabled && <rect x="52" y="116" width="216" height="76" className="factory-line__capture-zone" />}
-        <rect x="40" y="180" width="240" height="220" className="factory-line__browser-frame" />
-        <path d="M58 236H262" className="factory-line__rail factory-line__rail--blue" />
-        {assemblyState.placedIds.map((id) => {
-          const slot = placedSlots[id]
-          const point = SLOT_POINTS[slot]
-          return <circle key={id} cx={point.x} cy={point.y} r="10" className="factory-line__assembled-part" />
-        })}
-        {!captureEnabled && <path d="M58 160 280 236V488" className="factory-line__rail factory-line__rail--white" />}
-      </svg>
-    </div>
+    <FinalAssemblerScene
+      stationRef={stationRef}
+      state={assemblyState}
+      capturePose={capturePose}
+      reducedMotion={reducedMotion}
+      onPlacementComplete={finishPlacement}
+    />
   )
+
 }

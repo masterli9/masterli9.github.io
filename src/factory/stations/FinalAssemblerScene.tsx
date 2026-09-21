@@ -62,17 +62,18 @@ export function FinalAssemblerScene({
             <motion.g
               key={state.active.part.id}
               data-assembly-active={state.active.part.id}
-              initial={{ x: capturePose.x, y: capturePose.y, rotate: capturePose.angleDegrees, scale: 1 }}
-              animate={reducedMotion ? { x: target.x, y: target.y, rotate: target.rotation, scale: target.scale } : {
+              initial={{ x: capturePose.x, y: capturePose.y, rotate: capturePose.angleDegrees, scaleX: capturePose.scaleX, scaleY: capturePose.scaleY }}
+              animate={reducedMotion ? { x: target.x, y: target.y, rotate: target.rotation, scaleX: target.scale, scaleY: target.scale } : {
                 x: [capturePose.x, bendX, target.x],
                 y: [capturePose.y, NOVA_FRAME.y - 24, target.y],
                 rotate: [capturePose.angleDegrees, 0, target.rotation],
-                scale: [1, 0.92, target.scale],
+                scaleX: [capturePose.scaleX, 0.92, target.scale],
+                scaleY: [capturePose.scaleY, 0.92, target.scale],
               }}
               transition={{ duration: reducedMotion ? 0 : 0.64, times: [0, 0.36, 1], ease: [0.22, 1, 0.36, 1] }}
               onAnimationComplete={() => onPlacementComplete(state.active!.part.id)}
             >
-              <FactoryPartGraphic part={{ ...state.active.part, stage: 'assembled' }} />
+              <FactoryPartGraphic part={{ ...state.active.part, stage: 'assembled', scaleX: 1, scaleY: 1 }} />
             </motion.g>
           )
         })()}

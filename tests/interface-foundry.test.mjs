@@ -394,12 +394,6 @@ test('the oversized statement bowl remains visible over the following projects b
   assert.match(css, /\.factory-act\s*>\s*\.statement-section\s*\{[\s\S]*z-index:\s*5/)
 })
 
-test('the contact frame leaves its capture edge physically passable', async () => {
-  const source = await read('src/factory/stations/FinalAssembler.tsx')
-
-  assert.match(source, /contact-frame-top',\s*\{\s*isSensor:\s*true\s*\}/)
-})
-
 test('the navbar returns the original logo and changes width after scrolling', async () => {
   const header = await read('src/components/Header.tsx')
 
@@ -571,4 +565,18 @@ test('the final assembler scene renders semantic NOVA parts instead of placehold
   assert.match(css, /\.final-assembler__activation/)
   assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*factory-station\.final-assembler[\s\S]*width:\s*100%/)
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*final-assembler__activation/)
+})
+
+test('the contact controller hands Matter parts to semantic assembly before overflow processing', async () => {
+  const source = await read('src/factory/stations/FinalAssembler.tsx')
+  assert.match(source, /simulationActive/)
+  assert.match(source, /beginFinalAssembly/)
+  assert.match(source, /projectFinalAssemblerPose/)
+  assert.match(source, /removePart\(partId\)/)
+  assert.match(source, /const capturedBodies = new Set/)
+  assert.ok(source.indexOf('const capturePairs') < source.indexOf('const roofPairs'))
+  assert.match(source, /claimFinalOverflow/)
+  assert.match(source, /Body\.applyForce/)
+  assert.match(source, /<FinalAssemblerScene/)
+  assert.doesNotMatch(source, /Constraint\.create|window\.setTimeout|factory-line__assembled-part/)
 })

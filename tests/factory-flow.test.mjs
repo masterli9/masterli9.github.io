@@ -848,3 +848,74 @@ test('forming press rails clear every rotated semantic body at the narrow statio
     assert.ok(Math.hypot(width, height) < clearance, `${shape} can wedge across both rails`)
   }
 })
+
+test('final assembly accepts one inspected part per unique semantic slot', async () => {
+  const model = await import('../src/factory/stations/contactAssemblyModel.ts')
+  let state = model.createFinalAssemblyState()
+  const brand = makePart({ id: 'brand-1', role: 'brand', assemblySlot: 'brand', stage: 'inspected' })
+  const heading = makePart({ id: 'heading-1', role: 'heading', assemblySlot: 'heading', stage: 'inspected' })
+
+  let result = model.beginFinalAssembly(state, brand)
+  assert.deepEqual(result.decision, { kind: 'capture', slot: 'brand' })
+  state = result.state
+  assert.equal(state.active?.part.id, 'brand-1')
+
+  result = model.beginFinalAssembly(state, heading)
+  assert.deepEqual(result.decision, { kind: 'overflow', reason: 'busy' })
+  state = model.completeFinalAssembly(state, 'brand-1')
+  assert.equal(state.placements.brand?.stage, 'assembled')
+
+  result = model.beginFinalAssembly(state, makePart({ id: 'brand-2', assemblySlot: 'brand', stage: 'inspected' }))
+  assert.deepEqual(result.decision, { kind: 'overflow', reason: 'duplicate' })
+
+  result = model.beginFinalAssembly(state, makePart({ id: 'raw-1', assemblySlot: 'visual', stage: 'formed' }))
+  assert.deepEqual(result.decision, { kind: 'overflow', reason: 'unfinished' })
+})
+
+test('final assembly completes only after all five unique slots settle', async () => {
+  const model = await import('../src/factory/stations/contactAssemblyModel.ts')
+  let state = model.createFinalAssemblyState()
+  for (const [index, slot] of model.FINAL_ASSEMBLY_SLOTS.entries()) {
+    const part = makePart({ id: `${slot}-${index}`, role: slot, assemblySlot: slot, stage: 'inspected' })
+    state = model.beginFinalAssembly(state, part).state
+    state = model.completeFinalAssembly(state, part.id)
+    assert.equal(state.assembled, index === model.FINAL_ASSEMBLY_SLOTS.length - 1)
+  }
+  assert.deepEqual(Object.keys(state.placements).sort(), [...model.FINAL_ASSEMBLY_SLOTS].sort())
+  assert.deepEqual(model.beginFinalAssembly(state, makePart({ id: 'late', stage: 'inspected' })).decision, {
+    kind: 'overflow', reason: 'complete',
+  })
+})
+
+test('overflow impulse is claimed once and points up and away from center', async () => {
+  const model = await import('../src/factory/stations/contactAssemblyModel.ts')
+  let state = model.createFinalAssemblyState()
+  let claim = model.claimFinalOverflow(state, 'overflow-1')
+  assert.equal(claim.apply, true)
+  state = claim.state
+  claim = model.claimFinalOverflow(state, 'overflow-1')
+  assert.equal(claim.apply, false)
+  assert.deepEqual(model.getFinalOverflowImpulse(200), { x: -0.0018, y: -0.0036 })
+  assert.deepEqual(model.getFinalOverflowImpulse(440), { x: 0.0018, y: -0.0036 })
+  assert.deepEqual(model.getFinalOverflowImpulse(320), { x: 0.0018, y: -0.0036 })
+})
+
+test('assembler pose projection and slot layout remain in viewBox coordinates', async () => {
+  const model = await import('../src/factory/stations/contactAssemblyModel.ts')
+  assert.deepEqual(model.projectFinalAssemblerPose({
+    bodyX: 420, bodyY: 310, angleRadians: Math.PI / 2,
+    stationOffsetX: 100, stationOffsetY: 0, scaleX: 0.5, scaleY: 0.5,
+  }), { x: 640, y: 620, angleDegrees: 90 })
+  for (const slot of model.FINAL_ASSEMBLY_SLOTS) {
+    const point = model.FINAL_ASSEMBLY_LAYOUT[slot]
+    assert.ok(point.x > model.NOVA_FRAME.x && point.x < model.NOVA_FRAME.x + model.NOVA_FRAME.width)
+    assert.ok(point.y > model.NOVA_FRAME.y && point.y < model.NOVA_FRAME.y + model.NOVA_FRAME.height)
+  }
+  const colliders = model.getFinalAssemblerColliderSpecs()
+  assert.equal(colliders[0].label, 'contact-capture-zone')
+  assert.equal(colliders[0].kind, 'rectangle')
+  assert.equal(colliders[0].isSensor, true)
+  assert.deepEqual(colliders.slice(1).map(({ label }) => label), [
+    'contact-overflow-roof-left', 'contact-overflow-roof-right',
+  ])
+})

@@ -619,3 +619,26 @@ test('contact form preserves delivery fields in a wide accessible field grid', a
   assert.match(form, /role="status"/)
   assert.match(form, /role="alert"/)
 })
+
+test('contact overflow queues its force for beforeUpdate instead of losing it during collisionStart', async () => {
+  const source = await read('src/factory/stations/FinalAssembler.tsx')
+  assert.match(source, /pendingOverflowRef/)
+  assert.match(source, /Events.on\(engine, 'beforeUpdate', applyPendingOverflow\)/)
+  assert.match(source, /Events.off\(engine, 'beforeUpdate', applyPendingOverflow\)/)
+  assert.match(source, /getFinalOverflowImpulse\(part.position.x, stationCenterXRef.current, part.mass\)/)
+})
+
+test('lower stream identities survive suspend so settled parts cannot respawn', async () => {
+  const source=await read('src/factory/FactoryAct.tsx')
+  assert.match(source,/const lowerSequenceRef = useRef\(0\)/)
+  assert.match(source,/createFactoryPartSpec\(lowerSequenceRef.current, 'raw'\)/)
+  assert.match(source,/lowerSequenceRef.current \+= 1/)
+  assert.doesNotMatch(source,/let sequence = 0/)
+})
+
+test('contact observes live motion preference changes with subscription cleanup', async () => {
+  const source=await read('src/factory/stations/FinalAssembler.tsx')
+  assert.match(source,/useSyncExternalStore/)
+  assert.match(source,/query.addEventListener\('change', notify\)/)
+  assert.match(source,/query.removeEventListener\('change', notify\)/)
+})

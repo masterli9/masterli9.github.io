@@ -880,9 +880,9 @@ test('overflow impulse is claimed once and points up and away from center', asyn
   state = claim.state
   claim = model.claimFinalOverflow(state, 'overflow-1')
   assert.equal(claim.apply, false)
-  assert.deepEqual(model.getFinalOverflowImpulse(200), { x: -0.0018, y: -0.0036 })
-  assert.deepEqual(model.getFinalOverflowImpulse(440), { x: 0.0018, y: -0.0036 })
-  assert.deepEqual(model.getFinalOverflowImpulse(320), { x: 0.0018, y: -0.0036 })
+  assert.deepEqual(model.getFinalOverflowImpulse(200), { x: -0.025, y: -0.045 })
+  assert.deepEqual(model.getFinalOverflowImpulse(440), { x: 0.025, y: -0.045 })
+  assert.deepEqual(model.getFinalOverflowImpulse(320), { x: 0.025, y: -0.045 })
 })
 
 test('assembler pose projection and slot layout remain in viewBox coordinates', async () => {
@@ -924,4 +924,33 @@ test('reduced contact renders one complete semantic NOVA without free factory sn
   assert.ok(parts.every(({ stage }) => stage === 'assembled'))
   assert.equal(assembly.createFinalAssemblyState(parts).assembled, true)
   assert.deepEqual(flow.getReducedFactorySnapshot('contact'), [])
+})
+
+test('restored snapshots cannot leak world coordinates into assembled graphics', async () => {
+  const m = await import('../src/factory/stations/contactAssemblyModel.ts')
+  const snapshot = {...makePart({stage: 'inspected'}), x: 900, y: 2400, angle: 1, velocityX: 0, velocityY: 2, angularVelocity: 0}
+  const begun = m.beginFinalAssembly(m.createFinalAssemblyState(), snapshot).state
+  assert.equal('x' in begun.active.part, false)
+  const settled = m.completeFinalAssembly(begun, snapshot.id)
+  assert.equal('x' in settled.placements.brand, false)
+  assert.equal('x' in m.createFinalAssemblyState([snapshot]).placements.brand, false)
+})
+
+test('overflow launches light and heavy parts beyond the roof after a single queued force', async () => {
+  const m = await import('../src/factory/stations/contactAssemblyModel.ts')
+  const {createFactoryBody} = await import('../src/factory/factoryPartPhysics.ts')
+  for (const shape of ['brand-mark','headline','copy-line','cta-button','visual-card']) {
+    for (const side of [-1,1]) {
+      const engine=Engine.create({gravity:{x:0,y:1,scale:0.00145}})
+      const part=createFactoryBody(makePart({shape,scaleX:1.25,scaleY:1.5}),{x:320+side*80,y:130,angle:0,velocityX:0,velocityY:0,angularVelocity:0})
+      Composite.add(engine.world,part)
+      const force=m.getFinalOverflowImpulse(part.position.x,320,part.mass)
+      Body.applyForce(part,part.position,force)
+      Engine.update(engine,1000/60)
+      assert.ok(part.velocity.y < -5, shape+' must visibly rebound')
+      for(let n=0;n<60;n++) Engine.update(engine,1000/60)
+      assert.ok(side<0 ? part.bounds.max.x < 40 : part.bounds.min.x > 600,shape+' must clear roof side')
+      Engine.clear(engine)
+    }
+  }
 })

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Body, Bodies, Events, type Body as MatterBody } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import { useFactoryFlow } from '../FactoryFlowProvider'
@@ -38,11 +38,21 @@ function createCollider(metrics: FactoryStationMetrics, spec: FinalAssemblerColl
   return body
 }
 
+// Framer Motion's current hook snapshots this preference only at mount.
+const getReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+function subscribeReducedMotion(notify: () => void) {
+  const query = window.matchMedia('(prefers-reduced-motion: reduce)')
+  query.addEventListener('change', notify)
+  return () => query.removeEventListener('change', notify)
+}
+
 function getPartId(body: MatterBody) { return body.label.replace(/^factory-part-/, '') }
 
 export default function FinalAssembler() {
-  const { engine, removePart, simulationActive } = useFactoryAct()
-  const { markFinalWebsiteAssembled, reducedMotion } = useFactoryFlow()
+  const { engine, removePart, getPartBody, simulationActive } = useFactoryAct()
+  const { markFinalWebsiteAssembled } = useFactoryFlow()
+  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => true)
+  const pendingOverflowRef = useRef(new Set<string>())
   const stationRef = useRef<HTMLDivElement>(null)
   const [assemblyState, setAssemblyState] = useState(() => createFinalAssemblyState(reducedMotion ? createReducedFinalAssemblyParts() : []))
   const assemblyStateRef = useRef(assemblyState)
@@ -59,6 +69,7 @@ export default function FinalAssembler() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     commitAssemblyState(createFinalAssemblyState(createReducedFinalAssemblyParts()))
     setCapturePose(null)
+    pendingOverflowRef.current.clear()
     markFinalWebsiteAssembled()
   }, [commitAssemblyState, markFinalWebsiteAssembled, reducedMotion])
 
@@ -100,37 +111,47 @@ export default function FinalAssembler() {
   }, [commitAssemblyState, removePart, simulationActive, reducedMotion])
 
   useEffect(() => {
-  const handleCollision = ({ pairs }: { pairs: Array<{ bodyA: MatterBody; bodyB: MatterBody }> }) => {
-    if (!simulationActive || reducedMotion) return
-    const contacts = pairs.flatMap((pair) => {
-      const part = pair.bodyA.label.startsWith('factory-part-') ? pair.bodyA
-        : pair.bodyB.label.startsWith('factory-part-') ? pair.bodyB : null
-      const surface = pair.bodyA.label.startsWith('contact-') ? pair.bodyA
-        : pair.bodyB.label.startsWith('contact-') ? pair.bodyB : null
-      return part && surface ? [{ part, surface }] : []
-    })
-    const capturedBodies = new Set<number>()
-    const capturePairs = contacts.filter(({ surface }) => surface.label === 'contact-capture-zone')
-    for (const { part } of capturePairs) if (capturePart(part)) capturedBodies.add(part.id)
-
-    const roofPairs = contacts.filter(({ surface }) => surface.label.startsWith('contact-overflow-roof-'))
-    for (const { part } of roofPairs) {
-      if (capturedBodies.has(part.id)) continue
-      const partId = getPartId(part)
-      const claim = claimFinalOverflow(assemblyStateRef.current, partId)
-      if (!claim.apply) continue
-      commitAssemblyState(claim.state)
-      Body.applyForce(
-        part,
-        part.position,
-        getFinalOverflowImpulse(part.position.x, stationCenterXRef.current),
-      )
+    const applyPendingOverflow = () => {
+      if (!simulationActive || reducedMotion) return
+      for (const partId of pendingOverflowRef.current) {
+        const part = getPartBody(partId)
+        if (part) Body.applyForce(part, part.position,
+          getFinalOverflowImpulse(part.position.x, stationCenterXRef.current, part.mass))
+      }
+      pendingOverflowRef.current.clear()
     }
-  }
 
-  Events.on(engine, 'collisionStart', handleCollision)
-  return () => { Events.off(engine, 'collisionStart', handleCollision) }
-  }, [engine, simulationActive, reducedMotion, capturePart, commitAssemblyState])
+    const handleCollision = ({ pairs }: { pairs: Array<{ bodyA: MatterBody; bodyB: MatterBody }> }) => {
+      if (!simulationActive || reducedMotion) return
+      const contacts = pairs.flatMap((pair) => {
+        const part = pair.bodyA.label.startsWith('factory-part-') ? pair.bodyA
+          : pair.bodyB.label.startsWith('factory-part-') ? pair.bodyB : null
+        const surface = pair.bodyA.label.startsWith('contact-') ? pair.bodyA
+          : pair.bodyB.label.startsWith('contact-') ? pair.bodyB : null
+        return part && surface ? [{ part, surface }] : []
+      })
+      const capturedBodies = new Set<number>()
+      const capturePairs = contacts.filter(({ surface }) => surface.label === 'contact-capture-zone')
+      for (const { part } of capturePairs) if (capturePart(part)) capturedBodies.add(part.id)
+
+      const roofPairs = contacts.filter(({ surface }) => surface.label.startsWith('contact-overflow-roof-'))
+      for (const { part } of roofPairs) {
+        if (capturedBodies.has(part.id)) continue
+        const partId = getPartId(part)
+        const claim = claimFinalOverflow(assemblyStateRef.current, partId)
+        if (!claim.apply) continue
+        commitAssemblyState(claim.state)
+        pendingOverflowRef.current.add(partId)
+      }
+    }
+
+    Events.on(engine, 'beforeUpdate', applyPendingOverflow)
+    Events.on(engine, 'collisionStart', handleCollision)
+    return () => {
+      Events.off(engine, 'collisionStart', handleCollision)
+      Events.off(engine, 'beforeUpdate', applyPendingOverflow)
+    }
+  }, [engine, getPartBody, simulationActive, reducedMotion, capturePart, commitAssemblyState])
   const finishPlacement = useCallback((partId: string) => {
     const previous = assemblyStateRef.current
     const next = completeFinalAssembly(previous, partId)

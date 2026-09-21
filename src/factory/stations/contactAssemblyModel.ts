@@ -1,3 +1,4 @@
+import { getLandingPartBlueprint } from '../landingPartBlueprints.ts'
 import type { FactoryAssemblySlot, FactoryPartSpec } from '../factoryTypes'
 
 export const FINAL_ASSEMBLY_SLOTS = ['brand', 'heading', 'copy', 'cta', 'visual'] as const
@@ -14,10 +15,10 @@ export interface FinalAssemblySlotTransform {
 }
 
 export const FINAL_ASSEMBLY_LAYOUT: Record<FactoryAssemblySlot, FinalAssemblySlotTransform> = {
-  brand: { x: 92, y: 205, rotation: 0, scale: 1.15, guideWidth: 28, guideHeight: 28 },
-  heading: { x: 196, y: 320, rotation: -2, scale: 2.2, guideWidth: 128, guideHeight: 48 },
-  copy: { x: 202, y: 382, rotation: 0, scale: 1.8, guideWidth: 126, guideHeight: 30 },
-  cta: { x: 154, y: 446, rotation: 1, scale: 1.65, guideWidth: 92, guideHeight: 38 },
+  brand: { x: 92, y: 191, rotation: 0, scale: 1.15, guideWidth: 28, guideHeight: 28 },
+  heading: { x: 204, y: 310, rotation: -2, scale: 2.65, guideWidth: 128, guideHeight: 48 },
+  copy: { x: 204, y: 382, rotation: 0, scale: 2.15, guideWidth: 126, guideHeight: 30 },
+  cta: { x: 170, y: 446, rotation: 1, scale: 1.9, guideWidth: 92, guideHeight: 38 },
   visual: { x: 450, y: 368, rotation: 3, scale: 3.25, guideWidth: 190, guideHeight: 148 },
 }
 
@@ -45,13 +46,20 @@ export interface FinalAssemblerCapturePose {
   scaleY: number
 }
 
+// Restored Matter specs can also contain snapshot coordinates. Keep only semantic data.
+const semanticPart = (part: FactoryPartSpec): FactoryPartSpec => ({
+  id: part.id, sequence: part.sequence, role: part.role, shape: part.shape,
+  assemblySlot: part.assemblySlot, stage: part.stage, finish: { ...part.finish },
+  coated: part.coated, scaleX: part.scaleX, scaleY: part.scaleY,
+})
+
 const hasAllSlots = (placements: FinalAssemblyState['placements']) =>
   FINAL_ASSEMBLY_SLOTS.every((slot) => placements[slot] !== undefined)
 
 export function createFinalAssemblyState(seed: readonly FactoryPartSpec[] = []): FinalAssemblyState {
   const placements: FinalAssemblyState['placements'] = {}
   for (const part of seed) {
-    if (!placements[part.assemblySlot]) placements[part.assemblySlot] = { ...part, stage: 'assembled' }
+    if (!placements[part.assemblySlot]) placements[part.assemblySlot] = { ...semanticPart(part), stage: 'assembled', scaleX: 1, scaleY: 1 }
   }
   return { placements, active: null, overflowedIds: [], assembled: hasAllSlots(placements) }
 }
@@ -67,7 +75,7 @@ export function decideFinalAssembly(state: FinalAssemblyState, part: FactoryPart
 export function beginFinalAssembly(state: FinalAssemblyState, part: FactoryPartSpec) {
   const decision = decideFinalAssembly(state, part)
   if (decision.kind === 'overflow') return { state, decision }
-  return { state: { ...state, active: { part: { ...part }, slot: decision.slot } }, decision }
+  return { state: { ...state, active: { part: semanticPart(part), slot: decision.slot } }, decision }
 }
 
 export function completeFinalAssembly(state: FinalAssemblyState, partId: string): FinalAssemblyState {
@@ -84,8 +92,9 @@ export function claimFinalOverflow(state: FinalAssemblyState, partId: string) {
   return { state: { ...state, overflowedIds: [...state.overflowedIds, partId] }, apply: true }
 }
 
-export function getFinalOverflowImpulse(partX: number, centerX: number = NOVA_FRAME.centerX) {
-  return { x: partX < centerX ? -0.0018 : 0.0018, y: -0.0036 }
+export function getFinalOverflowImpulse(partX: number, centerX: number = NOVA_FRAME.centerX, mass = 1) {
+  const boundedMass = Math.max(0.25, Math.min(mass, 8))
+  return { x: (partX < centerX ? -0.025 : 0.025) * boundedMass, y: -0.045 * boundedMass }
 }
 
 export function projectFinalAssemblerPose(input: {
@@ -120,7 +129,6 @@ const FINAL_ASSEMBLER_COLLIDERS: readonly FinalAssemblerColliderSpec[] = [
 
 export const getFinalAssemblerColliderSpecs = () => FINAL_ASSEMBLER_COLLIDERS
 
-import { getLandingPartBlueprint } from '../landingPartBlueprints.ts'
 
 export function createReducedFinalAssemblyParts(): FactoryPartSpec[] {
   return FINAL_ASSEMBLY_SLOTS.map((slot, sequence) => {

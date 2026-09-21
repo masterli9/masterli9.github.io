@@ -274,3 +274,7 @@
 .factory-act > #contact {
   z-index: 7;
 }
+
+.final-assembler [data-assembly-slot="heading"] text { font-size: 18px; font-weight: 600; letter-spacing: -0.5px; }
+.final-assembler [data-assembly-slot="copy"] text { font-size: 8px; }
+.final-assembler [data-assembly-slot="cta"] text { font-size: 11px; }

@@ -46,3 +46,16 @@
   .contact-layout { gap: 3rem; }
   .contact-form__field { padding-inline: 1rem; }
 }
+
+.contact-copy { min-height: 2.75rem; flex-wrap: wrap; font-size: 0.875rem; font-weight: 600; }
+.contact-copy > svg { flex-shrink: 0; }
+.contact-copy__address { flex: 1; }
+.contact-copy__feedback:empty { display: none; }
+.contact-copy__feedback:not(:empty) { flex-basis: 100%; }
+.contact-copy:focus-visible, .contact-form__submit:focus-visible { outline: 2px solid var(--color-soft-white); outline-offset: 4px; }
+.contact-copy:active, .contact-form__submit:active:not(:disabled) { transform: translateY(1px); }
+.contact-form { position: relative; background: var(--color-ink); }
+.contact-form__field input { min-height: 2rem; }
+.contact-form__field textarea { line-height: 1.6; min-height: 10rem; }
+.contact-form.is-error .contact-form__submit:hover, .contact-form.is-error .contact-form__submit:focus-visible { background: var(--color-signal-pink); color: var(--color-ink); }
+.contact-form__notice > svg { flex-shrink: 0; }

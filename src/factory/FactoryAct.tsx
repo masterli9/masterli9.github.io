@@ -81,6 +81,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
   const partsRef = useRef(new Map<string, LivePart>())
   const fadingPartsRef = useRef(new Map<string, FactoryPartSnapshot>())
   const suspendedPartsRef = useRef<FactoryPartSnapshot[]>([])
+  const lowerSequenceRef = useRef(0)
   const engineClearedRef = useRef(false)
   const [parts, setParts] = useState<FactoryPartSnapshot[]>([])
   const [viewport, setViewport] = useState({ width: 1, height: 1 })
@@ -277,7 +278,6 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       documentVisible: document.visibilityState === 'visible',
       reducedMotion,
     })) return
-    let sequence = 0
     const spawnAtSkillsEntry = () => {
       if (!shouldSpawnFactoryPart({
         actVisible: simulationActive,
@@ -295,7 +295,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
         : root.clientWidth * 0.82
       const y = 0
       spawnPart({
-        ...createFactoryPartSpec(sequence, 'raw'),
+        ...createFactoryPartSpec(lowerSequenceRef.current, 'raw'),
         scaleX: 1.25,
         scaleY: 1.5,
       }, {
@@ -306,7 +306,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
         angle: 0,
         angularVelocity: 0,
       })
-      sequence += 1
+      lowerSequenceRef.current += 1
     }
     const initial = window.setTimeout(spawnAtSkillsEntry, 80)
     if (reducedMotion) return () => window.clearTimeout(initial)

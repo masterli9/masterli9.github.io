@@ -106,23 +106,6 @@
 
 
 
-.factory-line__browser-frame {
-  fill: none;
-  stroke: var(--color-soft-white);
-  stroke-width: 3.5;
-}
-
-.factory-line__capture-zone {
-  fill: none;
-  stroke: var(--color-cobalt);
-  stroke-width: 3.5;
-  stroke-dasharray: 8 8;
-}
-
-.factory-line__assembled-part {
-  fill: var(--color-soft-white);
-}
-
 .statement-rebound {
   aspect-ratio: 3 / 4;
 }
@@ -158,10 +141,6 @@
 
 .forming-press__gate.is-open {
   transform: scaleX(0);
-}
-
-.final-assembler {
-  aspect-ratio: 8 / 13;
 }
 
 .contact-form-column {
@@ -236,4 +215,62 @@
 @media (prefers-reduced-motion: reduce) {
   .paint-spray, .print-spray, .paint-spray__mist, .paint-inspection__scan { animation: none !important; opacity: 0; }
   .paint-inspection__gate, .paint-inspection__intake { transition: none; }
+}
+
+.final-assembler {
+  width: 100%;
+  max-width: none;
+  aspect-ratio: 32 / 31;
+}
+
+.final-assembler__nova-frame {
+  fill: #050505;
+  stroke: var(--color-soft-white);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.final-assembler__nova-grid,
+.final-assembler__roof,
+.final-assembler__intake {
+  fill: none;
+  stroke: var(--color-soft-white);
+  stroke-width: 2;
+}
+
+.final-assembler__intake {
+  stroke: var(--color-signal-pink);
+  stroke-dasharray: 12 10;
+}
+
+.final-assembler__slot {
+  fill: none;
+  stroke: var(--color-cobalt);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 6;
+  opacity: 0.38;
+}
+
+.final-assembler__activation {
+  fill: none;
+  stroke: var(--color-signal-pink);
+  stroke-width: 4;
+  stroke-dasharray: 532;
+  stroke-dashoffset: 532;
+}
+
+.final-assembler.is-assembled .final-assembler__activation {
+  animation: final-assembler-activate 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes final-assembler-activate {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .final-assembler__activation { animation: none !important; stroke-dashoffset: 0; }
+}
+
+@media (max-width: 640px) {
+  .factory-station.final-assembler { width: 100%; }
 }

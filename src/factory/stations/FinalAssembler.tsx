@@ -5,7 +5,7 @@ import { useFactoryFlow } from '../FactoryFlowProvider'
 import type { FactoryPartSpec } from '../factoryTypes'
 import { FinalAssemblerScene } from './FinalAssemblerScene'
 import {
-  FINAL_ASSEMBLER_VIEWBOX, NOVA_FRAME, createFinalAssemblyState,
+  FINAL_ASSEMBLER_VIEWBOX, NOVA_FRAME, createFinalAssemblyState, createReducedFinalAssemblyParts,
   beginFinalAssembly, completeFinalAssembly, claimFinalOverflow,
   getFinalOverflowImpulse, projectFinalAssemblerPose, getFinalAssemblerColliderSpecs,
   type FinalAssemblyState, type FinalAssemblerCapturePose, type FinalAssemblerColliderSpec,
@@ -44,7 +44,7 @@ export default function FinalAssembler() {
   const { engine, removePart, simulationActive } = useFactoryAct()
   const { markFinalWebsiteAssembled, reducedMotion } = useFactoryFlow()
   const stationRef = useRef<HTMLDivElement>(null)
-  const [assemblyState, setAssemblyState] = useState(() => createFinalAssemblyState())
+  const [assemblyState, setAssemblyState] = useState(() => createFinalAssemblyState(reducedMotion ? createReducedFinalAssemblyParts() : []))
   const assemblyStateRef = useRef(assemblyState)
   const [capturePose, setCapturePose] = useState<FinalAssemblerCapturePose | null>(null)
 
@@ -52,6 +52,15 @@ export default function FinalAssembler() {
     assemblyStateRef.current = next
     setAssemblyState(next)
   }, [])
+
+  useEffect(() => {
+    if (!reducedMotion) return
+    // Synchronize the external Matter collision ref and React scene when motion is disabled.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    commitAssemblyState(createFinalAssemblyState(createReducedFinalAssemblyParts()))
+    setCapturePose(null)
+    markFinalWebsiteAssembled()
+  }, [commitAssemblyState, markFinalWebsiteAssembled, reducedMotion])
 
   const stationCenterXRef = useRef(0)
   const buildColliders = useCallback((metrics: FactoryStationMetrics) => {
@@ -62,7 +71,7 @@ export default function FinalAssembler() {
 
   useFactoryStation({ id: 'contact', elementRef: stationRef, buildColliders })
   const capturePart = useCallback((part: MatterBody) => {
-    if (!simulationActive) return false
+    if (!simulationActive || reducedMotion) return false
     const spec = part.plugin.factoryPartSpec as FactoryPartSpec
     const result = beginFinalAssembly(assemblyStateRef.current, spec)
     if (result.decision.kind !== 'capture') return false
@@ -88,11 +97,11 @@ export default function FinalAssembler() {
     commitAssemblyState(result.state)
     removePart(partId)
     return true
-  }, [commitAssemblyState, removePart, simulationActive])
+  }, [commitAssemblyState, removePart, simulationActive, reducedMotion])
 
   useEffect(() => {
   const handleCollision = ({ pairs }: { pairs: Array<{ bodyA: MatterBody; bodyB: MatterBody }> }) => {
-    if (!simulationActive) return
+    if (!simulationActive || reducedMotion) return
     const contacts = pairs.flatMap((pair) => {
       const part = pair.bodyA.label.startsWith('factory-part-') ? pair.bodyA
         : pair.bodyB.label.startsWith('factory-part-') ? pair.bodyB : null
@@ -121,7 +130,7 @@ export default function FinalAssembler() {
 
   Events.on(engine, 'collisionStart', handleCollision)
   return () => { Events.off(engine, 'collisionStart', handleCollision) }
-  }, [engine, simulationActive, capturePart, commitAssemblyState])
+  }, [engine, simulationActive, reducedMotion, capturePart, commitAssemblyState])
   const finishPlacement = useCallback((partId: string) => {
     const previous = assemblyStateRef.current
     const next = completeFinalAssembly(previous, partId)

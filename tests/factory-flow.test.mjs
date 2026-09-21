@@ -725,7 +725,7 @@ test('the factory cycles through at least eight visibly distinct forming and fin
 test('every factory station has a meaningful reduced-motion snapshot', async () => {
   const { getReducedFactorySnapshot } = await import('../src/factory/factoryFlowModel.ts')
 
-  for (const station of ['statement', 'skills', 'experience', 'contact']) {
+  for (const station of ['statement', 'skills', 'experience']) {
     assert.ok(getReducedFactorySnapshot(station).length > 0, station)
   }
 })
@@ -914,4 +914,14 @@ test('capture preserves pixel size and settled parts use normalized scene dimens
   const settled = m.completeFinalAssembly(m.beginFinalAssembly(m.createFinalAssemblyState(), part).state, part.id)
   assert.equal(settled.placements.brand.scaleX, 1)
   assert.equal(settled.placements.brand.scaleY, 1)
+})
+
+test('reduced contact renders one complete semantic NOVA without free factory snapshots', async () => {
+  const assembly = await import('../src/factory/stations/contactAssemblyModel.ts')
+  const flow = await import('../src/factory/factoryFlowModel.ts')
+  const parts = assembly.createReducedFinalAssemblyParts()
+  assert.deepEqual(parts.map(({ assemblySlot }) => assemblySlot), ['brand', 'heading', 'copy', 'cta', 'visual'])
+  assert.ok(parts.every(({ stage }) => stage === 'assembled'))
+  assert.equal(assembly.createFinalAssemblyState(parts).assembled, true)
+  assert.deepEqual(flow.getReducedFactorySnapshot('contact'), [])
 })

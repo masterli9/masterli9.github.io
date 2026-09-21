@@ -580,3 +580,11 @@ test('the contact controller hands Matter parts to semantic assembly before over
   assert.match(source, /<FinalAssemblerScene/)
   assert.doesNotMatch(source, /Constraint\.create|window\.setTimeout|factory-line__assembled-part/)
 })
+
+test('the final assembler gates collisions on the factory lifecycle and seeds reduced motion once', async () => {
+  const source = await read('src/factory/stations/FinalAssembler.tsx')
+  assert.match(source, /if \(!simulationActive \|\| reducedMotion\) return false/)
+  assert.match(source, /createReducedFinalAssemblyParts/)
+  assert.match(source, /markFinalWebsiteAssembled/)
+  assert.match(source, /assemblyStateRef/)
+})

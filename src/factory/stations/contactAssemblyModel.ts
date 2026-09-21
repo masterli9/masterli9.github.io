@@ -119,3 +119,20 @@ const FINAL_ASSEMBLER_COLLIDERS: readonly FinalAssemblerColliderSpec[] = [
 ]
 
 export const getFinalAssemblerColliderSpecs = () => FINAL_ASSEMBLER_COLLIDERS
+
+import { getLandingPartBlueprint } from '../landingPartBlueprints.ts'
+
+export function createReducedFinalAssemblyParts(): FactoryPartSpec[] {
+  return FINAL_ASSEMBLY_SLOTS.map((slot, sequence) => {
+    const blueprint = getLandingPartBlueprint(sequence)
+    return {
+      id: `reduced-contact-${slot}`,
+      sequence,
+      role: blueprint.role,
+      shape: blueprint.shape,
+      assemblySlot: blueprint.assemblySlot,
+      finish: { ...blueprint.finish },
+      stage: 'assembled',
+    }
+  })
+}

@@ -588,3 +588,34 @@ test('the final assembler gates collisions on the factory lifecycle and seeds re
   assert.match(source, /markFinalWebsiteAssembled/)
   assert.match(source, /assemblyStateRef/)
 })
+
+test('contact uses an equal desktop split and intro-assembler-form mobile order without a top divider', async () => {
+  const section = await read('src/components/ContactSection.tsx')
+  const css = await read('src/components/contact.css')
+  const factoryCss = await read('src/factory/factory-line.css')
+  assert.doesNotMatch(section, /border-t/)
+  assert.match(section, /contact-layout/)
+  assert.match(section, /contact-intro/)
+  assert.match(section, /contact-assembler-column/)
+  assert.ok(section.indexOf('contact-intro') < section.indexOf('contact-assembler-column'))
+  assert.ok(section.indexOf('contact-assembler-column') < section.indexOf('contact-form-column'))
+  assert.match(css, /grid-template-areas:\s*"intro"\s*"assembler"\s*"form"/)
+  assert.match(css, /@media \(min-width:\s*1024px\)[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\)/)
+  assert.match(css, /grid-template-areas:\s*"intro assembler"\s*"form assembler"/)
+  assert.match(factoryCss, /\.factory-act\s*>\s*#contact\s*\{[\s\S]*z-index:\s*7/)
+})
+
+test('contact form preserves delivery fields in a wide accessible field grid', async () => {
+  const form = await read('src/components/ContactForm.tsx')
+  for (const name of ['from_name', 'reply_to', 'subject']) {
+    assert.match(form, new RegExp(`name:\\s*['"]${name}['"]`))
+  }
+  assert.match(form, /name="message"/)
+  assert.match(form, /name="website_url"/)
+  assert.match(form, /contact-form__grid/)
+  assert.match(form, /area: 'name'/)
+  assert.match(form, /area: 'email'/)
+  assert.match(form, /contact-form__field--message/)
+  assert.match(form, /role="status"/)
+  assert.match(form, /role="alert"/)
+})

@@ -8,7 +8,7 @@ import {
   FINAL_ASSEMBLER_VIEWBOX, NOVA_FRAME, createFinalAssemblyState, createReducedFinalAssemblyParts,
   beginFinalAssembly, completeFinalAssembly, claimFinalOverflow,
   getFinalOverflowImpulse, projectFinalAssemblerPose, getFinalAssemblerColliderSpecs,
-  type FinalAssemblyState, type FinalAssemblerCapturePose, type FinalAssemblerColliderSpec,
+  type FinalAssemblyState, type FinalAssemblerColliderSpec,
 } from './contactAssemblyModel'
 
 function createCollider(metrics: FactoryStationMetrics, spec: FinalAssemblerColliderSpec) {
@@ -56,7 +56,9 @@ export default function FinalAssembler() {
   const stationRef = useRef<HTMLDivElement>(null)
   const [assemblyState, setAssemblyState] = useState(() => createFinalAssemblyState(reducedMotion ? createReducedFinalAssemblyParts() : []))
   const assemblyStateRef = useRef(assemblyState)
-  const [capturePose, setCapturePose] = useState<FinalAssemblerCapturePose | null>(null)
+  const [stationVisible, setStationVisible] = useState(false)
+  const [documentVisible, setDocumentVisible] = useState(() => document.visibilityState === 'visible')
+  const assemblyPlaying = stationVisible && documentVisible && simulationActive
 
   const commitAssemblyState = useCallback((next: FinalAssemblyState) => {
     assemblyStateRef.current = next
@@ -64,11 +66,25 @@ export default function FinalAssembler() {
   }, [])
 
   useEffect(() => {
+    const station = stationRef.current
+    if (!station) return
+    const observer = new IntersectionObserver(([entry]) => {
+      setStationVisible(Boolean(entry?.isIntersecting && entry.intersectionRatio >= 0.2))
+    }, { threshold: [0, 0.2] })
+    observer.observe(station)
+    const syncVisibility = () => setDocumentVisible(document.visibilityState === 'visible')
+    document.addEventListener('visibilitychange', syncVisibility)
+    return () => {
+      observer.disconnect()
+      document.removeEventListener('visibilitychange', syncVisibility)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!reducedMotion) return
     // Synchronize the external Matter collision ref and React scene when motion is disabled.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     commitAssemblyState(createFinalAssemblyState(createReducedFinalAssemblyParts()))
-    setCapturePose(null)
     pendingOverflowRef.current.clear()
     markFinalWebsiteAssembled()
   }, [commitAssemblyState, markFinalWebsiteAssembled, reducedMotion])
@@ -84,8 +100,6 @@ export default function FinalAssembler() {
   const capturePart = useCallback((part: MatterBody) => {
     if (!simulationActive || reducedMotion) return false
     const spec = part.plugin.factoryPartSpec as FactoryPartSpec
-    const result = beginFinalAssembly(assemblyStateRef.current, spec)
-    if (result.decision.kind !== 'capture') return false
     const station = stationRef.current
     const act = station?.closest<HTMLElement>('[data-factory-act]')
     if (!station || !act) return false
@@ -94,7 +108,7 @@ export default function FinalAssembler() {
     const scaleX = Math.max(stationRect.width, 1) / FINAL_ASSEMBLER_VIEWBOX.width
     const scaleY = Math.max(stationRect.height, 1) / FINAL_ASSEMBLER_VIEWBOX.height
     const partId = getPartId(part)
-    setCapturePose(projectFinalAssemblerPose({
+    const capturePose = projectFinalAssemblerPose({
       bodyX: part.position.x,
       bodyY: part.position.y,
       angleRadians: part.angle,
@@ -102,13 +116,18 @@ export default function FinalAssembler() {
       stationOffsetY: stationRect.top - actRect.top,
       scaleX,
       scaleY,
+      partShape: spec.shape,
       partScaleX: spec.scaleX,
       partScaleY: spec.scaleY,
-    }))
-    commitAssemblyState(result.state)
+    })
+    const { state: next } = beginFinalAssembly(assemblyStateRef.current, spec, {
+      visible: assemblyPlaying, capturePose,
+    })
+    if (next === assemblyStateRef.current) return false
+    commitAssemblyState(next)
     removePart(partId)
     return true
-  }, [commitAssemblyState, removePart, simulationActive, reducedMotion])
+  }, [assemblyPlaying, commitAssemblyState, removePart, simulationActive, reducedMotion])
 
   useEffect(() => {
     const applyPendingOverflow = () => {
@@ -147,25 +166,28 @@ export default function FinalAssembler() {
 
     Events.on(engine, 'beforeUpdate', applyPendingOverflow)
     Events.on(engine, 'collisionStart', handleCollision)
+    Events.on(engine, 'collisionActive', handleCollision)
     return () => {
       Events.off(engine, 'collisionStart', handleCollision)
+      Events.off(engine, 'collisionActive', handleCollision)
       Events.off(engine, 'beforeUpdate', applyPendingOverflow)
     }
   }, [engine, getPartBody, simulationActive, reducedMotion, capturePart, commitAssemblyState])
   const finishPlacement = useCallback((partId: string) => {
+    if (reducedMotion) return
     const previous = assemblyStateRef.current
     const next = completeFinalAssembly(previous, partId)
     if (next === previous) return
     commitAssemblyState(next)
-    setCapturePose(null)
     if (next.assembled) markFinalWebsiteAssembled()
-  }, [commitAssemblyState, markFinalWebsiteAssembled])
+  }, [reducedMotion, commitAssemblyState, markFinalWebsiteAssembled])
 
   return (
     <FinalAssemblerScene
       stationRef={stationRef}
       state={assemblyState}
-      capturePose={capturePose}
+      capturePose={assemblyState.active?.capturePose ?? null}
+      assemblyPlaying={assemblyPlaying}
       reducedMotion={reducedMotion}
       onPlacementComplete={finishPlacement}
     />

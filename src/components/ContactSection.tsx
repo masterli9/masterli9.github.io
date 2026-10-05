@@ -19,23 +19,25 @@ export default function ContactSection() {
   return (
     <section id="contact" className="foundry-page contact-section py-28 md:py-40">
       <div className="foundry-container contact-layout">
-        <header className="contact-intro">
-          <h2 className="max-w-2xl font-heading text-[clamp(2.75rem,5vw,5.5rem)] font-medium leading-[0.94] tracking-[-0.055em] text-soft-white">
+        <header className="contact-intro factory-reading-surface">
+          <h2 className="contact-heading font-heading font-medium tracking-[-0.055em] text-soft-white">
             <AccentWords parts={t.contact.headingParts} />
           </h2>
-          <p className="mt-7 max-w-2xl text-lg leading-relaxed text-soft-white">{t.contact.subtitle}</p>
-          <div className="contact-direct">
-            <p className="text-sm text-soft-white">{t.contact.orEmail}</p>
-            <button onClick={copyEmail} className="contact-copy">
-              <Mail size={17} aria-hidden="true" />
-              <span className="contact-copy__address">andrej.zdvorak.123@gmail.com</span>
-              {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-              <span className="contact-copy__feedback" aria-live="polite">{copied ? t.contact.copied : ''}</span>
-            </button>
+          <div className="contact-intro-details">
+            <p className="contact-subtitle text-soft-white">{t.contact.subtitle}</p>
+            <div className="contact-direct">
+              <p className="text-sm text-soft-white">{t.contact.orEmail}</p>
+              <button onClick={copyEmail} className="contact-copy">
+                <Mail size={17} aria-hidden="true" />
+                <span className="contact-copy__address">andrej.zdvorak.123@gmail.com</span>
+                {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+                <span className="contact-copy__feedback" aria-live="polite">{copied ? t.contact.copied : ''}</span>
+              </button>
+            </div>
           </div>
         </header>
         <div className="contact-assembler-column"><FinalAssembler /></div>
-        <div className="contact-form-column"><ContactForm /></div>
+        <div className="contact-form-column factory-reading-surface"><ContactForm /></div>
       </div>
     </section>
   )

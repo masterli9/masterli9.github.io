@@ -13,12 +13,12 @@ export default function Experience() {
 
   return (
     <section id="experience" className="foundry-page py-28 md:py-48">
-      <div className="foundry-container">
-        <h2 className="max-w-3xl font-heading text-[clamp(2.7rem,5vw,5rem)] font-medium leading-[0.94] tracking-[-0.06em] text-soft-white">
-          {t.experience.sectionTitle}
-        </h2>
-        <div className="mt-20 grid gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,18rem)] lg:items-start lg:gap-24">
-          <div className="grid gap-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(14rem,0.7fr)] lg:gap-24">
+      <div className="foundry-container experience-layout">
+        <div className="factory-reading-surface experience-copy">
+          <h2 className="max-w-3xl font-heading text-[clamp(2.7rem,5vw,5rem)] font-medium leading-[0.94] tracking-[-0.06em] text-soft-white">
+            {t.experience.sectionTitle}
+          </h2>
+          <div className="experience-details grid gap-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(14rem,0.7fr)] lg:gap-24">
             <div className="relative border-l border-white-line pl-8 md:pl-12">
               {t.experience.items.map((experience) => (
                 <article key={experience.title} className="relative pb-16 last:pb-0">
@@ -44,9 +44,8 @@ export default function Experience() {
               </div>
             </div>
           </div>
-
-          <PaintInspectionStation />
         </div>
+        <PaintInspectionStation />
       </div>
     </section>
   )

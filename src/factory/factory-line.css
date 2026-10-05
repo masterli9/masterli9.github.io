@@ -213,68 +213,99 @@
   .paint-inspection__gate, .paint-inspection__intake { transition: none; }
 }
 
-.final-assembler {
-  width: 100%;
-  max-width: none;
-  aspect-ratio: 32 / 31;
+.final-assembler { width: 100%; max-width: none; aspect-ratio: 16 / 13; }
+.final-assembler__nova-frame { fill: #ffffff; stroke: none; }
+.final-assembler__browser-chrome { fill: #202020; }
+.final-assembler__browser-chrome path, .final-assembler__page-rule { fill: none; stroke: #e6e6e6; stroke-width: 1; }
+.final-assembler__text-line { fill: #d5d5d5; }
+.final-assembler__wordmark { fill: #090909; font: 600 14px 'Instrument Sans', sans-serif; letter-spacing: 1px; }
+.final-assembler__slot { fill: #f6f6f6; stroke: #e6e6e6; stroke-width: 1; stroke-dasharray: 4 5; }
+.final-assembler[data-assembly-playing="true"] .final-assembler__slot { animation: final-assembler-wait 1.6s ease-in-out infinite; }
+@keyframes final-assembler-wait { 50% { opacity: 0.35; } }
+
+.experience-layout {
+  display: grid;
+  gap: 5rem;
 }
 
-.final-assembler__nova-frame {
-  fill: #050505;
-  stroke: var(--color-soft-white);
-  stroke-width: 3;
-  stroke-linejoin: round;
+.experience-details {
+  margin-top: 5rem;
 }
 
-.final-assembler__nova-grid,
-.final-assembler__roof,
-.final-assembler__intake {
-  fill: none;
-  stroke: var(--color-soft-white);
-  stroke-width: 2;
+@media (min-width: 1024px) {
+  .experience-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 18rem);
+    column-gap: 6rem;
+    align-items: start;
+  }
+
+  .experience-copy {
+    display: contents;
+  }
+
+  .experience-copy > h2 {
+    grid-column: 1 / -1;
+  }
+
+  .experience-details {
+    margin-top: 0;
+  }
 }
 
-.final-assembler__intake {
-  stroke: var(--color-signal-pink);
-  stroke-dasharray: 12 10;
+@media (max-width: 1023px) {
+  .factory-act > .statement-section,
+  .factory-act > #experience {
+    z-index: 7;
+    background: transparent;
+  }
+
+  .factory-reading-surface {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .factory-reading-surface::before {
+    content: '';
+    position: absolute;
+    inset: -0.75rem -0.5rem;
+    z-index: -1;
+    background: rgb(0 0 0 / 55%);
+    pointer-events: none;
+  }
+
+  #contact .contact-form {
+    background: transparent;
+  }
 }
 
-.final-assembler__slot {
-  fill: none;
-  stroke: var(--color-cobalt);
-  stroke-width: 1.5;
-  stroke-dasharray: 5 6;
-  opacity: 0.38;
-}
+@media (max-width: 767px) {
+  .statement-section {
+    padding-bottom: 3rem;
+  }
 
-.final-assembler__activation {
-  fill: none;
-  stroke: var(--color-signal-pink);
-  stroke-width: 4;
-  stroke-dasharray: 532;
-  stroke-dashoffset: 532;
-}
-
-.final-assembler.is-assembled .final-assembler__activation {
-  animation: final-assembler-activate 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes final-assembler-activate {
-  to { stroke-dashoffset: 0; }
+  /* Keep the station's collider scale; reclaim only the hidden SVG tail. */
+  .statement-rebound {
+    width: min(100%, 18rem);
+    max-width: 100%;
+    margin-left: auto;
+    margin-bottom: calc(min(100vw - 2rem, 18rem) * -0.5);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .final-assembler__activation { animation: none !important; stroke-dashoffset: 0; }
+  .final-assembler__slot { animation: none !important; }
 }
 
+.final-assembler__activation { fill: none; stroke: var(--color-cobalt); stroke-width: 2; opacity: 0; }
+.final-assembler.is-assembled .final-assembler__activation { animation: final-assembler-activate 420ms ease-out forwards; }
+@keyframes final-assembler-activate { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .final-assembler__activation { animation: none !important; opacity: 1; }
+}
 @media (max-width: 640px) {
   .factory-station.final-assembler { width: 100%; }
 }
+/* The act's parts layer is below Contact. Only the page and form should occlude it. */
+.factory-act > #contact { z-index: 7; background: transparent; }
 
-.factory-act > #contact {
-  z-index: 7;
-}
-
-.final-assembler [data-assembly-slot="heading"] text { font-size: 18px; font-weight: 600; letter-spacing: -0.5px; }
-.final-assembler [data-assembly-slot="copy"] text { font-size: 8px; }
-.final-assembler [data-assembly-slot="cta"] text { font-size: 11px; }
+.final-assembler__footer { fill: #181818; }

@@ -112,7 +112,7 @@ export default function Hero() {
   return (
     <section ref={heroRef} id="hero" className="foundry-page factory-hero-layer flex items-center py-24 md:min-h-[min(52rem,100dvh)] md:py-36">
       <div className="foundry-container grid items-center gap-10 md:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)] md:gap-8">
-        <div className="max-w-2xl md:col-start-1">
+        <div className="factory-reading-surface max-w-2xl md:col-start-1">
           <h1 className="whitespace-nowrap font-heading text-[clamp(3rem,7vw,6.25rem)] font-normal leading-none tracking-[-0.065em] text-soft-white">
             {renderTimedWords(timeline.name, 'name')}
           </h1>

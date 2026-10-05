@@ -362,7 +362,7 @@ test('each station reserves the same aspect-ratio footprint used by its collider
   assert.match(css, /\.statement-rebound\s*\{[\s\S]*aspect-ratio:\s*3\s*\/\s*4/)
   assert.match(css, /\.forming-press\s*\{[\s\S]*aspect-ratio:\s*6\s*\/\s*13/)
   assert.match(css, /\.paint-inspection\s*\{[\s\S]*aspect-ratio:\s*1\s*\/\s*2/)
-  assert.match(css, /\.final-assembler\s*\{[\s\S]*aspect-ratio:\s*32\s*\/\s*31/)
+  assert.match(css, /\.final-assembler\s*\{[\s\S]*aspect-ratio:\s*16\s*\/\s*13/)
   assert.match(css, /\.statement-rebound\s*\{[\s\S]*width:\s*32\.5rem/)
   assert.match(css, /\.statement-rebound\s*\{[\s\S]*margin-left:\s*calc\(100%\s*-\s*32\.5rem\)/)
   assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*?\.statement-rebound\s*\{[\s\S]*margin-left:\s*auto/)
@@ -601,7 +601,7 @@ test('contact uses an equal desktop split and intro-assembler-form mobile order 
   assert.ok(section.indexOf('contact-assembler-column') < section.indexOf('contact-form-column'))
   assert.match(css, /grid-template-areas:\s*"intro"\s*"assembler"\s*"form"/)
   assert.match(css, /@media \(min-width:\s*1024px\)[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\)/)
-  assert.match(css, /grid-template-areas:\s*"intro assembler"\s*"form assembler"/)
+  assert.match(css, /grid-template-areas:\s*"intro intro"\s*"form assembler"/)
   assert.match(factoryCss, /\.factory-act\s*>\s*#contact\s*\{[\s\S]*z-index:\s*7/)
 })
 
@@ -641,4 +641,35 @@ test('contact observes live motion preference changes with subscription cleanup'
   assert.match(source,/useSyncExternalStore/)
   assert.match(source,/query.addEventListener\('change', notify\)/)
   assert.match(source,/query.removeEventListener\('change', notify\)/)
+})
+
+test('contact exposes the falling parts and uses a white browser page without visible roof', async () => {
+  const css=await read('src/factory/factory-line.css')
+  const scene=await read('src/factory/stations/FinalAssemblerScene.tsx')
+  assert.match(css,/\.factory-act\s*>\s*#contact\s*\{[^}]*background:\s*transparent/)
+  assert.match(css,/\.final-assembler__nova-frame\s*\{[^}]*fill:\s*#fff(?:fff)?/i)
+  assert.match(scene,/<rect[^>]*className="final-assembler__nova-frame"/)
+  assert.doesNotMatch(scene,/className="final-assembler__(?:roof|intake)"/)
+  assert.match(scene,/final-assembler__text-line/)
+  assert.match(scene,/final-assembler__browser-chrome/)
+})
+
+test('contact balances the form and website below a shared desktop introduction', async () => {
+  const css=await read('src/components/contact.css')
+  const form=await read('src/components/ContactForm.tsx')
+  assert.match(css,/grid-template-areas:\s*"intro intro"\s*"form assembler"/)
+  assert.match(form,/rows=\{4\}/)
+})
+
+test('contact preserves recipe paint and reveals supplemental content during the first arrivals', async () => {
+  const css=await read('src/factory/factory-line.css')
+  const scene=await read('src/factory/stations/FinalAssemblerScene.tsx')
+  assert.doesNotMatch(css,/\[data-assembly-slot[^}]*\{[^}]*(?:fill|stroke|font-size):/)
+  assert.match(scene,/data-page-reveal/)
+  assert.match(scene,/Object.keys\(state.placements\).length \+ \(state.active \? 1 : 0\)/)
+  assert.match(scene,/reducedMotion \|\| arrivalCount >= arrival/)
+  assert.match(scene,/data-page-reveal="chrome" \{\.\.\.reveal\(0\)\}/)
+  assert.match(scene,/data-page-reveal="navigation" \{\.\.\.reveal\(1, 0.12\)\}/)
+  assert.match(scene,/data-page-reveal="copy" \{\.\.\.reveal\(2\)\}/)
+  assert.match(scene,/data-page-reveal="footer" \{\.\.\.reveal\(3\)\}/)
 })

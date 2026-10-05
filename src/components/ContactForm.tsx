@@ -72,7 +72,7 @@ export default function ContactForm() {
         ))}
         <div className="contact-form__field contact-form__field--message">
           <label htmlFor="message">{t.contact.form.message}</label>
-          <textarea id="message" name="message" required rows={7} />
+          <textarea id="message" name="message" required rows={4} />
         </div>
       </div>
       <button type="submit" disabled={status === 'sending'} className="contact-form__submit">

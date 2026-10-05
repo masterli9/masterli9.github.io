@@ -15,7 +15,7 @@ export default function Skills() {
   return (
     <section id="skills" className="foundry-page py-28 md:py-40">
       <div className="foundry-container grid gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,18rem)] lg:items-start lg:gap-24">
-        <div>
+        <div className="factory-reading-surface">
           <div className="max-w-[40rem]">
             <h2 className="font-heading text-[clamp(2.9rem,5vw,5.25rem)] font-medium leading-[0.92] tracking-[-0.065em] text-soft-white">
               <AccentWords parts={t.skills.headingParts} />

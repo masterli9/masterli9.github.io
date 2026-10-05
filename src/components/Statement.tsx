@@ -42,38 +42,40 @@ export default function Statement() {
       <div ref={boundaryRef} data-factory-boundary="statement" aria-hidden="true" className="pointer-events-none h-px w-full" />
       <div className="foundry-container grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-center lg:gap-20">
         <div className="max-w-3xl lg:translate-y-32">
-          <h2 className="max-w-2xl font-heading text-[clamp(2.4rem,5vw,4.8rem)] font-medium leading-[0.98] tracking-[-0.055em] text-soft-white">
-            {reveal.map((item, index) => (
-              <Fragment key={item.key}>
-                <motion.span
-                  className="inline-block"
-                  initial={reducedMotion ? false : { opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: reducedMotion ? 0 : 0.45, delay: reducedMotion ? 0 : item.revealAt }}
-                >
-                  {item.word}
-                </motion.span>
-                {index < reveal.length - 1 ? ' ' : null}
-              </Fragment>
-            ))}
-          </h2>
-          <motion.p className="mt-8 max-w-xl text-lg leading-relaxed text-soft-white">
-            {descriptionReveal.map((item, index) => (
-              <Fragment key={item.key}>
-                <motion.span
-                  className="inline-block"
-                  initial={reducedMotion ? false : { opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: reducedMotion ? 0 : 0.4, delay: reducedMotion ? 0 : item.revealAt }}
-                >
-                  {item.word}
-                </motion.span>
-                {index < descriptionReveal.length - 1 ? ' ' : null}
-              </Fragment>
-            ))}
-          </motion.p>
+          <div className="factory-reading-surface">
+            <h2 className="max-w-2xl font-heading text-[clamp(2.4rem,5vw,4.8rem)] font-medium leading-[0.98] tracking-[-0.055em] text-soft-white">
+              {reveal.map((item, index) => (
+                <Fragment key={item.key}>
+                  <motion.span
+                    className="inline-block"
+                    initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.45, delay: reducedMotion ? 0 : item.revealAt }}
+                  >
+                    {item.word}
+                  </motion.span>
+                  {index < reveal.length - 1 ? ' ' : null}
+                </Fragment>
+              ))}
+            </h2>
+            <motion.p className="mt-8 max-w-xl text-lg leading-relaxed text-soft-white">
+              {descriptionReveal.map((item, index) => (
+                <Fragment key={item.key}>
+                  <motion.span
+                    className="inline-block"
+                    initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.4, delay: reducedMotion ? 0 : item.revealAt }}
+                  >
+                    {item.word}
+                  </motion.span>
+                  {index < descriptionReveal.length - 1 ? ' ' : null}
+                </Fragment>
+              ))}
+            </motion.p>
+          </div>
         </div>
         <StatementRebound />
       </div>

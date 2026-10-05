@@ -857,7 +857,29 @@ test('final assembly accepts one inspected part per unique semantic slot', async
   assert.deepEqual(result.decision, { kind: 'overflow', reason: 'unfinished' })
 })
 
-test('final assembly completes only after all five unique slots settle', async () => {
+test('contact captures only a current visible arrival without replaying earlier parts', async () => {
+  const m = await import('../src/factory/stations/contactAssemblyModel.ts')
+  const pose = { x: 421, y: -31, angleDegrees: 14, scaleX: 1.4, scaleY: 1.7 }
+  let state = m.createFinalAssemblyState()
+  const earlier = makePart({ id: 'earlier-brand', stage: 'inspected' })
+  assert.equal(m.beginFinalAssembly(state, earlier, { visible: false, capturePose: pose }).state, state)
+  assert.equal(state.active, null)
+  assert.deepEqual(state.placements, {})
+  const current = makePart({ id: 'current-heading', assemblySlot: 'heading', stage: 'inspected' })
+  state = m.beginFinalAssembly(state, current, { visible: true, capturePose: pose }).state
+  assert.equal(state.active.part.id, 'current-heading')
+  assert.deepEqual(state.active.capturePose, pose)
+  assert.equal(m.beginFinalAssembly(state, earlier, { visible: true, capturePose: pose }).state, state)
+  state = m.completeFinalAssembly(state, 'current-heading')
+  assert.equal(state.active, null)
+  assert.deepEqual(Object.keys(state.placements), ['heading'])
+  assert.equal(m.beginFinalAssembly(state, earlier, { visible: false, capturePose: pose }).state, state)
+  const arrivingNow = makePart({ id: 'new-brand', stage: 'inspected' })
+  state = m.beginFinalAssembly(state, arrivingNow, { visible: true, capturePose: pose }).state
+  assert.equal(state.active.part.id, 'new-brand')
+})
+
+test('final assembly completes only after all eight unique slots settle', async () => {
   const model = await import('../src/factory/stations/contactAssemblyModel.ts')
   let state = model.createFinalAssemblyState()
   for (const [index, slot] of model.FINAL_ASSEMBLY_SLOTS.entries()) {
@@ -920,7 +942,7 @@ test('reduced contact renders one complete semantic NOVA without free factory sn
   const assembly = await import('../src/factory/stations/contactAssemblyModel.ts')
   const flow = await import('../src/factory/factoryFlowModel.ts')
   const parts = assembly.createReducedFinalAssemblyParts()
-  assert.deepEqual(parts.map(({ assemblySlot }) => assemblySlot), ['brand', 'heading', 'copy', 'cta', 'visual'])
+  assert.deepEqual(parts.map(assembly.getFinalAssemblySlot), ['brand', 'heading', 'copy', 'cta', 'visual', 'badge', 'divider', 'avatar'])
   assert.ok(parts.every(({ stage }) => stage === 'assembled'))
   assert.equal(assembly.createFinalAssemblyState(parts).assembled, true)
   assert.deepEqual(flow.getReducedFactorySnapshot('contact'), [])
@@ -952,5 +974,64 @@ test('overflow launches light and heavy parts beyond the roof after a single que
       assert.ok(side<0 ? part.bounds.max.x < 40 : part.bounds.min.x > 600,shape+' must clear roof side')
       Engine.clear(engine)
     }
+  }
+})
+
+test('contact website slots are upright and its hidden roof stays above the white page', async () => {
+  const m=await import('../src/factory/stations/contactAssemblyModel.ts')
+  for(const slot of m.FINAL_ASSEMBLY_SLOTS) assert.equal(m.FINAL_ASSEMBLY_LAYOUT[slot].rotation,0)
+  for(const roof of m.getFinalAssemblerColliderSpecs().filter(s=>s.kind==='segment')) {
+    assert.ok(roof.y1<=m.NOVA_FRAME.y && roof.y2<=m.NOVA_FRAME.y)
+  }
+})
+
+test('contact uses every blueprint once without changing its finish', async () => {
+  const m=await import('../src/factory/stations/contactAssemblyModel.ts')
+  const {LANDING_PART_BLUEPRINTS}=await import('../src/factory/landingPartBlueprints.ts')
+  let state=m.createFinalAssemblyState()
+  for(const [sequence,blueprint] of LANDING_PART_BLUEPRINTS.entries()) {
+    const part=makePart({...blueprint,id:'recipe-'+sequence,sequence,stage:'inspected'})
+    const next=m.beginFinalAssembly(state,part)
+    assert.equal(next.decision.kind,'capture',blueprint.shape)
+    state=m.completeFinalAssembly(next.state,part.id)
+    assert.equal(state.assembled,sequence===7)
+    assert.deepEqual(state.placements[next.decision.slot].finish,blueprint.finish)
+  }
+  assert.equal(Object.keys(state.placements).length,8)
+})
+
+test('contact hidden roof has enough pitch to shed resting bodies', async () => {
+  const m=await import('../src/factory/stations/contactAssemblyModel.ts')
+  for(const s of m.getFinalAssemblerColliderSpecs().filter(s=>s.kind==='segment')) {
+    assert.ok(Math.abs((s.y2-s.y1)/(s.x2-s.x1))>=0.3)
+  }
+})
+
+test('avatar handoff keeps the same circular scale as its Matter body', async () => {
+  const m=await import('../src/factory/stations/contactAssemblyModel.ts')
+  const p=m.projectFinalAssemblerPose({bodyX:10,bodyY:10,angleRadians:0,stationOffsetX:0,stationOffsetY:0,scaleX:0.5,scaleY:0.5,partScaleX:1.25,partScaleY:1.5,partShape:'avatar'})
+  assert.equal(p.scaleX,2.5)
+  assert.equal(p.scaleY,2.5)
+})
+
+test('contact roof clears every finished shape at 60 and 120 Hz with one impulse', async () => {
+  const m=await import('../src/factory/stations/contactAssemblyModel.ts')
+  const {createFactoryBody}=await import('../src/factory/factoryPartPhysics.ts')
+  const {LANDING_PART_BLUEPRINTS}=await import('../src/factory/landingPartBlueprints.ts')
+  for(const hz of [60,120]) for(const blueprint of LANDING_PART_BLUEPRINTS) {
+    const engine=Engine.create({gravity:{x:0,y:1,scale:0.00145}})
+    const roofs=m.getFinalAssemblerColliderSpecs().filter(s=>s.kind==='segment').map(s=>{
+      const b=Bodies.rectangle((s.x1+s.x2)/2,(s.y1+s.y2)/2,Math.hypot(s.x2-s.x1,s.y2-s.y1),4,{isStatic:true,friction:0.02,restitution:0.92})
+      Body.setAngle(b,Math.atan2(s.y2-s.y1,s.x2-s.x1));return b
+    })
+    const part=createFactoryBody(makePart({...blueprint,scaleX:1.25,scaleY:1.5}),{x:478,y:-200,angle:0,velocityX:0,velocityY:15,angularVelocity:0})
+    Composite.add(engine.world,[part,...roofs])
+    let pending=false,claimed=false
+    Events.on(engine,'collisionStart',({pairs})=>{if(!claimed&&pairs.some(p=>p.bodyA===part||p.bodyB===part)){claimed=true;pending=true}})
+    Events.on(engine,'beforeUpdate',()=>{if(pending){Body.applyForce(part,part.position,m.getFinalOverflowImpulse(part.position.x,320,part.mass));pending=false}})
+    for(let step=0;step<hz*3;step++) Engine.update(engine,1000/hz)
+    assert.ok(claimed,blueprint.shape+' hit roof')
+    assert.ok(part.bounds.min.x>616,blueprint.shape+' clears right edge at '+hz+' Hz: '+part.position.x)
+    Engine.clear(engine)
   }
 })

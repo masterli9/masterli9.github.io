@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useMotionPreference } from '../../hooks/useMotionPreference'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Body, Bodies, Events, type Body as MatterBody } from 'matter-js'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import { useFactoryFlow } from '../FactoryFlowProvider'
@@ -38,24 +39,18 @@ function createCollider(metrics: FactoryStationMetrics, spec: FinalAssemblerColl
   return body
 }
 
-// Framer Motion's current hook snapshots this preference only at mount.
-const getReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
-function subscribeReducedMotion(notify: () => void) {
-  const query = window.matchMedia('(prefers-reduced-motion: reduce)')
-  query.addEventListener('change', notify)
-  return () => query.removeEventListener('change', notify)
-}
-
 function getPartId(body: MatterBody) { return body.label.replace(/^factory-part-/, '') }
 
 export default function FinalAssembler() {
   const { engine, removePart, getPartBody, simulationActive } = useFactoryAct()
   const { markFinalWebsiteAssembled } = useFactoryFlow()
-  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => true)
+  const reducedMotion = useMotionPreference()
   const pendingOverflowRef = useRef(new Set<string>())
   const stationRef = useRef<HTMLDivElement>(null)
   const [assemblyState, setAssemblyState] = useState(() => createFinalAssemblyState(reducedMotion ? createReducedFinalAssemblyParts() : []))
   const assemblyStateRef = useRef(assemblyState)
+  const liveAssemblyRef = useRef(createFinalAssemblyState())
+  const wasReducedRef = useRef(reducedMotion)
   const [stationVisible, setStationVisible] = useState(false)
   const [documentVisible, setDocumentVisible] = useState(() => document.visibilityState === 'visible')
   const assemblyPlaying = stationVisible && documentVisible && simulationActive
@@ -81,9 +76,16 @@ export default function FinalAssembler() {
   }, [])
 
   useEffect(() => {
-    if (!reducedMotion) return
+    if (!reducedMotion) {
+      if (wasReducedRef.current) {
+        commitAssemblyState(liveAssemblyRef.current)
+      }
+      wasReducedRef.current = false
+      return
+    }
+    if (!wasReducedRef.current) liveAssemblyRef.current = assemblyStateRef.current
+    wasReducedRef.current = true
     // Synchronize the external Matter collision ref and React scene when motion is disabled.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     commitAssemblyState(createFinalAssemblyState(createReducedFinalAssemblyParts()))
     pendingOverflowRef.current.clear()
     markFinalWebsiteAssembled()

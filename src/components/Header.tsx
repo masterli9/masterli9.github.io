@@ -1,13 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { List as Menu, X } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '../i18n/useLanguage'
 import LanguageSwitcher from './LanguageSwitcher'
+import DialogPanel from './DialogPanel'
+import { useMotionPreference } from '../hooks/useMotionPreference'
 
 export default function Header() {
   const { t } = useLanguage()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLButtonElement>(null)
+  const reducedMotion = useMotionPreference()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,15 +24,11 @@ export default function Header() {
   }, [])
 
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [isMenuOpen])
+    const media = window.matchMedia('(min-width: 768px)')
+    const closeOnDesktop = () => { if (media.matches) setIsMenuOpen(false) }
+    media.addEventListener('change', closeOnDesktop)
+    return () => media.removeEventListener('change', closeOnDesktop)
+  }, [])
 
   return (
     <>
@@ -45,10 +46,10 @@ export default function Header() {
             <a
               href="#hero"
               aria-label="Andrej Zdvořák — back to top"
-              className="flex items-center transition-opacity hover:opacity-80"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex min-h-11 min-w-11 items-center transition-opacity hover:opacity-80"
+              onClick={() => window.scrollTo({ top: 0, behavior: reducedMotion ? 'instant' : 'smooth' })}
             >
-              <img src="/Logo.png" alt="Andrej Zdvořák logo" className="h-8 w-8 object-contain" />
+              <img src="/branding/logo-64.png" srcSet="/branding/logo-64.png 1x, /branding/logo-128.png 2x" width={32} height={32} alt="Andrej Zdvořák logo" className="h-8 w-8 object-contain" />
             </a>
           </div>
 
@@ -66,10 +67,11 @@ export default function Header() {
           </nav>
 
           <button
+            ref={menuRef}
             type="button"
-            className="cursor-pointer shrink-0 p-2 text-soft-white transition-colors hover:text-signal-pink md:hidden"
+            className="min-h-11 min-w-11 cursor-pointer shrink-0 p-2 text-soft-white transition-colors hover:text-signal-pink md:hidden"
             onClick={() => setIsMenuOpen(true)}
-            aria-label="Open menu"
+            aria-label={t.nav.openMenu}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-navigation"
           >
@@ -80,32 +82,38 @@ export default function Header() {
 
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
+          <DialogPanel
+            initialFocusRef={closeRef}
+            returnFocusRef={menuRef}
+            onClose={() => setIsMenuOpen(false)}
+            aria-label={t.footer.navigation}
+            initial={reducedMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-ink p-4"
+            transition={{ duration: reducedMotion ? 0.1 : 0.2 }}
+            className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-ink px-4 py-24"
             id="mobile-navigation"
             role="dialog"
             aria-modal="true"
           >
             <button
+              ref={closeRef}
               type="button"
-              aria-label="Close menu"
+              aria-label={t.nav.closeMenu}
               onClick={() => setIsMenuOpen(false)}
               className="absolute right-6 top-6 border border-transparent p-4 text-soft-white transition-colors hover:border-white-line hover:text-signal-pink"
             >
               <X size={32} />
             </button>
 
-            <nav className="flex flex-col items-center gap-8">
+            <nav className="my-auto flex flex-col items-center gap-8">
               {(['about', 'projects', 'skills', 'experience', 'contact'] as const).map((id, index) => (
                 <motion.a
                   key={id}
                   href={`#${id}`}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={reducedMotion ? false : { opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.12, delay: reducedMotion ? 0 : index * 0.025 }}
                   onClick={() => setIsMenuOpen(false)}
                   className="font-heading text-3xl font-normal text-soft-white transition-colors hover:text-signal-pink"
                 >
@@ -113,14 +121,14 @@ export default function Header() {
                 </motion.a>
               ))}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={reducedMotion ? false : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                transition={{ duration: reducedMotion ? 0 : 0.12, delay: reducedMotion ? 0 : 0.125 }}
               >
                 <LanguageSwitcher />
               </motion.div>
             </nav>
-          </motion.div>
+          </DialogPanel>
         )}
       </AnimatePresence>
     </>

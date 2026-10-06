@@ -1,3 +1,4 @@
+import { useEmailCopy } from '../hooks/useEmailCopy'
 import { Check, Copy, GithubLogo, InstagramLogo, LinkedinLogo } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import PrivacyModal from './PrivacyModal'
@@ -5,7 +6,7 @@ import { useLanguage } from '../i18n/useLanguage'
 
 export default function Footer() {
   const { t } = useLanguage()
-  const [copied, setCopied] = useState(false)
+  const { copied, copyFailed, copyEmail } = useEmailCopy()
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)
 
   useEffect(() => {
@@ -26,11 +27,6 @@ export default function Footer() {
     { icon: InstagramLogo, href: 'https://www.instagram.com/andrej_zdvorak/', label: 'Instagram' },
   ]
 
-  const copyEmail = async () => {
-    await navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 2000)
-  }
 
   return (
     <footer className="foundry-page border-t border-white-line py-12 md:py-16">
@@ -41,7 +37,7 @@ export default function Footer() {
             <p className="mt-5 max-w-sm leading-relaxed text-soft-white">{t.footer.description}</p>
             <div className="mt-8 flex gap-4">
               {socialLinks.map(({ icon: Icon, href, label }) => (
-                <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="text-soft-white transition-colors hover:text-signal-pink">
+                <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="inline-flex min-h-11 min-w-11 items-center text-soft-white transition-colors hover:text-signal-pink">
                   <Icon size={20} aria-hidden="true" />
                 </a>
               ))}
@@ -57,18 +53,20 @@ export default function Footer() {
 
           <div>
             <h2 className="text-sm font-semibold text-signal-pink">{t.footer.quickContact}</h2>
-            <button onClick={copyEmail} className="mt-5 inline-flex max-w-full items-center gap-3 text-left text-sm text-soft-white transition-colors hover:text-soft-white">
+            <button onClick={copyEmail} className="mt-5 min-h-11 inline-flex max-w-full items-center gap-3 text-left text-sm text-soft-white transition-colors hover:text-soft-white">
               {copied ? <Check size={17} className="text-signal-pink" aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
               <span className="break-all">andrej.zdvorak.123@gmail.com</span>
             </button>
+            <p role="status" className="text-sm">{copied ? t.contact.copied : copyFailed ? t.contact.copyError : ''}</p>
+            {copyFailed && <a className="inline-flex min-h-11 items-center underline" href="mailto:andrej.zdvorak.123@gmail.com">{t.contact.openEmail}</a>}
           </div>
         </div>
 
         <div className="mt-14 flex flex-col gap-4 border-t border-white-line pt-6 text-sm text-soft-white md:flex-row md:items-center md:justify-between">
           <p>© {new Date().getFullYear()} Andrej Zdvořák. {t.footer.rights}</p>
           <div className="flex gap-6">
-            <button onClick={() => setIsPrivacyOpen(true)} className="transition-colors hover:text-soft-white">{t.footer.privacy}</button>
-            <button onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-banner'))} className="transition-colors hover:text-soft-white">{t.footer.cookies}</button>
+            <button onClick={() => setIsPrivacyOpen(true)} className="min-h-11 transition-colors hover:text-soft-white">{t.footer.privacy}</button>
+            <button onClick={() => window.dispatchEvent(new CustomEvent('open-cookie-banner'))} className="min-h-11 transition-colors hover:text-soft-white">{t.footer.cookies}</button>
           </div>
         </div>
       </div>

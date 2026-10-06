@@ -3,6 +3,15 @@ import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
+test('hero visits each item once, returns to the first, and stops', async () => {
+  const { getNextHeroCycleStep, HERO_CYCLE_INTERVAL_MS } = await import('../src/components/heroTimeline.ts')
+  assert.equal(HERO_CYCLE_INTERVAL_MS, 3500)
+  const indices = [0]
+  for (let step = 0; step < 4; step++) indices.push(getNextHeroCycleStep(step, 4).index)
+  assert.deepEqual(indices, [0, 1, 2, 3, 0])
+  assert.equal(getNextHeroCycleStep(4, 4), null)
+  assert.equal(getNextHeroCycleStep(0, 1), null)
+})
 test('the hero timeline restores the measured cadence around its focal beats', async () => {
   const { createHeroTimeline } = await import('../src/components/heroTimeline.ts')
   const timeline = createHeroTimeline({
@@ -285,13 +294,11 @@ test('the statement boundary starts the factory line and the hero reads its gate
   assert.match(hero, /getHeroGateState/)
 })
 
-test('the Statement description reveals word by word after the headline', async () => {
+test('the Statement description reveals as one independent group within 500ms', async () => {
   const statement = await read('src/components/Statement.tsx')
 
-  assert.match(statement, /const descriptionStartAt = reveal\[reveal\.length - 1\]\.revealAt \+ 0\.22/)
-  assert.match(statement, /const descriptionReveal = useMemo\(\s*\(\) => createStatementReveal\(t\.statement\.description\.split\(\/\\s\+\/\), 1, descriptionStartAt\)/)
-  assert.match(statement, /<motion\.p[\s\S]*descriptionReveal\.map\(\(item, index\) =>/)
-  assert.match(statement, /delay: reducedMotion \? 0 : item\.revealAt/)
+  assert.match(statement, /<motion\.p[\s\S]*duration: reducedMotion \? 0 : 0\.35, delay: reducedMotion \? 0 : 0\.15/)
+  assert.doesNotMatch(statement, /descriptionReveal|descriptionStartAt/)
 })
 
 test('the Statement copy aligns lower with the desktop ramp without changing mobile flow', async () => {
@@ -397,7 +404,7 @@ test('the oversized statement bowl remains visible over the following projects b
 test('the navbar returns the original logo and changes width after scrolling', async () => {
   const header = await read('src/components/Header.tsx')
 
-  assert.match(header, /src="\/Logo\.png"/)
+  assert.match(header, /src="\/branding\/logo-64\.png"/)
   assert.match(header, /isScrolled/)
   assert.match(header, /max-w-none/)
   assert.match(header, /max-w-6xl/)
@@ -429,7 +436,7 @@ test('the hero reveals its text and rotates build categories with reduced-motion
   const hero = await read('src/components/Hero.tsx')
   const translations = await read('src/i18n/translations.ts')
 
-  assert.match(hero, /useReducedMotion/)
+  assert.match(hero, /useMotionPreference/)
   assert.match(hero, /getBuildWordMotionState/)
   assert.match(hero, /buildWordPhase/)
   assert.match(hero, /createHeroTimeline/)
@@ -589,7 +596,7 @@ test('the final assembler gates collisions on the factory lifecycle and seeds re
   assert.match(source, /assemblyStateRef/)
 })
 
-test('contact uses an equal desktop split and intro-assembler-form mobile order without a top divider', async () => {
+test('contact uses an equal desktop split and intro-form-assembler mobile order without a top divider', async () => {
   const section = await read('src/components/ContactSection.tsx')
   const css = await read('src/components/contact.css')
   const factoryCss = await read('src/factory/factory-line.css')
@@ -597,9 +604,9 @@ test('contact uses an equal desktop split and intro-assembler-form mobile order 
   assert.match(section, /contact-layout/)
   assert.match(section, /contact-intro/)
   assert.match(section, /contact-assembler-column/)
-  assert.ok(section.indexOf('contact-intro') < section.indexOf('contact-assembler-column'))
-  assert.ok(section.indexOf('contact-assembler-column') < section.indexOf('contact-form-column'))
-  assert.match(css, /grid-template-areas:\s*"intro"\s*"assembler"\s*"form"/)
+  assert.ok(section.indexOf('contact-intro') < section.indexOf('contact-form-column'))
+  assert.ok(section.indexOf('contact-form-column') < section.indexOf('contact-assembler-column'))
+  assert.match(css, /grid-template-areas:\s*"intro"\s*"form"\s*"assembler"/)
   assert.match(css, /@media \(min-width:\s*1024px\)[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\)/)
   assert.match(css, /grid-template-areas:\s*"intro intro"\s*"form assembler"/)
   assert.match(factoryCss, /\.factory-act\s*>\s*#contact\s*\{[\s\S]*z-index:\s*7/)
@@ -638,9 +645,11 @@ test('lower stream identities survive suspend so settled parts cannot respawn', 
 
 test('contact observes live motion preference changes with subscription cleanup', async () => {
   const source=await read('src/factory/stations/FinalAssembler.tsx')
-  assert.match(source,/useSyncExternalStore/)
-  assert.match(source,/query.addEventListener\('change', notify\)/)
-  assert.match(source,/query.removeEventListener\('change', notify\)/)
+  const hook=await read('src/hooks/useMotionPreference.ts')
+  assert.match(source,/useMotionPreference/)
+  assert.match(hook,/useSyncExternalStore/)
+  assert.match(hook,/media.addEventListener\('change', notify\)/)
+  assert.match(hook,/media.removeEventListener\('change', notify\)/)
 })
 
 test('contact exposes the falling parts and uses a white browser page without visible roof', async () => {

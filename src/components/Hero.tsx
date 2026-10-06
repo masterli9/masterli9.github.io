@@ -1,8 +1,11 @@
+import { useMotionPreference } from '../hooks/useMotionPreference'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { motion, useInView, useReducedMotion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import HeroConveyor from './HeroConveyor'
 import {
   createHeroTimeline,
+  getNextHeroCycleStep,
+  HERO_CYCLE_INTERVAL_MS,
   createHeroConveyorIntroSchedule,
   getBuildWordMotionState,
   getHeroWordSlots,
@@ -17,13 +20,15 @@ const revealEase = [0.16, 1, 0.3, 1] as const
 
 export default function Hero() {
   const { t } = useLanguage()
-  const reducedMotion = useReducedMotion() ?? false
+  const reducedMotion = useMotionPreference()
   const heroRef = useRef<HTMLElement>(null)
   const isHeroInView = useInView(heroRef, { amount: 0.1 })
   const [activeBuildIndex, setActiveBuildIndex] = useState(0)
   const [buildWordPhase, setBuildWordPhase] = useState<BuildWordPhase>('visible')
   const [conveyorIntroStage, setConveyorIntroStage] = useState<HeroConveyorIntroStage>('hidden')
   const buildItems = t.hero.buildItems
+  const completedSteps = useRef(0)
+  const rotationStarted = useRef(false)
   const timeline = useMemo(() => createHeroTimeline({
     name: 'Andrej Zdvořák',
     subtitle: t.hero.subtitle,
@@ -47,31 +52,30 @@ export default function Hero() {
   useEffect(() => {
     if (reducedMotion || !isHeroInView || buildItems.length < 2) return
 
-    let interval: number | undefined
-    const transitionTimers: number[] = []
-    const transitionFrames: number[] = []
-
+    let timer: number | undefined
+    let frame: number | undefined
     const rotateBuildWord = () => {
+      const next = getNextHeroCycleStep(completedSteps.current, buildItems.length)
+      if (!next) return
+      rotationStarted.current = true
       setBuildWordPhase('exiting')
-      const swapTimer = window.setTimeout(() => {
-        setActiveBuildIndex((currentIndex) => (currentIndex + 1) % buildItems.length)
+      timer = window.setTimeout(() => {
+        completedSteps.current = next.completed
+        setActiveBuildIndex(next.index)
         setBuildWordPhase('entering')
-        const frame = window.requestAnimationFrame(() => setBuildWordPhase('visible'))
-        transitionFrames.push(frame)
+        frame = window.requestAnimationFrame(() => { frame = undefined; setBuildWordPhase('visible') })
+        timer = getNextHeroCycleStep(next.completed, buildItems.length)
+          ? window.setTimeout(rotateBuildWord, HERO_CYCLE_INTERVAL_MS - 180)
+          : undefined
       }, 180)
-      transitionTimers.push(swapTimer)
     }
-
-    const rotationTimer = window.setTimeout(() => {
-      rotateBuildWord()
-      interval = window.setInterval(rotateBuildWord, 1500)
-    }, timeline.rotationStartAt * 1000)
-
+    if (getNextHeroCycleStep(completedSteps.current, buildItems.length)) {
+      timer = window.setTimeout(rotateBuildWord, rotationStarted.current ? HERO_CYCLE_INTERVAL_MS : timeline.rotationStartAt * 1000)
+    }
     return () => {
-      window.clearTimeout(rotationTimer)
-      if (interval !== undefined) window.clearInterval(interval)
-      transitionTimers.forEach((timer) => window.clearTimeout(timer))
-      transitionFrames.forEach((frame) => window.cancelAnimationFrame(frame))
+      window.clearTimeout(timer)
+      if (frame !== undefined) window.cancelAnimationFrame(frame)
+      setBuildWordPhase('visible')
     }
   }, [buildItems.length, isHeroInView, reducedMotion, timeline.rotationStartAt])
 
@@ -123,7 +127,7 @@ export default function Hero() {
 
           <p
             className="mt-3 flex flex-wrap items-baseline gap-x-2 text-2xl font-normal leading-tight text-soft-white md:text-3xl"
-            aria-label={`${t.hero.buildPrefix} ${activeBuildItem}`}
+            aria-label={`${t.hero.buildPrefix} ${buildItems.join(', ')}`}
           >
             <span aria-hidden="true">{renderTimedWords(timeline.buildPrefix, 'build-prefix', 2)}</span>
             <motion.span
@@ -136,14 +140,13 @@ export default function Hero() {
               aria-hidden="true"
             >
               <motion.span
-                animate={getBuildWordMotionState(buildWordPhase)}
+                animate={getBuildWordMotionState(reducedMotion || !isHeroInView ? 'visible' : buildWordPhase)}
                 transition={{ duration: reducedMotion ? 0 : 0.22, ease: revealEase }}
                 className="absolute inset-x-0 bottom-0 whitespace-nowrap"
               >
-                {activeBuildItem}
+                {reducedMotion ? buildItems[0] : activeBuildItem}
               </motion.span>
             </motion.span>
-            <span className="sr-only" aria-live="polite">{`${t.hero.buildPrefix} ${activeBuildItem}`}</span>
           </p>
         </div>
 

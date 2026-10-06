@@ -14,7 +14,7 @@ export default function Skills() {
 
   return (
     <section id="skills" className="foundry-page py-28 md:py-40">
-      <div className="foundry-container grid gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,18rem)] lg:items-start lg:gap-24">
+      <div className="foundry-container skills-layout grid gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,18rem)] lg:items-start lg:gap-24">
         <div className="factory-reading-surface">
           <div className="max-w-[40rem]">
             <h2 className="font-heading text-[clamp(2.9rem,5vw,5.25rem)] font-medium leading-[0.92] tracking-[-0.065em] text-soft-white">
@@ -26,7 +26,7 @@ export default function Skills() {
           <div className="mt-20 grid gap-14 md:grid-cols-2 md:gap-20">
             {categories.map(({ title, icon: Icon, skills }) => (
               <div key={title} className="border-t border-white-line pt-6">
-                <div className="flex items-center gap-3 text-cobalt">
+                <div className="flex items-center gap-3 text-blue-on-dark">
                   <Icon size={19} aria-hidden="true" />
                   <h3 className="text-xl font-medium tracking-[-0.02em] text-soft-white">{title}</h3>
                 </div>

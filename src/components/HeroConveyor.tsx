@@ -1,5 +1,6 @@
+import { useMotionPreference } from '../hooks/useMotionPreference'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion, useInView, useReducedMotion } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import { Body, Bodies, type Body as MatterBody } from 'matter-js'
 import {
   createFactoryPartSpec,
@@ -189,7 +190,7 @@ export default function HeroConveyor({ introStage }: HeroConveyorProps) {
   const gateProgressRef = useRef(0)
   const gateDoorBodiesRef = useRef<{ left: MatterBody; right: MatterBody } | null>(null)
   const [gateProgress, setGateProgress] = useState(0)
-  const reducedMotion = useReducedMotion() ?? false
+  const reducedMotion = useMotionPreference()
   const isInView = useInView(svgRef, { amount: 0.15 })
   const { lineStarted } = useFactoryFlow()
   const { simulationActive, getPartBody, removePart, spawnPart } = useFactoryAct()

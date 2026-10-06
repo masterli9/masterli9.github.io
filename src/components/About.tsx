@@ -20,7 +20,7 @@ export default function About() {
             </h2>
             <div className="mt-12 space-y-7 text-base leading-[1.75] text-ink md:mt-14 md:text-lg">
               <p>{t.about.p1} <span className="font-semibold">{t.about.school}</span>{t.about.p1End}</p>
-              <p>{t.about.p2Start} <span className="font-semibold text-signal-pink">{t.about.p2Highlight}</span> {t.about.p2End}</p>
+              <p>{t.about.p2Start} <span className="font-semibold text-pink-on-light">{t.about.p2Highlight}</span> {t.about.p2End}</p>
             </div>
 
             <div className="mt-16 grid gap-x-4 gap-y-8 border-t border-ink pt-8 sm:grid-cols-2 md:mt-20">
@@ -36,7 +36,7 @@ export default function About() {
           </div>
 
           <div className="lg:pt-32">
-            <h3 className="text-base font-semibold text-signal-pink">{t.about.outsideCode}</h3>
+            <h3 className="text-base font-semibold text-pink-on-light">{t.about.outsideCode}</h3>
             <div className="mt-7 divide-y divide-ink border-y border-ink">
               {interests.map(({ key, icon: Icon }) => (
                 <div key={key} className="flex items-start gap-4 py-5">

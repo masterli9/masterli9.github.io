@@ -1,7 +1,9 @@
+import { useMotionPreference } from '../hooks/useMotionPreference'
 import { useEffect, useState } from 'react'
 import { motion, useMotionValue, useSpring } from 'framer-motion'
 
 const CursorFollower = () => {
+  const reducedMotion = useMotionPreference()
   const cursorX = useMotionValue(-100)
   const cursorY = useMotionValue(-100)
   const cursorXSpring = useSpring(cursorX, { damping: 28, stiffness: 180 })
@@ -11,7 +13,7 @@ const CursorFollower = () => {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(pointer: fine)')
-    if (!mediaQuery.matches) return
+    if (!mediaQuery.matches || reducedMotion) return
 
     const moveCursor = (event: MouseEvent) => {
       cursorX.set(event.clientX)
@@ -40,9 +42,9 @@ const CursorFollower = () => {
       window.removeEventListener('mousemove', moveCursor)
       window.removeEventListener('mouseover', checkHover)
     }
-  }, [cursorX, cursorY])
+  }, [cursorX, cursorY, reducedMotion])
 
-  if (!isVisible) return null
+  if (!isVisible || reducedMotion) return null
 
   return (
     <motion.div

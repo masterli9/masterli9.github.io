@@ -25,7 +25,7 @@ export default function Experience() {
                   <span className="absolute -left-[calc(2rem+1px)] top-1 h-2.5 w-2.5 bg-signal-pink md:-left-[calc(3rem+1px)]" aria-hidden="true" />
                   <p className="flex items-center gap-2 text-sm text-soft-white"><Calendar size={15} aria-hidden="true" />{experience.date}</p>
                   <h3 className="mt-4 font-heading text-2xl font-medium leading-tight tracking-[-0.04em] text-soft-white md:text-3xl">{experience.title}</h3>
-                  <p className="mt-2 text-base font-semibold text-cobalt">{experience.role}</p>
+                  <p className="mt-2 text-base font-semibold text-blue-on-dark">{experience.role}</p>
                   <p className="mt-5 max-w-[38rem] leading-[1.75] text-soft-white">{experience.desc}</p>
                 </article>
               ))}
@@ -35,10 +35,10 @@ export default function Experience() {
               <h3 className="text-base font-semibold text-signal-pink">{t.experience.certTitle}</h3>
               <div className="mt-7 divide-y divide-white-line border-y border-white-line">
                 {certifications.map((cert) => (
-                  <a key={cert.title} href={cert.link} target="_blank" rel="noreferrer" className="group flex items-start gap-4 py-7 text-soft-white transition-colors hover:text-cobalt">
-                    <Medal size={19} className="mt-0.5 shrink-0 text-cobalt" aria-hidden="true" />
+                  <a key={cert.title} href={cert.link} target="_blank" rel="noreferrer" className="group flex items-start gap-4 py-7 text-soft-white transition-colors hover:text-blue-on-dark">
+                    <Medal size={19} className="mt-0.5 shrink-0 text-blue-on-dark" aria-hidden="true" />
                     <span className="flex-1 text-sm font-semibold leading-relaxed">{cert.title}</span>
-                    <ArrowSquareOut size={17} className="mt-0.5 shrink-0 text-soft-white transition-colors group-hover:text-cobalt" aria-hidden="true" />
+                    <ArrowSquareOut size={17} className="mt-0.5 shrink-0 text-soft-white transition-colors group-hover:text-blue-on-dark" aria-hidden="true" />
                   </a>
                 ))}
               </div>

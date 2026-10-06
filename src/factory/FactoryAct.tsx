@@ -319,6 +319,7 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
 
   useEffect(() => {
     if (!reducedMotion) return
+    const liveParts = partsRef.current
     let frame = 0
     const seedReducedSnapshot = () => {
       const root = rootRef.current
@@ -352,7 +353,16 @@ export function FactoryAct({ id, children }: { id: FactoryActId; children: React
       refreshRenderedParts()
     }
     frame = window.requestAnimationFrame(seedReducedSnapshot)
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      for (const [id, { body }] of liveParts) {
+        if (!id.startsWith('reduced-')) continue
+        Composite.remove(engine.world, body, true)
+        liveParts.delete(id)
+      }
+      suspendedPartsRef.current = suspendedPartsRef.current.filter(({ id }) => !id.startsWith('reduced-'))
+      refreshRenderedParts()
+    }
   }, [engine, reducedMotion, refreshRenderedParts])
 
   useEffect(() => {

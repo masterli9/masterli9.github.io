@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Bodies, Body, Events, type Body as MatterBody } from 'matter-js'
+import { useMotionPreference } from '../../hooks/useMotionPreference'
+import { usePausableTimers } from '../../hooks/usePausableTimers'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import {
   advanceFormingPress,
@@ -54,7 +56,7 @@ export default function FormingPress() {
   const statesRef = useRef(new Map<string, FormingPressState>())
   const activePressIdRef = useRef<string | null>(null)
   const scheduledRef = useRef(new Set<string>())
-  const timersRef = useRef<number[]>([])
+  const timers = usePausableTimers(useMotionPreference())
   const [states, setStates] = useState(new Map<string, FormingPressState>())
   const [activePartId, setActivePartId] = useState<string | null>(null)
   const { engine, getPartBody, updatePartSpec } = useFactoryAct()
@@ -158,17 +160,16 @@ export default function FormingPress() {
         statesRef.current.set(partId, { phase: 'falling', sequence: part.plugin.factoryPartSpec.sequence, shape: part.plugin.factoryPartSpec.shape })
         transition(partId, 'sensor-enter')
         scheduledRef.current.add(part.label)
-        const closeTimer = window.setTimeout(() => transition(partId, 'jaws-closed'), FORMING_PRESS_TIMING.closeAt)
-        const openTimer = window.setTimeout(() => transition(partId, 'jaws-open'), FORMING_PRESS_TIMING.revealAt)
-        const releaseTimer = window.setTimeout(() => transition(partId, 'gate-open'), FORMING_PRESS_TIMING.releaseAt)
-        const resetTimer = window.setTimeout(() => {
+        timers.schedule(() => transition(partId, 'jaws-closed'), FORMING_PRESS_TIMING.closeAt)
+        timers.schedule(() => transition(partId, 'jaws-open'), FORMING_PRESS_TIMING.revealAt)
+        timers.schedule(() => transition(partId, 'gate-open'), FORMING_PRESS_TIMING.releaseAt)
+        timers.schedule(() => {
           activePressIdRef.current = null
           setActivePartId(null)
           scheduledRef.current.delete(part.label)
           statesRef.current.delete(partId)
           setStates(new Map(statesRef.current))
         }, FORMING_PRESS_TIMING.resetAt)
-        timersRef.current.push(closeTimer, openTimer, releaseTimer, resetTimer)
       }
     }
 
@@ -177,14 +178,13 @@ export default function FormingPress() {
     return () => {
       Events.off(engine, 'collisionStart', handleCollision)
       Events.off(engine, 'collisionActive', handleCollision)
-      timersRef.current.forEach((timer) => window.clearTimeout(timer))
-      timersRef.current = []
+      timers.clear()
       if (activePressIdRef.current) {
         const body = getPartBody(activePressIdRef.current)
         if (body) Body.setStatic(body, false)
       }
     }
-  }, [engine, getPartBody, pressGeometry, updatePartSpec])
+  }, [engine, getPartBody, pressGeometry, updatePartSpec, timers])
 
   return (
     <div ref={stationRef} className="factory-station forming-press" data-factory-station="skills" style={pressStyle}>

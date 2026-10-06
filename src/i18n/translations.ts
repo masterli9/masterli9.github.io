@@ -2,6 +2,7 @@ export const translations = {
   cs: {
     // Header / Navigation
     nav: {
+      openMenu: 'Otevřít menu', closeMenu: 'Zavřít menu',
       about: 'O mně',
       projects: 'Projekty',
       skills: 'Dovednosti',
@@ -31,7 +32,7 @@ export const translations = {
     // About Section
     about: {
       sectionTitle: 'O mně',
-      headline: 'S nadšením pro technologie a tahem na branku.',
+      headline: 'Od nápadu k fungujícímu produktu.',
       p1: 'Jsem studentem oboru Informační technologie na',
       school: 'SPŠ Ústí nad Labem',
       p1End: '. Dlouhodobě se zaměřuji na vývoj softwaru, zejména webových a mobilních aplikací.',
@@ -128,6 +129,8 @@ export const translations = {
       subtitle: 'Pokud vás zaujal můj profil, rád se pobavím o možné spolupráci nebo stáži v IT.',
       orEmail: 'nebo přímo na e-mail',
       copied: 'Zkopírováno!',
+      copyError: 'Kopírování se nezdařilo. Použijte e-mailový odkaz nebo adresu zkopírujte ručně.',
+      openEmail: 'Otevřít e-mail',
       form: {
         name: 'Vaše jméno',
         email: 'Váš e-mail',
@@ -155,6 +158,7 @@ export const translations = {
 
     // Project Modal
     projectModal: {
+      previousImage: 'Předchozí obrázek', nextImage: 'Další obrázek', imageSelector: 'Výběr obrázku', showImage: 'Zobrazit obrázek',
       techStack: 'Technologie',
       visitProject: 'Navštívit projekt',
       close: 'Zavřít',
@@ -200,6 +204,7 @@ export const translations = {
   en: {
     // Header / Navigation
     nav: {
+      openMenu: 'Open menu', closeMenu: 'Close menu',
       about: 'About',
       projects: 'Projects',
       skills: 'Skills',
@@ -229,7 +234,7 @@ export const translations = {
     // About Section
     about: {
       sectionTitle: 'About me',
-      headline: 'Passionate about technology with a drive to succeed.',
+      headline: 'From an idea to a working product.',
       p1: 'I\'m a student of Information Technology at',
       school: 'SPŠ Ústí nad Labem',
       p1End: '. I have been focusing on software development, especially web and mobile applications.',
@@ -326,6 +331,8 @@ export const translations = {
       subtitle: 'If you found my profile interesting, I\'d be happy to discuss potential collaboration or an IT internship.',
       orEmail: 'or directly via email',
       copied: 'Copied!',
+      copyError: 'Copy failed. Open the email link or copy the address manually.',
+      openEmail: 'Open email',
       form: {
         name: 'Your name',
         email: 'Your email',
@@ -353,6 +360,7 @@ export const translations = {
 
     // Project Modal
     projectModal: {
+      previousImage: 'Previous image', nextImage: 'Next image', imageSelector: 'Image selector', showImage: 'Show image',
       techStack: 'Tech Stack',
       visitProject: 'Visit project',
       close: 'Close',

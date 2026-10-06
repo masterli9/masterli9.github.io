@@ -5,6 +5,8 @@
   --color-soft-white: #ffffff;
   --color-signal-pink: #f21868;
   --color-cobalt: #355cff;
+  --color-pink-on-light: #ba104c;
+  --color-blue-on-dark: #7291ff;
   --color-ink-soft: #000000;
   --color-white-line: #2a2a2a;
 
@@ -89,15 +91,11 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  html, body { scroll-behavior: auto; }
+  button, a, input, textarea { transition-duration: 100ms; }
+  .animate-spin { animation: none; }
 }
+
+[id] { scroll-margin-top: 7rem; }
+.foundry-reading-break :focus-visible, [role="dialog"]:focus-visible,
+[role="dialog"] .bg-soft-white :focus-visible { outline-color: var(--color-pink-on-light); }

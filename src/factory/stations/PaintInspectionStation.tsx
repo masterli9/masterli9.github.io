@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Bodies, Body, type Body as MatterBody, Events } from 'matter-js'
+import { useMotionPreference } from '../../hooks/useMotionPreference'
+import { usePausableTimers } from '../../hooks/usePausableTimers'
 import { useFactoryAct, useFactoryStation, type FactoryStationMetrics } from '../FactoryAct'
 import type { FactoryPartSpec } from '../factoryTypes'
-import { advancePaintInspection, canCapturePaintPart, createPaintInspectionState, getPaintInspectionGeometry, PAINT_INSPECTION_TIMING, shouldShowPaintMist, type PaintInspectionState, type PaintInspectionEvent } from './paintInspectionModel'
+import { preventPaintIntakeBounce } from './paintIntakePhysics'
+import { advancePaintInspection, canCapturePaintPart, createPaintInspectionState, getPaintInspectionGeometry, getPaintInspectionExitGeometry, PAINT_INSPECTION_TIMING, shouldShowPaintMist, type PaintInspectionState, type PaintInspectionEvent } from './paintInspectionModel'
 
 const VIEWBOX_WIDTH = 260
 const VIEWBOX_HEIGHT = 520
@@ -34,10 +37,13 @@ function createPaintCollider(
 }
 
 export default function PaintInspectionStation() {
+  const timers = usePausableTimers(useMotionPreference())
   const stationRef = useRef<HTMLDivElement>(null)
   const activePartIdRef = useRef<string | null>(null)
   const stateRef = useRef<PaintInspectionState | null>(null)
   const [state, setState] = useState<PaintInspectionState | null>(null)
+  const [stationWidth, setStationWidth] = useState(VIEWBOX_WIDTH)
+  const exitGeometry = getPaintInspectionExitGeometry(stationWidth)
   const { engine, updatePartSpec, getPartBody } = useFactoryAct()
   const phase = state?.phase ?? 'falling'
   const busy = state !== null
@@ -53,13 +59,15 @@ export default function PaintInspectionStation() {
   } as CSSProperties
 
   const buildColliders = useCallback((metrics: FactoryStationMetrics): MatterBody[] => {
+    const exit = getPaintInspectionExitGeometry(metrics.elementRect.width)
+    setStationWidth(metrics.elementRect.width)
     const colliders = [
       createPaintCollider(metrics, 52, 190, 4, 260, 'experience-paint-guide-left'),
       createPaintCollider(metrics, 208, 190, 4, 260, 'experience-paint-guide-right'),
       createPaintCollider(metrics, 130, 218, 148, 14, 'experience-capture-sensor', true),
       createPaintCollider(metrics, 130, 326, 152, 20, 'experience-inspection-sensor', true),
-      createPaintCollider(metrics, 82, 454, 4, 190, 'experience-exit-guide-left'),
-      createPaintCollider(metrics, 178, 454, 4, 190, 'experience-exit-guide-right'),
+      createPaintCollider(metrics, exit.x1, 454, 4, 190, 'experience-exit-guide-left'),
+      createPaintCollider(metrics, exit.x2, 454, 4, 190, 'experience-exit-guide-right'),
     ]
     if (!gateOpen) colliders.push(createPaintCollider(metrics, 130, 244, 156, 5, 'experience-exit-gate'))
     // Hold arriving parts upstream while the active recipe finishes and is inspected.
@@ -69,10 +77,9 @@ export default function PaintInspectionStation() {
   useFactoryStation({ id: 'experience', elementRef: stationRef, buildColliders })
 
   useEffect(() => {
-    const timers = new Set<number>()
+    const stopPreventingIntakeBounce = preventPaintIntakeBounce(engine)
     const later = (callback: () => void, delay: number) => {
-      const timer = window.setTimeout(() => { timers.delete(timer); callback() }, delay)
-      timers.add(timer)
+      timers.schedule(callback, delay)
     }
     const reset = () => {
       activePartIdRef.current = null
@@ -130,7 +137,6 @@ export default function PaintInspectionStation() {
     }
     const recoverRemovedPart = () => {
       if (activePartIdRef.current && !getPartBody(activePartIdRef.current)) {
-        timers.forEach((timer) => window.clearTimeout(timer))
         timers.clear()
         reset()
       }
@@ -139,10 +145,11 @@ export default function PaintInspectionStation() {
     Events.on(engine, 'collisionActive', handleCollision)
     Events.on(engine, 'beforeUpdate', recoverRemovedPart)
     return () => {
+      stopPreventingIntakeBounce()
       Events.off(engine, 'collisionStart', handleCollision)
       Events.off(engine, 'collisionActive', handleCollision)
       Events.off(engine, 'beforeUpdate', recoverRemovedPart)
-      timers.forEach((timer) => window.clearTimeout(timer))
+      timers.clear()
       if (activePartIdRef.current) {
         const body = getPartBody(activePartIdRef.current)
         if (body) Body.setStatic(body, false)
@@ -150,7 +157,7 @@ export default function PaintInspectionStation() {
       activePartIdRef.current = null
       stateRef.current = null
     }
-  }, [engine, getPartBody, updatePartSpec])
+  }, [engine, getPartBody, updatePartSpec, timers])
 
   return (
     <div ref={stationRef} className="factory-station paint-inspection" data-factory-station="experience" data-paint-phase={phase} style={style}>
@@ -180,7 +187,7 @@ export default function PaintInspectionStation() {
           <path d="M60 346V312H200V346" />
           <path d="M70 326H190" className="paint-inspection__scan" />
         </g>
-        <path d="M82 454V505M178 454V505" className="factory-line__rail factory-line__rail--white" />
+        <path d={`M${exitGeometry.x1} 454V505M${exitGeometry.x2} 454V505`} className="factory-line__rail factory-line__rail--white" />
       </svg>
     </div>
   )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEmailCopy } from '../hooks/useEmailCopy'
 import './contact.css'
 import { Check, Copy, Envelope as Mail } from '@phosphor-icons/react'
 import ContactForm from './ContactForm'
@@ -8,13 +8,8 @@ import FinalAssembler from '../factory/stations/FinalAssembler'
 
 export default function ContactSection() {
   const { t } = useLanguage()
-  const [copied, setCopied] = useState(false)
+  const { copied, copyFailed, copyEmail } = useEmailCopy()
 
-  const copyEmail = async () => {
-    await navigator.clipboard.writeText('andrej.zdvorak.123@gmail.com')
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 2000)
-  }
 
   return (
     <section id="contact" className="foundry-page contact-section py-28 md:py-40">
@@ -33,11 +28,12 @@ export default function ContactSection() {
                 {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
                 <span className="contact-copy__feedback" aria-live="polite">{copied ? t.contact.copied : ''}</span>
               </button>
+              {copyFailed && <p role="status" className="mt-3 text-sm">{t.contact.copyError} <a className="inline-flex min-h-11 items-center underline" href="mailto:andrej.zdvorak.123@gmail.com">{t.contact.openEmail}</a></p>}
             </div>
           </div>
         </header>
-        <div className="contact-assembler-column"><FinalAssembler /></div>
         <div className="contact-form-column factory-reading-surface"><ContactForm /></div>
+        <div className="contact-assembler-column"><FinalAssembler /></div>
       </div>
     </section>
   )

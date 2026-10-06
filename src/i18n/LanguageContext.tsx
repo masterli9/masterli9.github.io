@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, type ReactNode, useMemo } from 'react'
+import { createContext, useState, useEffect, type ReactNode, useMemo } from 'react'
 import { translations, type Language } from './translations'
 
 type TranslationType = typeof translations.cs | typeof translations.en
@@ -37,6 +37,7 @@ function getInitialLanguage(): Language {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(getInitialLanguage)
+  useEffect(() => { document.documentElement.lang = language }, [language])
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)

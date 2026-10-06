@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useLanguage } from '../i18n/useLanguage'
+import { useMotionPreference } from '../hooks/useMotionPreference'
 
 export default function CookieBanner() {
   const { t } = useLanguage()
+  const reducedMotion = useMotionPreference()
   const [isVisible, setIsVisible] = useState(false)
 
   const updateGtagConsent = (status: 'granted' | 'denied') => {
@@ -36,10 +38,10 @@ export default function CookieBanner() {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={reducedMotion ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 16 }}
-          transition={{ duration: 0.25 }}
+          exit={{ opacity: 0, y: reducedMotion ? 0 : 16 }}
+          transition={{ duration: reducedMotion ? 0.1 : 0.25 }}
           className="fixed inset-x-0 bottom-0 z-[100] border-t border-ink/20 bg-soft-white p-4 text-ink md:p-6"
         >
           <div className="mx-auto flex max-w-6xl flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-10">

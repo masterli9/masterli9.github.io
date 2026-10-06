@@ -70,6 +70,11 @@ export function getBuildWordMotionState(phase: BuildWordPhase) {
 
 const splitWords = (text: string) => text.trim().split(/\s+/).filter(Boolean)
 const roundTime = (time: number) => Number(time.toFixed(2))
+export const HERO_CYCLE_INTERVAL_MS = 3500
+export function getNextHeroCycleStep(completed: number, count: number) {
+  if (count < 2 || completed >= count) return null
+  return { index: (completed + 1) % count, completed: completed + 1 }
+}
 
 export function createHeroConveyorIntroSchedule(
   timeline: Pick<HeroTimeline, 'name'>,

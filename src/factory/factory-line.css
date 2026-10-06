@@ -176,8 +176,9 @@
 @media (prefers-reduced-motion: reduce) {
   .forming-press__jaw,
   .forming-press__gate {
-    transition-duration: 0.01ms;
+    transition: none;
   }
+  .factory-part--fading { animation-duration: 100ms; }
 }
 
 .paint-head > rect { fill: #090909; stroke: #FFFFFF; stroke-width: 2; }
@@ -309,3 +310,18 @@
 .factory-act > #contact { z-index: 7; background: transparent; }
 
 .final-assembler__footer { fill: #181818; }
+
+@media (max-width: 767px) {
+  .skills-layout, .experience-layout { gap: 2.5rem; }
+  .factory-station.forming-press, .factory-station.paint-inspection { width: min(100%, 12rem); }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .skills-layout, .experience-layout { grid-template-columns: minmax(0, 1fr) 13rem; gap: 3rem; align-items: start; }
+  .factory-station.forming-press, .factory-station.paint-inspection { width: 13rem; }
+  .skills-layout .mt-20.grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+  .skills-layout .mt-6.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .factory-station.final-assembler { margin-right: 0; }
+}
+@media (max-width: 1023px) {
+  .factory-station.final-assembler { max-width: 28rem; }
+}

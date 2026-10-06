@@ -1,6 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { CheckCircle, PaperPlaneRight, WarningCircle } from '@phosphor-icons/react'
-import emailjs from '@emailjs/browser'
 import { useLanguage } from '../i18n/useLanguage'
 
 type FormStatus = 'idle' | 'sending' | 'success' | 'error'
@@ -34,6 +33,7 @@ export default function ContactForm() {
     setErrorMessage('')
 
     try {
+      const { default: emailjs } = await import('@emailjs/browser')
       await emailjs.sendForm(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,

@@ -8,6 +8,11 @@ interface ProjectMediaProps {
 
 export default function ProjectMedia({ project, variant = 'default' }: ProjectMediaProps) {
   const previewMode = getProjectPreviewMode(project.type)
+  const preview = project.id === 'gt-series' ? {
+    src: '/projects-photos/gt-series/preview-640.webp',
+    srcSet: '/projects-photos/gt-series/preview-640.webp 640w, /projects-photos/gt-series/preview-960.webp 960w, /projects-photos/gt-series/preview-1280.webp 1280w',
+    sizes: variant === 'featured' ? '(min-width: 1024px) 55vw, calc(100vw - 4rem)' : '(min-width: 1024px) 40vw, calc(100vw - 4rem)',
+  } : { src: project.images[0] }
 
   if (variant === 'featured' && previewMode === 'compact-portrait-pair') {
     return (
@@ -16,6 +21,7 @@ export default function ProjectMedia({ project, variant = 'default' }: ProjectMe
           <figure key={image} className="border border-white-line bg-ink p-2 sm:p-3">
             <img
               src={image}
+              loading="lazy" decoding="async"
               alt={`${project.title} preview ${index + 1}`}
               className="block h-auto w-full object-contain"
             />
@@ -29,7 +35,8 @@ export default function ProjectMedia({ project, variant = 'default' }: ProjectMe
     return (
       <figure className="ml-auto w-full max-w-4xl overflow-hidden border border-white-line bg-ink-soft p-3 sm:p-4 md:p-5">
         <img
-          src={project.images[0]}
+          {...preview}
+          loading="lazy" decoding="async"
           alt={`${project.title} preview`}
           className="block aspect-video w-full object-cover object-top"
         />
@@ -44,6 +51,7 @@ export default function ProjectMedia({ project, variant = 'default' }: ProjectMe
           <figure key={image} className="border border-white-line bg-ink-soft p-2">
             <img
               src={image}
+              loading="lazy" decoding="async"
               alt={`${project.title} preview ${index + 1}`}
               className="block h-auto w-full object-contain"
             />
@@ -56,7 +64,8 @@ export default function ProjectMedia({ project, variant = 'default' }: ProjectMe
   return (
     <figure className="w-full border border-white-line bg-ink-soft p-3 md:p-4">
       <img
-        src={project.images[0]}
+        {...preview}
+        loading="lazy" decoding="async"
         alt={`${project.title} preview`}
         className="block aspect-video w-full object-cover object-top"
       />

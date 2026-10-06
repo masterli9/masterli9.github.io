@@ -29,6 +29,10 @@ export function createStatementReveal(
   }))
 }
 
+export function createStatementHeadingReveal(words: string[]) {
+  return createStatementReveal(words, 1, 0, Math.min(0.045, 0.35 / Math.max(1, words.length - 1)))
+}
+
 export function getReboundPlatformGeometry(bounds: StatementReboundBounds) {
   const width = Math.min(bounds.width, Math.max(180, Math.min(bounds.width * 0.92, 360)))
   const left = bounds.left

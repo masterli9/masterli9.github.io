@@ -1,4 +1,54 @@
 import assert from 'node:assert/strict'
+test('every formed part clears the paint exit at mobile scale without losing its identity', async () => {
+  const Matter = (await import('matter-js')).default
+  const { getPaintInspectionExitGeometry } = await import('../src/factory/stations/paintInspectionModel.ts')
+  const { createFactoryBody } = await import('../src/factory/factoryPartPhysics.ts')
+  const { LANDING_PART_BLUEPRINTS } = await import('../src/factory/landingPartBlueprints.ts')
+  for (const width of [192, 208, 288]) {
+    const exit = getPaintInspectionExitGeometry(width)
+    const scale = width / 260
+    for (const [sequence, blueprint] of LANDING_PART_BLUEPRINTS.entries()) {
+      const engine = Matter.Engine.create({ gravity: { x: 0, y: 1, scale: 0.00145 } })
+      const spec = { ...blueprint, id: `exit-${sequence}`, sequence, stage: 'inspected', scaleX: 1.25, scaleY: 1.5 }
+      const body = createFactoryBody(spec, { x: 130 * scale, y: 330 * scale, angle: 0, velocityX: 0, velocityY: 3, angularVelocity: 0 })
+      const rails = [exit.x1, exit.x2].map(x => Matter.Bodies.rectangle(x * scale, 454 * scale, 4 * scale, 190 * scale, { isStatic: true }))
+      Matter.Composite.add(engine.world, [...rails, body])
+      for (let step = 0; step < 180; step++) Matter.Engine.update(engine, 1000 / 120)
+      assert.ok(body.bounds.min.y > 550 * scale, `${width}px: ${spec.shape} jams at exit`)
+      assert.equal(body.plugin.factoryPartSpec.id, spec.id)
+      Matter.Engine.clear(engine)
+    }
+  }
+  assert.deepEqual(getPaintInspectionExitGeometry(288), { x1: 82, x2: 178 })
+})
+test('station timers pause their remaining phase time and discard cancelled work', async () => {
+  const { createPausableTimers } = await import('../src/hooks/pausableTimers.ts')
+  let now = 0, id = 0
+  const pending = new Map()
+  const queue = createPausableTimers({ now: () => now, schedule: (fn, ms) => { pending.set(++id, { fn, ms }); return id }, cancel: id => pending.delete(id) })
+  let calls = 0
+  queue.schedule(() => calls++, 760)
+  now = 200; queue.pause()
+  assert.equal(pending.size, 0)
+  now = 20000; queue.resume()
+  assert.equal([...pending.values()][0].ms, 560)
+  const callback = [...pending.values()][0].fn
+  queue.clear(); callback()
+  assert.equal(calls, 0)
+  queue.schedule(() => calls++, 100)
+  const task = [...pending.values()][0]; pending.clear(); now += 100; task.fn()
+  assert.equal(calls, 1)
+  assert.equal(queue.size, 0)
+})
+// The reveal group must fit the same budget regardless of translated word count.
+test('Statement heading finishes within 700ms in both languages', async () => {
+  const { createStatementHeadingReveal } = await import('../src/factory/stations/statementReboundModel.ts')
+  for (const count of [2, 10, 25]) {
+    const reveal = createStatementHeadingReveal(Array(count).fill('word'))
+    assert.ok(reveal.at(-1).revealAt + 0.35 <= 0.700001)
+    assert.equal(reveal[0].revealAt, 0)
+  }
+})
 import { test } from 'node:test'
 import Matter from 'matter-js'
 

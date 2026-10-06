@@ -1,4 +1,6 @@
 import type { FactoryPartSpec } from '../factoryTypes'
+import { LANDING_PART_BLUEPRINTS } from '../landingPartBlueprints.ts'
+import { getFactoryPartDimensions } from '../factoryPartPhysics.ts'
 
 export type PaintInspectionPhase = 'falling' | 'captured' | 'coating' | 'printing' | 'inspecting' | 'released'
 export type PaintInspectionEvent = 'capture' | 'coat-start' | 'coat-complete' | 'print-complete' | 'inspection-complete'
@@ -22,6 +24,17 @@ const PAINT_INSPECTION_GEOMETRY = {
 
 export function getPaintInspectionGeometry() {
   return PAINT_INSPECTION_GEOMETRY
+}
+
+const widestFinishedPart = Math.max(...LANDING_PART_BLUEPRINTS.map(({ shape }) => {
+  const dimensions = getFactoryPartDimensions(shape, 1.25, 1.5)
+  return 'width' in dimensions ? dimensions.width : dimensions.radius * 2
+}))
+
+export function getPaintInspectionExitGeometry(stationWidth: number) {
+  // Bodies keep their actual pixel dimensions when the SVG station shrinks.
+  const gap = Math.max(96, (widestFinishedPart + 8) * 260 / Math.max(stationWidth, 1) + 4)
+  return { x1: 130 - gap / 2, x2: 130 + gap / 2 }
 }
 
 export function shouldShowPaintMist(color: string) {

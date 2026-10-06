@@ -1,7 +1,7 @@
 .contact-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "intro" "assembler" "form";
+  grid-template-areas: "intro" "form" "assembler";
   gap: 4rem;
 }
 
